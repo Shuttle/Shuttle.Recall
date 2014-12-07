@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Recall.Core", "Shuttle.Recall.Core\Shuttle.Recall.Core.csproj", "{AC1E802C-6617-42C4-ACAA-94A8B208A93B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C6B346C2-F528-4CC6-838B-0824C5C750A6}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Recall.Core.Tests", "Shuttle.Recall.Core.Tests\Shuttle.Recall.Core.Tests.csproj", "{ECBBDB97-F4AD-440A-9EDA-D61EE70AACDF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AC1E802C-6617-42C4-ACAA-94A8B208A93B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC1E802C-6617-42C4-ACAA-94A8B208A93B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC1E802C-6617-42C4-ACAA-94A8B208A93B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC1E802C-6617-42C4-ACAA-94A8B208A93B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECBBDB97-F4AD-440A-9EDA-D61EE70AACDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECBBDB97-F4AD-440A-9EDA-D61EE70AACDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECBBDB97-F4AD-440A-9EDA-D61EE70AACDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECBBDB97-F4AD-440A-9EDA-D61EE70AACDF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
