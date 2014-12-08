@@ -2,8 +2,9 @@
 
 namespace Shuttle.Recall.Core
 {
-	public interface IEventStreamRepository
+	public interface IEventStore
 	{
 		EventStream Get(Guid id);
+		void Save(EventStream eventStream);
 	}
 }

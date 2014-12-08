@@ -1,14 +1,18 @@
+using System.IO;
+
 namespace Shuttle.Recall.Core
 {
 	public class Event
 	{
-		public Event(long version, object data)
+		public Event(int version, string assemblyQualifiedName, object data)
 		{
 			Version = version;
+			AssemblyQualifiedName = assemblyQualifiedName;
 			Data = data;
 		}
 
-		public long Version { get; private set; }
+		public int Version { get; private set; }
+		public string AssemblyQualifiedName { get; private set; }
 		public object Data { get; private set; }
 	}
 }

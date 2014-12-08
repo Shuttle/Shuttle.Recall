@@ -1,8 +1,19 @@
-﻿namespace Shuttle.Recall.Core.Tests
+﻿using System;
+using Shuttle.Core.Infrastructure;
+
+namespace Shuttle.Recall.Core.Tests
 {
 	public class Aggregate
 	{
-		private readonly AggregateState _state = new AggregateState();
+		public Guid Id { get; private set; }
+
+		public AggregateState State { get; private set; }
+
+		public Aggregate(Guid id)
+		{
+			State = new AggregateState();
+			Id = id;
+		}
 
 		public MovedEvent Move(MoveCommand command)
 		{
@@ -19,7 +30,14 @@
 
 		public void Done(MovedEvent @event)
 		{
-			_state.Location = new Location(@event.Address, @event.DateMoved);
+			State.Location = new Location(@event.Address, @event.DateMoved);
+		}
+
+		public void Done(AggregateState state)
+		{
+			Guard.AgainstNull(state, "state");
+
+			State = state;
 		}
 	}
 }
