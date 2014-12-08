@@ -56,12 +56,14 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DefaultSerializer.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="EventStream.cs" />
     <Compile Include="IEventStore.cs" />
@@ -72,6 +74,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>RecallResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SerializerUnknownTypeExcption.cs" />
     <Compile Include="UnhandledEventException.cs" />
   </ItemGroup>
   <ItemGroup>
