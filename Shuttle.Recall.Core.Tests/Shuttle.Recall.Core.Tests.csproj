@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventStoreTests.cs" />
+    <Compile Include="EventStreamTests.cs" />
     <Compile Include="Fakes\EventStore.cs" />
     <Compile Include="Mocks\Aggregate.cs" />
     <Compile Include="Mocks\AggregateState.cs" />

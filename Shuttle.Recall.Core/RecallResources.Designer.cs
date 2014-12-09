@@ -61,6 +61,15 @@ namespace Shuttle.Recall.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The event stream for id &apos;{0}&apos; is at version {1} but the caller expected it to be at version {2}..
+        /// </summary>
+        internal static string EventStreamConcurrencyException {
+            get {
+                return ResourceManager.GetString("EventStreamConcurrencyException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; is not registered with the serializer so it cannot be serialized.  Please use [SerialierInstance].AddKnownType to add the type before attempting to serialize or deserialize a TransportMessage containing this type in the object graph of the message property..
         /// </summary>
         internal static string SerializerUnknownTypeExcption {

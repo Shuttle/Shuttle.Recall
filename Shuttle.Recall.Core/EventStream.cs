@@ -71,5 +71,13 @@ namespace Shuttle.Recall.Core
 				method.Invoke(instance, new[] {@event.Data});
 			}
 		}
+
+		public void ConcurrencyInvariant(int expectedVersion)
+		{
+			if (expectedVersion != Version)
+			{
+				throw new EventStreamConcurrencyException(string.Format(RecallResources.EventStreamConcurrencyException, Id, Version, expectedVersion));
+			}
+		}
 	}
 }

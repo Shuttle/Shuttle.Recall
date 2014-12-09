@@ -66,6 +66,7 @@
     <Compile Include="DefaultSerializer.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="EventStream.cs" />
+    <Compile Include="EventStreamConcurrencyException.cs" />
     <Compile Include="IEventStore.cs" />
     <Compile Include="ISerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
