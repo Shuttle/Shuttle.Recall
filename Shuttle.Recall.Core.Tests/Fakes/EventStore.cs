@@ -1,36 +1,60 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Shuttle.Recall.Core.Tests
 {
 	public class EventStore : IEventStore
 	{
 		private readonly Dictionary<Guid, EventStream> _eventStreams = new Dictionary<Guid, EventStream>();
+		private readonly Dictionary<Guid, Event> _snapshots = new Dictionary<Guid, Event>();
 
 		public EventStream Get(Guid id)
 		{
 			if (!_eventStreams.ContainsKey(id))
 			{
-				_eventStreams.Add(id, new EventStream(id, 0, new List<Event>()));
+				_eventStreams.Add(id, new EventStream(id, 0, new List<Event>(), FindSnapshot(id)));
 			}
 
 			return _eventStreams[id];
 		}
 
-		public void Save(EventStream eventStream)
+		private Event FindSnapshot(Guid id)
+		{
+			return _snapshots.ContainsKey(id)
+				? _snapshots[id]
+				: null;
+		}
+
+		public EventStream GetRaw(Guid id)
+		{
+			if (!_eventStreams.ContainsKey(id))
+			{
+				_eventStreams.Add(id, new EventStream(id, 0, new List<Event>(), null));
+			}
+
+			return _eventStreams[id];
+		}
+
+		public void SaveEventStream(EventStream eventStream)
 		{
 			if (_eventStreams.ContainsKey(eventStream.Id))
 			{
 				_eventStreams.Remove(eventStream.Id);
 			}
 
-			var events = new List<Event>();
+			_eventStreams.Add(eventStream.Id, new EventStream(eventStream.Id, eventStream.Version, eventStream.EventsAfter(0), eventStream.Snapshot));
 
-			events.AddRange(eventStream.PastEvents());
-			events.AddRange(eventStream.NewEvents());
+			if (!eventStream.HasSnapshot)
+			{
+				return;
+			}
 
-			_eventStreams.Add(eventStream.Id, new EventStream(eventStream.Id, eventStream.PastEvents().Count() + eventStream.NewEvents().Count(), events));
+			if (_snapshots.ContainsKey(eventStream.Id))
+			{
+				_snapshots.Remove(eventStream.Id);
+			}
+
+			_snapshots.Add(eventStream.Id, eventStream.Snapshot);
 		}
 	}
 }

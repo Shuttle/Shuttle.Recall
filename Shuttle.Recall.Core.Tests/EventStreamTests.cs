@@ -10,7 +10,7 @@ namespace Shuttle.Recall.Core.Tests
 		[Test]
 		public void Should_be_able_to_handle_concurrency_invariant_check()
 		{
-			var stream = new EventStream(Guid.NewGuid(), 5, new List<Event>());
+			var stream = new EventStream(Guid.NewGuid(), 5, new List<Event>(), null);
 
 			Assert.DoesNotThrow(() => stream.ConcurrencyInvariant(5));
 			Assert.Throws<EventStreamConcurrencyException>(() => stream.ConcurrencyInvariant(10));

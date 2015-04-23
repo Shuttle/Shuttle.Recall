@@ -8,13 +8,14 @@ namespace Shuttle.Recall.Core
 	public class EventStream
 	{
 		private readonly List<Event> _events = new List<Event>();
-		private int _nextVersion;
+		private readonly int _initialVersion;
 
-		public EventStream(Guid id, int version, IEnumerable<Event> events)
+		public EventStream(Guid id, int version, IEnumerable<Event> events, Event snapshot)
 		{
 			Id = id;
 			Version = version;
-			_nextVersion = version + 1;
+			_initialVersion = version;
+			Snapshot = snapshot;
 
 			if (events != null)
 			{
@@ -23,30 +24,48 @@ namespace Shuttle.Recall.Core
 		}
 
 		public Guid Id { get; private set; }
-		public long Version { get; private set; }
+		public int Version { get; private set; }
+		public Event Snapshot { get; private set; }
 
-		public void Add(object data)
+		public void AddEvent(object data)
 		{
-			_events.Add(new Event(GetNextVersion(), data.GetType().AssemblyQualifiedName, data));
+			Guard.AgainstNull(data, "data");
+
+			Version = Version + 1;
+
+			_events.Add(new Event(Version, data.GetType().AssemblyQualifiedName, data));
 		}
 
-		private int GetNextVersion()
+		public void AddSnapshot(object data)
 		{
-			var result = _nextVersion;
+			Guard.AgainstNull(data, "data");
 
-			_nextVersion = _nextVersion + 1;
+			Snapshot = new Event(Version, data.GetType().AssemblyQualifiedName, data);
+		}
 
-			return result;
+		public bool ShouldSnapshot(int minimumEventCount)
+		{
+			return _events.Count >= minimumEventCount;
+		}
+
+		public IEnumerable<Event> EventsAfter(Event @event)
+		{
+			return _events.Where(e => e.Version > @event.Version);
+		}
+
+		public IEnumerable<Event> EventsAfter(int version)
+		{
+			return _events.Where(e => e.Version > version);
 		}
 
 		public IEnumerable<Event> NewEvents()
 		{
-			return _events.Where(e => e.Version > Version);
+			return _events.Where(e => e.Version > _initialVersion);
 		}
 
 		public IEnumerable<Event> PastEvents()
 		{
-			return _events.Where(e => e.Version <= Version);
+			return _events.Where(e => e.Version <= _initialVersion);
 		}
 
 		public void Apply(object instance)
@@ -58,7 +77,14 @@ namespace Shuttle.Recall.Core
 		{
 			Guard.AgainstNull(instance, "instance");
 
-			foreach (var @event in PastEvents())
+			var events = new List<Event>(PastEvents());
+
+			if (HasSnapshot)
+			{
+				events.Insert(0, Snapshot);
+			}
+
+			foreach (var @event in events)
 			{
 				var method = instance.GetType().GetMethod(eventHandlingMethodName, new[] {@event.Data.GetType()});
 
@@ -72,11 +98,16 @@ namespace Shuttle.Recall.Core
 			}
 		}
 
+		public bool HasSnapshot
+		{
+			get { return Snapshot != null; }
+		}
+
 		public void ConcurrencyInvariant(int expectedVersion)
 		{
-			if (expectedVersion != Version)
+			if (expectedVersion != _initialVersion)
 			{
-				throw new EventStreamConcurrencyException(string.Format(RecallResources.EventStreamConcurrencyException, Id, Version, expectedVersion));
+				throw new EventStreamConcurrencyException(string.Format(RecallResources.EventStreamConcurrencyException, Id, _initialVersion, expectedVersion));
 			}
 		}
 	}

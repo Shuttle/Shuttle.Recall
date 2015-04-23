@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace Shuttle.Recall.Core
 {
 	public class Event
