@@ -10,6 +10,13 @@ namespace Shuttle.Recall.Core
 		private readonly List<Event> _events = new List<Event>();
 		private readonly int _initialVersion;
 
+		public EventStream(Guid id)
+		{
+			Id = id;
+			Version = 0;
+			_initialVersion = 0;
+		}
+
 		public EventStream(Guid id, int version, IEnumerable<Event> events, Event snapshot)
 		{
 			Id = id;
@@ -70,7 +77,7 @@ namespace Shuttle.Recall.Core
 
 		public void Apply(object instance)
 		{
-			Apply(instance, "Done");
+			Apply(instance, "Apply");
 		}
 
 		public void Apply(object instance, string eventHandlingMethodName)

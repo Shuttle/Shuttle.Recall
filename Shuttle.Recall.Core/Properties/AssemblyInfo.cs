@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #if NET35FULL
@@ -18,11 +17,11 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Shuttle.Recall.Core for .NET Framework 4.5.1")]
 #endif
 
-[assembly: AssemblyVersion("1.0.5.0")]
+[assembly: AssemblyVersion("1.0.6.0")]
 [assembly: AssemblyCopyright("Copyright © Eben Roux 2010-2014")]
 [assembly: AssemblyProduct("Shuttle.Recall")]
 [assembly: AssemblyCompany("Shuttle")]
 [assembly: AssemblyConfiguration("Release")]
-[assembly: AssemblyInformationalVersion("1.0.5")]
+[assembly: AssemblyInformationalVersion("1.0.6")]
 [assembly: ComVisible(false)]
 
