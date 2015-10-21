@@ -23,17 +23,17 @@ namespace Shuttle.Recall.Core.Tests
 				DateMoved = command.DateMoved
 			};
 
-			Done(movedEvent);
+			On(movedEvent);
 
 			return movedEvent;
 		}
 
-		public void Done(MovedEvent @event)
+		public void On(MovedEvent @event)
 		{
 			State.Location = new Location(@event.Address, @event.DateMoved);
 		}
 
-		public void Done(AggregateState state)
+		public void On(AggregateState state)
 		{
 			Guard.AgainstNull(state, "state");
 

@@ -77,7 +77,7 @@ namespace Shuttle.Recall.Core
 
 		public void Apply(object instance)
 		{
-			Apply(instance, "Apply");
+			Apply(instance, "On");
 		}
 
 		public void Apply(object instance, string eventHandlingMethodName)
