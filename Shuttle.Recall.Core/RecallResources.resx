@@ -112,10 +112,10 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="EventStreamConcurrencyException" xml:space="preserve">
     <value>The event stream for id '{0}' is at version {1} but the caller expected it to be at version {2}.</value>
@@ -126,7 +126,7 @@
     <comment>{0} = type name that is unknown.</comment>
   </data>
   <data name="UnhandledEventException" xml:space="preserve">
-    <value>Instance of type '{0}' does not have a method named '{1}' that accepts event of type '{2}'.</value>
+    <value>Instance of type '{0}' does not have a method named '{1}' that accepts event of type '{2}'.  It may be that the method is not public.</value>
     <comment>{0} = assembly qualified name of instance that event should be applied to, {1} = the method name that is expected, {2} = the assembly qualified name of the event</comment>
   </data>
 </root>

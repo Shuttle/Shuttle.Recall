@@ -6,6 +6,7 @@ namespace Shuttle.Recall.Core
 	{
 		EventStream Get(Guid id);
 		EventStream GetRaw(Guid id);
+		void Remove(Guid id);
 		void SaveEventStream(EventStream eventStream);
 	}
 }

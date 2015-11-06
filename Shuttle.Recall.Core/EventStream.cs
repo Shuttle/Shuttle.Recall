@@ -34,7 +34,12 @@ namespace Shuttle.Recall.Core
 		public int Version { get; private set; }
 		public Event Snapshot { get; private set; }
 
-		public void AddEvent(object data)
+	    public bool IsEmpty
+	    {
+	        get { return _events.Count == 0; }
+	    }
+
+	    public void AddEvent(object data)
 		{
 			Guard.AgainstNull(data, "data");
 
@@ -91,14 +96,16 @@ namespace Shuttle.Recall.Core
 				events.Insert(0, Snapshot);
 			}
 
-			foreach (var @event in events)
+            var instanceType = instance.GetType();
+            
+            foreach (var @event in events)
 			{
-				var method = instance.GetType().GetMethod(eventHandlingMethodName, new[] {@event.Data.GetType()});
+			    var method = instanceType.GetMethod(eventHandlingMethodName, new[] {@event.Data.GetType()});
 
 				if (method == null)
 				{
 					throw new UnhandledEventException(string.Format(RecallResources.UnhandledEventException,
-						instance.GetType().AssemblyQualifiedName, eventHandlingMethodName, @event.GetType().AssemblyQualifiedName));
+						instanceType.AssemblyQualifiedName, eventHandlingMethodName, @event.Data.GetType().AssemblyQualifiedName));
 				}
 
 				method.Invoke(instance, new[] {@event.Data});

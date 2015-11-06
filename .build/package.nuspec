@@ -9,7 +9,7 @@
 		<projectUrl>https://github.com/shuttle/shuttle-recall-core</projectUrl>
 		<iconUrl>https://raw.githubusercontent.com/Shuttle/shuttle-recall-core/master/.media/logo.png</iconUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<description>[EXPERIMENTAL] Event Sourcing mechanism.</description>
+		<description>Event Sourcing mechanism.</description>
 		<releaseNotes/>
 		<copyright>Copyright (c) 2011-{year}, Eben Roux</copyright>
 		<tags>shuttle shuttle-recall event-sourcing</tags>

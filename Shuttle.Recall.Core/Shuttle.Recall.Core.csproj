@@ -84,6 +84,7 @@
     <EmbeddedResource Include="RecallResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>RecallResources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

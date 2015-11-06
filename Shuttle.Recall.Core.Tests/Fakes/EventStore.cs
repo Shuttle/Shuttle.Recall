@@ -35,7 +35,13 @@ namespace Shuttle.Recall.Core.Tests
 			return _eventStreams[id];
 		}
 
-		public void SaveEventStream(EventStream eventStream)
+	    public void Remove(Guid id)
+	    {
+	        _eventStreams.Remove(id);
+	        _snapshots.Remove(id);
+	    }
+
+	    public void SaveEventStream(EventStream eventStream)
 		{
 			if (_eventStreams.ContainsKey(eventStream.Id))
 			{
