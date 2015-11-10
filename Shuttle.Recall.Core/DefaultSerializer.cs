@@ -16,18 +16,18 @@ namespace Shuttle.Recall.Core
 		private const string TypeError = "--- could not retrieve type name from exception ---";
 		private const string XmlInclude = "XmlInclude";
 
-		private static readonly Regex expression = new Regex(@"The\stype\s(?<Type>[\w\\.]*)");
+		private static readonly Regex Expression = new Regex(@"The\stype\s(?<Type>[\w\\.]*)");
 
-		private static readonly object padlock = new object();
+		private static readonly object Padlock = new object();
 
-		private readonly List<Type> knownTypes = new List<Type>();
-		private readonly XmlWriterSettings xmlSettings;
-		private Dictionary<string, XmlSerializer> serializers = new Dictionary<string, XmlSerializer>();
-		private Dictionary<string, XmlSerializerNamespaces> serializerNamespaces = new Dictionary<string, XmlSerializerNamespaces>();
+		private readonly List<Type> _knownTypes = new List<Type>();
+		private readonly XmlWriterSettings _xmlSettings;
+		private Dictionary<string, XmlSerializer> _serializers = new Dictionary<string, XmlSerializer>();
+		private Dictionary<string, XmlSerializerNamespaces> _serializerNamespaces = new Dictionary<string, XmlSerializerNamespaces>();
 
 		public DefaultSerializer()
 		{
-			xmlSettings = new XmlWriterSettings
+			_xmlSettings = new XmlWriterSettings
 			{
 				Encoding = Encoding.UTF8,
 				OmitXmlDeclaration = true,
@@ -44,14 +44,14 @@ namespace Shuttle.Recall.Core
 				return;
 			}
 
-			lock (padlock)
+			lock (Padlock)
 			{
 				if (HasKnownType(type))
 				{
 					return;
 				}
 
-				knownTypes.Add(type);
+				_knownTypes.Add(type);
 
 				foreach (var nested in type.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic))
 				{
@@ -67,10 +67,13 @@ namespace Shuttle.Recall.Core
 
 		public bool HasKnownType(Type type)
 		{
-			return knownTypes.Find(candidate => candidate.AssemblyQualifiedName.Equals(type.AssemblyQualifiedName, StringComparison.InvariantCultureIgnoreCase)) != null;
+		    lock (Padlock)
+		    {
+		        return _knownTypes.Find(candidate => (candidate.AssemblyQualifiedName ?? String.Empty).Equals(type.AssemblyQualifiedName, StringComparison.InvariantCultureIgnoreCase)) != null;
+		    }
 		}
 
-		public Stream Serialize(object instance)
+	    public Stream Serialize(object instance)
 		{
 			Guard.AgainstNull(instance, "instance");
 
@@ -82,7 +85,7 @@ namespace Shuttle.Recall.Core
 
 			var xml = new StringBuilder();
 
-			using (var writer = XmlWriter.Create(xml, xmlSettings))
+			using (var writer = XmlWriter.Create(xml, _xmlSettings))
 			{
 				try
 				{
@@ -126,13 +129,13 @@ namespace Shuttle.Recall.Core
 
 		private void ResetSerializers()
 		{
-			serializers = new Dictionary<string, XmlSerializer>();
-			serializerNamespaces = new Dictionary<string, XmlSerializerNamespaces>();
+			_serializers = new Dictionary<string, XmlSerializer>();
+			_serializerNamespaces = new Dictionary<string, XmlSerializerNamespaces>();
 		}
 
 		private static string GetTypeName(Exception exception)
 		{
-			var match = expression.Match(exception.Message);
+			var match = Expression.Match(exception.Message);
 
 			var group = match.Groups["Type"];
 
@@ -162,33 +165,43 @@ namespace Shuttle.Recall.Core
 
 		private XmlSerializer GetSerializer(Type type)
 		{
-			lock (padlock)
+			lock (Padlock)
 			{
 				var key = type.AssemblyQualifiedName;
 
-				if (!serializers.ContainsKey(key))
+			    if (string.IsNullOrEmpty(key))
+			    {
+			        throw new ApplicationException();
+			    }
+
+			    if (!_serializers.ContainsKey(key))
 				{
-					serializers.Add(key, new XmlSerializer(type, knownTypes.ToArray()));
+					_serializers.Add(key, new XmlSerializer(type, _knownTypes.ToArray()));
 				}
 
-				return serializers[key];
+				return _serializers[key];
 			}
 		}
 
 		private XmlSerializerNamespaces GetSerializerNamespaces(Type type)
 		{
-			lock (padlock)
+			lock (Padlock)
 			{
 				var key = type.AssemblyQualifiedName;
 
-				if (!serializerNamespaces.ContainsKey(key))
+                if (string.IsNullOrEmpty(key))
+                {
+                    throw new ApplicationException();
+                }
+                
+                if (!_serializerNamespaces.ContainsKey(key))
 				{
 					var namespacesAdded = new List<string>();
 					var namespaces = new XmlSerializerNamespaces();
 
 					var q = 1;
 
-					foreach (var knownType in knownTypes)
+					foreach (var knownType in _knownTypes)
 					{
 						if (string.IsNullOrEmpty(knownType.Namespace) || namespacesAdded.Contains(knownType.Namespace))
 						{
@@ -199,10 +212,10 @@ namespace Shuttle.Recall.Core
 						namespacesAdded.Add(knownType.Namespace);
 					}
 
-					serializerNamespaces.Add(key, namespaces);
+					_serializerNamespaces.Add(key, namespaces);
 				}
 
-				return serializerNamespaces[key];
+				return _serializerNamespaces[key];
 			}
 		}
 	}

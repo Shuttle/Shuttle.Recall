@@ -33,6 +33,12 @@ namespace Shuttle.Recall.Core
 		public Guid Id { get; private set; }
 		public int Version { get; private set; }
 		public Event Snapshot { get; private set; }
+	    public bool Removed { get; private set; }
+
+	    public void Remove()
+	    {
+	        Removed = true;
+	    }
 
 	    public bool IsEmpty
 	    {
