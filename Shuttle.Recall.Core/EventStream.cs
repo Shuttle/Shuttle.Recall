@@ -7,6 +7,7 @@ namespace Shuttle.Recall.Core
 {
 	public class EventStream
 	{
+	    private ICanSnapshot _canSnapshot = null;
 		private readonly List<Event> _events = new List<Event>();
 		private readonly int _initialVersion;
 
@@ -61,12 +62,29 @@ namespace Shuttle.Recall.Core
 			Snapshot = new Event(Version, data.GetType().AssemblyQualifiedName, data);
 		}
 
-		public bool ShouldSnapshot(int minimumEventCount)
+		public bool ShouldSnapshot(int snapshotEventCount)
 		{
-			return _events.Count >= minimumEventCount;
+			return _events.Count >= snapshotEventCount;
 		}
 
-		public IEnumerable<Event> EventsAfter(Event @event)
+	    public bool AttemptSnapshot(int snapshotEventCount)
+	    {
+	        if (!CanSnapshot || !ShouldSnapshot(snapshotEventCount))
+	        {
+	            return false;
+	        }
+
+            AddSnapshot(_canSnapshot.GetSnapshotEvent());
+
+	        return true;
+	    }
+
+	    public bool CanSnapshot
+	    {
+	        get { return _canSnapshot != null; }
+	    }
+
+	    public IEnumerable<Event> EventsAfter(Event @event)
 		{
 			return _events.Where(e => e.Version > @event.Version);
 		}
@@ -95,6 +113,8 @@ namespace Shuttle.Recall.Core
 		{
 			Guard.AgainstNull(instance, "instance");
 
+            _canSnapshot = instance as ICanSnapshot;
+            
 			var events = new List<Event>(PastEvents());
 
 			if (HasSnapshot)

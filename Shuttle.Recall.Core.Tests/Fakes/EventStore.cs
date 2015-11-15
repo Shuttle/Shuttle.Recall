@@ -54,6 +54,7 @@ namespace Shuttle.Recall.Core.Tests
 				_eventStreams.Remove(eventStream.Id);
 			}
 
+	        eventStream.AttemptSnapshot(100);
 			_eventStreams.Add(eventStream.Id, new EventStream(eventStream.Id, eventStream.Version, eventStream.EventsAfter(0), eventStream.Snapshot));
 
 			if (!eventStream.HasSnapshot)

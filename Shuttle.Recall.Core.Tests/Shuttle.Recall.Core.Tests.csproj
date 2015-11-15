@@ -54,6 +54,7 @@
     <Compile Include="Fakes\EventStore.cs" />
     <Compile Include="Mocks\Aggregate.cs" />
     <Compile Include="Mocks\AggregateState.cs" />
+    <Compile Include="Mocks\AggregateCanSnapshot.cs" />
     <Compile Include="Mocks\Location.cs" />
     <Compile Include="Mocks\MoveCommand.cs" />
     <Compile Include="Mocks\MovedEvent.cs" />

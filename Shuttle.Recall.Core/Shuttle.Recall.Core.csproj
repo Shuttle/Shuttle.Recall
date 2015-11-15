@@ -64,6 +64,7 @@
     <Compile Include="IEventStore.cs" />
     <Compile Include="IKeyStore.cs" />
     <Compile Include="ISerializer.cs" />
+    <Compile Include="ICanSnapshot.cs" />
     <Compile Include="ITypeRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecallResources.Designer.cs">
