@@ -47,9 +47,9 @@
     <DefineConstants>$(DefineConstants);NET451FULL</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Shuttle.Core.Infrastructure, Version=3.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Shuttle.Core.Infrastructure, Version=4.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\shuttle-core-infrastructure.3.3.1\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
+      <HintPath>..\packages\shuttle-core-infrastructure.4.0.3\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="DefaultSerializer.cs" />
     <Compile Include="Event.cs" />
+    <Compile Include="EventProcessing\IEventHandler.cs" />
     <Compile Include="EventStream.cs" />
     <Compile Include="EventStreamConcurrencyException.cs" />
     <Compile Include="IEventStore.cs" />
