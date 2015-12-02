@@ -11,23 +11,23 @@ namespace Shuttle.Recall.Core.Tests.EventProcessing
         private readonly object _padlock = new object();
         private readonly List<string> _propertyValues = new List<string>();
 
-        public void ProcessEvent(FakeEvent1 domainEvent)
+        public void ProcessEvent(IEventHandlerContext<FakeEvent1> context)
         {
-            Guard.AgainstNull(domainEvent, "domainEvent");
+            Guard.AgainstNull(context, "domainEvent");
 
             lock (_padlock)
             {
-                _propertyValues.Add(domainEvent.PropertyOne);
+                _propertyValues.Add(context.DomainEvent.PropertyOne);
             }
         }
 
-        public void ProcessEvent(FakeEvent2 domainEvent)
+        public void ProcessEvent(IEventHandlerContext<FakeEvent2> context)
         {
-            Guard.AgainstNull(domainEvent, "domainEvent");
+            Guard.AgainstNull(context, "domainEvent");
 
             lock (_padlock)
             {
-                _propertyValues.Add(domainEvent.PropertyTwo);
+                _propertyValues.Add(context.DomainEvent.PropertyTwo);
             }
         }
 

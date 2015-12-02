@@ -1,4 +1,5 @@
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using Shuttle.Core.Infrastructure;
 
@@ -29,40 +30,51 @@ namespace Shuttle.Recall.Core
         {
             Guard.AgainstNull(handler, "handler");
 
-            if (!EventHandlerType.IsInstanceOfType(handler))
+            var typesAddedCount = 0;
+
+            foreach (var interfaceType in handler.GetType().InterfacesAssignableTo(EventHandlerType))
+            {
+                var type = interfaceType.GetGenericArguments()[0];
+
+                _eventHandlers.Add(type, handler);
+
+                typesAddedCount++;
+            }
+
+            if (typesAddedCount == 0)
             {
                 throw new EventProcessingException(string.Format(RecallResources.InvalidEventHandlerType, handler.GetType().FullName));
             }
 
-            var type = handler.GetType().GetGenericArguments()[0];
-
-            _eventHandlers.Add(type, handler);
-
             return this;
         }
 
-        public void Process(object domainEvent)
+        public void Process(EventRead eventRead, IThreadState threadState)
         {
-            Guard.AgainstNull(domainEvent, "domainEvent");
+            Guard.AgainstNull(eventRead, "eventRead");
+            Guard.AgainstNull(threadState, "threadState");
 
-            var type = domainEvent.GetType();
+            var domainEventType = eventRead.Event.Data.GetType();
 
-            if (!HandlesType(type))
+            if (!HandlesType(domainEventType))
             {
                 return;
             }
 
-            var method = _eventHandlers[type].GetType().GetMethod("ProcessEvent", new[] { type });
+            var contextType = typeof(EventHandlerContext<>).MakeGenericType(domainEventType);
+            var method = _eventHandlers[domainEventType].GetType().GetMethod("ProcessEvent", new[] { contextType });
 
             if (method == null)
             {
                 throw new ProcessEventMethodMissingException(string.Format(
                     RecallResources.ProcessEventMethodMissingException,
-                    _eventHandlers[type].GetType().FullName,
-                    type.FullName));
+                    _eventHandlers[domainEventType].GetType().FullName,
+                    domainEventType.FullName));
             }
 
-            method.Invoke(_eventHandlers[type], new[] { domainEvent });
+            var handlerContext = Activator.CreateInstance(contextType, eventRead, eventRead.Event.Data, threadState);
+
+            method.Invoke(_eventHandlers[domainEventType], new object[] { handlerContext });
         }
     }
 }

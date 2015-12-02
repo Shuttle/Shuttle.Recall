@@ -39,7 +39,14 @@ namespace Shuttle.Recall.Core
                     _pool.Release(pipeline);
                 }
 
-                _threadActivity.Waiting(state);
+                if (pipeline.State.GetWorking())
+                {
+                    _threadActivity.Working();
+                }
+                else
+                {
+                    _threadActivity.Waiting(state);
+                }
             }
         }
     }

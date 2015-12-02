@@ -11,16 +11,16 @@ namespace Shuttle.Recall.Core
             var position = state.Get<IEventProjectorPosition>();
             var projector = state.Get<IEventProjector>();
 
-            var domainEvent = reader.GetEvent(position.GetSequenceNumber(projector.Name));
+            var eventRead = reader.GetEvent(position.GetSequenceNumber(projector.Name));
 
-            if (domainEvent == null)
+            if (eventRead == null)
             {
                 pipelineEvent.Pipeline.Abort();
             }
             else
             {
                 state.SetWorking();
-                state.SetDomainEvent(domainEvent);
+                state.Replace(eventRead);
             }
         }
     }

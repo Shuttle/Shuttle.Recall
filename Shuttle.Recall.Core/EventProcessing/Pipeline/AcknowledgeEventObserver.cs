@@ -6,7 +6,12 @@ namespace Shuttle.Recall.Core
     {
         public void Execute(OnAcknowledgeEvent pipelineEvent)
         {
-            throw new System.NotImplementedException();
+            var state = pipelineEvent.Pipeline.State;
+            var position = state.Get<IEventProjectorPosition>();
+            var eventRead = state.Get<EventRead>();
+            var projector = state.Get<IEventProjector>();
+
+            position.SetSequenceNumber(projector.Name, eventRead.SequenceNumber + 1);
         }
     }
 }

@@ -60,8 +60,10 @@
   <ItemGroup>
     <Compile Include="DefaultSerializer.cs" />
     <Compile Include="Event.cs" />
+    <Compile Include="EventProcessing\EventHandlerContext.cs" />
     <Compile Include="EventProcessing\EventProcessingException.cs" />
     <Compile Include="EventProcessing\EventRead.cs" />
+    <Compile Include="EventProcessing\IEventHandlerContext.cs" />
     <Compile Include="EventProcessing\Pipeline\AcknowledgeEventObserver.cs" />
     <Compile Include="EventProcessing\Pipeline\EventProcessingPipeline.cs" />
     <Compile Include="EventProcessing\EventProcessor.cs" />

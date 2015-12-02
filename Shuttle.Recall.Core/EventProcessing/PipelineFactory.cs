@@ -16,7 +16,7 @@ namespace Shuttle.Recall.Core
         {
             Guard.AgainstNull(configuration, "configuration");
 
-            var pipeline = (TPipeline)(_pool.Get(typeof(TPipeline)) ?? Activator.CreateInstance(typeof(TPipeline), configuration));
+            var pipeline = (TPipeline)(_pool.Get(typeof(TPipeline)) ?? Activator.CreateInstance(typeof(TPipeline)));
 
             pipeline.State.Clear();
             pipeline.State.Add(configuration);

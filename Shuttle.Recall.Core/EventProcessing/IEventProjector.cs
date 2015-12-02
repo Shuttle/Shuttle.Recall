@@ -1,4 +1,5 @@
 ﻿using System;
+using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Recall.Core
 {
@@ -7,6 +8,6 @@ namespace Shuttle.Recall.Core
         string Name { get; }
         bool HandlesType(Type type);
         EventProjector AddEventHandler(object handler);
-        void Process(object domainEvent);
+        void Process(EventRead eventRead, IThreadState threadState);
     }
 }
