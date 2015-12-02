@@ -59,9 +59,10 @@
   <ItemGroup>
     <Compile Include="DefaultSerializer.cs" />
     <Compile Include="Event.cs" />
-    <Compile Include="EventProcessing\IEventHandler.cs" />
     <Compile Include="EventStream.cs" />
     <Compile Include="EventStreamConcurrencyException.cs" />
+    <Compile Include="EventStreamEmptyException.cs" />
+    <Compile Include="EventStreamExtensions.cs" />
     <Compile Include="IEventStore.cs" />
     <Compile Include="IKeyStore.cs" />
     <Compile Include="ISerializer.cs" />
