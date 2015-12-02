@@ -15,5 +15,17 @@ namespace Shuttle.Recall.Core.Tests
 			Assert.DoesNotThrow(() => stream.ConcurrencyInvariant(5));
 			Assert.Throws<EventStreamConcurrencyException>(() => stream.ConcurrencyInvariant(10));
 		}
+
+	    [Test]
+	    public void Should_be_able_to_apply_empty_invariant()
+	    {
+	        EventStream stream = null;
+
+	        Assert.Throws<EventStreamEmptyException>(() => stream.EmptyInvariant());
+
+            stream = new EventStream(new Guid());
+
+	        Assert.Throws<EventStreamEmptyException>(() => stream.EmptyInvariant());
+	    }
 	}
 }
