@@ -7,11 +7,11 @@ namespace Shuttle.Recall.Core
         public void Execute(OnGetEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var reader = state.Get<IEventReader>();
-            var position = state.Get<IEventProjectorPosition>();
-            var projector = state.Get<IEventProjector>();
+            var reader = state.Get<IProjectionEventReader>();
+            var position = state.Get<IProjectionPosition>();
+            var projection = state.Get<IEventProjection>();
 
-            var eventRead = reader.GetEvent(position.GetSequenceNumber(projector.Name));
+            var eventRead = reader.GetEvent(position.GetSequenceNumber(projection.Name));
 
             if (eventRead == null)
             {

@@ -4,7 +4,7 @@ namespace Shuttle.Recall.Core
 {
     public interface IEventHandlerContext<out T> where T : class
     {
-        EventRead EventRead { get; }
+        ProjectionEvent ProjectionEvent { get; }
         T DomainEvent { get; }
         IThreadState ActiveState { get; }
     }

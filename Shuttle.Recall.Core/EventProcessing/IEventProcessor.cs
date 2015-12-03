@@ -8,6 +8,6 @@ namespace Shuttle.Recall.Core
         void Stop();
 
         bool Started { get; }
-        void AddEventProjector(IEventProjector eventProjector);
+        void AddEventProjection(IEventProjection eventProjection);
     }
 }

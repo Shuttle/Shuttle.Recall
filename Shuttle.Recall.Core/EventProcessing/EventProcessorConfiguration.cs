@@ -14,15 +14,15 @@ namespace Shuttle.Recall.Core
                     .ConvertFrom("250ms*4,500ms*2,1s");
 
         private TimeSpan[] _durationToSleepWhenIdle;
-        private IEventProjectorPosition _eventProjectorPosition;
-        private IEventReader _eventReader;
+        private IProjectionPosition _projectionPosition;
+        private IProjectionEventReader _projectionEventReader;
 
         private IPipelineFactory _pipelineFactory;
 
-        public EventProcessorConfiguration(IEventProjectorPosition eventProjectorPosition, IEventReader eventReader)
+        public EventProcessorConfiguration(IProjectionPosition projectionPosition, IProjectionEventReader projectionEventReader)
         {
-            EventProjectorPosition = eventProjectorPosition;
-            EventReader = eventReader;
+            ProjectionPosition = projectionPosition;
+            ProjectionEventReader = projectionEventReader;
         }
 
         public TimeSpan[] DurationToSleepWhenIdle
@@ -41,32 +41,32 @@ namespace Shuttle.Recall.Core
             set { _pipelineFactory = value; }
         }
 
-        public IEventProjectorPosition EventProjectorPosition
+        public IProjectionPosition ProjectionPosition
         {
             get
             {
-                if (_eventProjectorPosition == null)
+                if (_projectionPosition == null)
                 {
-                    throw new ConfigurationErrorsException(RecallResources.MissingEventProjectorPositionException);
+                    throw new ConfigurationErrorsException(RecallResources.MissingProjectionPositionException);
                 }
 
-                return _eventProjectorPosition;
+                return _projectionPosition;
             }
-            set { _eventProjectorPosition = value; }
+            set { _projectionPosition = value; }
         }
 
-        public IEventReader EventReader
+        public IProjectionEventReader ProjectionEventReader
         {
             get
             {
-                if (_eventReader == null)
+                if (_projectionEventReader == null)
                 {
                     throw new ConfigurationErrorsException(RecallResources.MissingEventReaderException);
                 }
 
-                return _eventReader;
+                return _projectionEventReader;
             }
-            set { _eventReader = value; }
+            set { _projectionEventReader = value; }
         }
 
         private static T Synchronised<T>(Func<T> f)

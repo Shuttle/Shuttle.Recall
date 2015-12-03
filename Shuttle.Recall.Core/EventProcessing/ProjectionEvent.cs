@@ -2,9 +2,9 @@
 
 namespace Shuttle.Recall.Core
 {
-    public class EventRead
+    public class ProjectionEvent
     {
-        public EventRead(Guid id, Event @event, DateTime dateRegistered, long sequenceNumber)
+        public ProjectionEvent(Guid id, Event @event, DateTime dateRegistered, long sequenceNumber)
         {
             DateRegistered = dateRegistered;
             Event = @event;

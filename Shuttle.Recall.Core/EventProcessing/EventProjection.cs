@@ -1,16 +1,15 @@
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Recall.Core
 {
-    public class EventProjector : IEventProjector
+    public class EventProjection : IEventProjection
     {
-        private static readonly Type EventHandlerType = typeof(IEventHandler<>);
+        private static readonly Type EventHandlerType = typeof (IEventHandler<>);
         private readonly Dictionary<Type, object> _eventHandlers = new Dictionary<Type, object>();
 
-        public EventProjector(string name)
+        public EventProjection(string name)
         {
             Guard.AgainstNullOrEmptyString(name, "name");
 
@@ -26,7 +25,7 @@ namespace Shuttle.Recall.Core
             return _eventHandlers.ContainsKey(type);
         }
 
-        public EventProjector AddEventHandler(object handler)
+        public EventProjection AddEventHandler(object handler)
         {
             Guard.AgainstNull(handler, "handler");
 
@@ -43,26 +42,27 @@ namespace Shuttle.Recall.Core
 
             if (typesAddedCount == 0)
             {
-                throw new EventProcessingException(string.Format(RecallResources.InvalidEventHandlerType, handler.GetType().FullName));
+                throw new EventProcessingException(string.Format(RecallResources.InvalidEventHandlerType,
+                    handler.GetType().FullName));
             }
 
             return this;
         }
 
-        public void Process(EventRead eventRead, IThreadState threadState)
+        public void Process(ProjectionEvent projectionEvent, IThreadState threadState)
         {
-            Guard.AgainstNull(eventRead, "eventRead");
+            Guard.AgainstNull(projectionEvent, "ProjectionEvent");
             Guard.AgainstNull(threadState, "threadState");
 
-            var domainEventType = eventRead.Event.Data.GetType();
+            var domainEventType = projectionEvent.Event.Data.GetType();
 
             if (!HandlesType(domainEventType))
             {
                 return;
             }
 
-            var contextType = typeof(EventHandlerContext<>).MakeGenericType(domainEventType);
-            var method = _eventHandlers[domainEventType].GetType().GetMethod("ProcessEvent", new[] { contextType });
+            var contextType = typeof (EventHandlerContext<>).MakeGenericType(domainEventType);
+            var method = _eventHandlers[domainEventType].GetType().GetMethod("ProcessEvent", new[] {contextType});
 
             if (method == null)
             {
@@ -72,9 +72,9 @@ namespace Shuttle.Recall.Core
                     domainEventType.FullName));
             }
 
-            var handlerContext = Activator.CreateInstance(contextType, eventRead, eventRead.Event.Data, threadState);
+            var handlerContext = Activator.CreateInstance(contextType, projectionEvent, projectionEvent.Event.Data, threadState);
 
-            method.Invoke(_eventHandlers[domainEventType], new object[] { handlerContext });
+            method.Invoke(_eventHandlers[domainEventType], new[] {handlerContext});
         }
     }
 }

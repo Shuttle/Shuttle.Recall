@@ -2,19 +2,19 @@
 
 namespace Shuttle.Recall.Core
 {
-    public class EventProjectorProcessor : IProcessor
+    public class EventProjectionProcessor : IProcessor
     {
         private readonly ReusableObjectPool<EventProcessingPipeline> _pool = new ReusableObjectPool<EventProcessingPipeline>();
-        private readonly IEventProjector _eventProjector;
+        private readonly IEventProjection _eventProjection;
         private readonly IEventProcessorConfiguration _configuration;
         private readonly IThreadActivity _threadActivity;
 
-        public EventProjectorProcessor(IEventProcessorConfiguration configuration, IEventProjector eventProjector)
+        public EventProjectionProcessor(IEventProcessorConfiguration configuration, IEventProjection eventProjection)
         {
-            Guard.AgainstNull(eventProjector, "eventProjector");
+            Guard.AgainstNull(eventProjection, "eventProjection");
             Guard.AgainstNull(configuration, "configuration");
 
-            _eventProjector = eventProjector;
+            _eventProjection = eventProjection;
             _configuration = configuration;
             _threadActivity = new ThreadActivity(configuration.DurationToSleepWhenIdle);
         }
@@ -25,9 +25,9 @@ namespace Shuttle.Recall.Core
             {
                 var pipeline = _configuration.PipelineFactory.GetPipeline<EventProcessingPipeline>(_configuration);
 
-                pipeline.State.Add(_eventProjector);
-                pipeline.State.Add(_configuration.EventReader);
-                pipeline.State.Add(_configuration.EventProjectorPosition);
+                pipeline.State.Add(_eventProjection);
+                pipeline.State.Add(_configuration.ProjectionEventReader);
+                pipeline.State.Add(_configuration.ProjectionPosition);
                 pipeline.State.Add(state);
 
                 try

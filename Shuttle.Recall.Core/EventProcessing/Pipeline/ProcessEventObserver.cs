@@ -7,15 +7,15 @@ namespace Shuttle.Recall.Core
         public void Execute(OnProcessEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var eventRead = state.Get<EventRead>();
-            var projector = state.Get<IEventProjector>();
+            var eventRead = state.Get<ProjectionEvent>();
+            var projection = state.Get<IEventProjection>();
 
-            if (!projector.HandlesType(eventRead.Event.Data.GetType()))
+            if (!projection.HandlesType(eventRead.Event.Data.GetType()))
             {
                 return;
             }
 
-            projector.Process(eventRead, state.Get<IThreadState>());
+            projection.Process(eventRead, state.Get<IThreadState>());
         }
     }
 }

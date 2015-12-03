@@ -12,19 +12,19 @@ namespace Shuttle.Recall.Core.Tests.EventProcessing
     {
         private static readonly Guid ID = Guid.NewGuid();
 
-        private static EventRead FakeEvent(object domainEvent, long sequenceNumber)
+        private static ProjectionEvent FakeEvent(object domainEvent, long sequenceNumber)
         {
-            return new EventRead(ID, new Event(1, domainEvent.GetType().AssemblyQualifiedName, domainEvent),
+            return new ProjectionEvent(ID, new Event(1, domainEvent.GetType().AssemblyQualifiedName, domainEvent),
                 DateTime.Now, sequenceNumber);
         }
 
         [Test]
         public void Should_be_able_to_create_projections()
         {
-            var positionMock = new Mock<IEventProjectorPosition>();
-            var readerMock = new Mock<IEventReader>();
+            var positionMock = new Mock<IProjectionPosition>();
+            var readerMock = new Mock<IProjectionEventReader>();
             var process = new EventProcessor(new EventProcessorConfiguration(positionMock.Object, readerMock.Object));
-            var eventProjector = new EventProjector("Test");
+            var eventProjection = new EventProjection("Test");
             var handler = new FakeEventHandler();
 
             readerMock.Setup(m => m.GetEvent(0)).Returns(FakeEvent(new FakeEvent1 { PropertyOne = "value0" }, 0));
@@ -33,7 +33,7 @@ namespace Shuttle.Recall.Core.Tests.EventProcessing
             readerMock.Setup(m => m.GetEvent(3)).Returns(FakeEvent(new FakeEvent1 { PropertyOne = "value3" }, 3));
             readerMock.Setup(m => m.GetEvent(4)).Returns(FakeEvent(new FakeEvent2 { PropertyTwo = "value4" }, 4));
             readerMock.Setup(m => m.GetEvent(5)).Returns(FakeEvent(new FakeEvent1 { PropertyOne = "[done]" }, 5));
-            readerMock.Setup(m => m.GetEvent(6)).Returns((EventRead)null);
+            readerMock.Setup(m => m.GetEvent(6)).Returns((ProjectionEvent)null);
 
             var position = new Queue<int>();
 
@@ -44,9 +44,9 @@ namespace Shuttle.Recall.Core.Tests.EventProcessing
 
             positionMock.Setup(m => m.GetSequenceNumber("Test")).Returns(() => position.Count > 0 ? position.Dequeue() : 6);
 
-            eventProjector.AddEventHandler(handler);
+            eventProjection.AddEventHandler(handler);
 
-            process.AddEventProjector(eventProjector);
+            process.AddEventProjection(eventProjection);
 
             process.Start();
 

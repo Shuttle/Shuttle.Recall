@@ -133,11 +133,11 @@
     <value>Type '{0}' does not implement IEventHandler&lt;T&gt;.</value>
     <comment>{0} = full name of invalid type</comment>
   </data>
-  <data name="MissingEventProjectorPositionException" xml:space="preserve">
-    <value>No 'IEventProjectorPosition' implementation has been specified.</value>
-  </data>
   <data name="MissingEventReaderException" xml:space="preserve">
-    <value>No 'IEventReader' implementation has been specified.</value>
+    <value>No 'IProjectionEventReader' implementation has been specified.</value>
+  </data>
+  <data name="MissingProjectionPositionException" xml:space="preserve">
+    <value>No 'IProjectionPosition' implementation has been specified.</value>
   </data>
   <data name="ProcessEventMethodMissingException" xml:space="preserve">
     <value>Handler type '{0}' does not have the required ProcessEvent method that handles domain event type '{1}'.</value>
