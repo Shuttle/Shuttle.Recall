@@ -64,6 +64,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml" />
@@ -72,22 +73,46 @@
     <Compile Include="DefaultSerializer.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="EventStream.cs" />
-    <Compile Include="EventStreamConcurrencyException.cs" />
-    <Compile Include="EventStreamEmptyException.cs" />
+    <Compile Include="Exceptions\EventStreamEmptyException.cs" />
     <Compile Include="EventStreamExtensions.cs" />
+    <Compile Include="EventProcessing\EventHandlerContext.cs" />
+    <Compile Include="EventProcessing\EventProcessingException.cs" />
+    <Compile Include="EventProcessing\ProjectionEvent.cs" />
+    <Compile Include="EventProcessing\IEventHandlerContext.cs" />
+    <Compile Include="EventProcessing\Pipeline\AcknowledgeEventObserver.cs" />
+    <Compile Include="EventProcessing\Pipeline\EventProcessingPipeline.cs" />
+    <Compile Include="EventProcessing\EventProcessor.cs" />
+    <Compile Include="EventProcessing\EventProcessorConfiguration.cs" />
+    <Compile Include="EventProcessing\EventProjection.cs" />
+    <Compile Include="EventProcessing\EventProjectionProcessor.cs" />
+    <Compile Include="EventProcessing\Pipeline\Events.cs" />
+    <Compile Include="EventProcessing\IEventHandler.cs" />
+    <Compile Include="EventProcessing\IEventProcessor.cs" />
+    <Compile Include="EventProcessing\IEventProcessorConfiguration.cs" />
+    <Compile Include="EventProcessing\IProjectionPosition.cs" />
+    <Compile Include="EventProcessing\IProjectionEventReader.cs" />
+    <Compile Include="EventProcessing\IEventProjection.cs" />
+    <Compile Include="EventProcessing\IPipelineFactory.cs" />
+    <Compile Include="EventProcessing\PipelineFactory.cs" />
+    <Compile Include="EventProcessing\Pipeline\GetEventObserver.cs" />
+    <Compile Include="EventProcessing\Pipeline\PipelineStateExtensions.cs" />
+    <Compile Include="EventProcessing\Pipeline\ProcessEventObserver.cs" />
+    <Compile Include="EventProcessing\Pipeline\StateKeys.cs" />
+    <Compile Include="Exceptions\ProcessEventMethodMissingException.cs" />
+    <Compile Include="Exceptions\EventStreamConcurrencyException.cs" />
     <Compile Include="IEventStore.cs" />
     <Compile Include="IKeyStore.cs" />
     <Compile Include="ISerializer.cs" />
     <Compile Include="ICanSnapshot.cs" />
-    <Compile Include="ITypeRepository.cs" />
+    <Compile Include="ITypeStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecallResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>RecallResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SerializerUnknownTypeExcption.cs" />
-    <Compile Include="UnhandledEventException.cs" />
+    <Compile Include="Exceptions\SerializerUnknownTypeExcption.cs" />
+    <Compile Include="Exceptions\UnhandledEventException.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="RecallResources.resx">
