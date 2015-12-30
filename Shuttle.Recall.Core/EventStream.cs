@@ -9,7 +9,7 @@ namespace Shuttle.Recall.Core
 	{
 	    private ICanSnapshot _canSnapshot = null;
 		private readonly List<Event> _events = new List<Event>();
-		private readonly int _initialVersion;
+		private int _initialVersion;
 
 		public EventStream(Guid id)
 		{
@@ -46,7 +46,12 @@ namespace Shuttle.Recall.Core
 	        get { return _events.Count == 0; }
 	    }
 
-	    public void AddEvent(object data)
+		public void CommitVersion()
+		{
+			_initialVersion = Version;
+		}
+
+		public void AddEvent(object data)
 		{
 			Guard.AgainstNull(data, "data");
 
