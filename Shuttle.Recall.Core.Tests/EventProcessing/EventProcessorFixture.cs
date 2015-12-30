@@ -23,7 +23,7 @@ namespace Shuttle.Recall.Core.Tests.EventProcessing
         {
             var positionMock = new Mock<IProjectionPosition>();
             var readerMock = new Mock<IProjectionEventReader>();
-            var process = new EventProcessor(new EventProcessorConfiguration(positionMock.Object, readerMock.Object));
+            var processor = new EventProcessor(new EventProcessorConfiguration(positionMock.Object, readerMock.Object));
             var eventProjection = new EventProjection("Test");
             var handler = new FakeEventHandler();
 
@@ -46,16 +46,16 @@ namespace Shuttle.Recall.Core.Tests.EventProcessing
 
             eventProjection.AddEventHandler(handler);
 
-            process.AddEventProjection(eventProjection);
+            processor.AddEventProjection(eventProjection);
 
-            process.Start();
+            processor.Start();
 
             while (!handler.HasValue("[done]"))
             {
                 Thread.Sleep(250);
             }
 
-            process.Stop();
+            processor.Stop();
         }
     }
 }
