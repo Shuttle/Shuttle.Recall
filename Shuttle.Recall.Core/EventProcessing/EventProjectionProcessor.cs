@@ -26,6 +26,7 @@ namespace Shuttle.Recall.Core
             {
                 var pipeline = _eventProcessor.Configuration.PipelineFactory.GetPipeline<EventProcessingPipeline>(_eventProcessor.Configuration);
 
+                pipeline.State.Add(_eventProcessor);
                 pipeline.State.Add(_eventProjection);
                 pipeline.State.Add(_eventProcessor.Configuration.ProjectionEventReader);
                 pipeline.State.Add(_eventProcessor.Configuration.ProjectionPosition);
