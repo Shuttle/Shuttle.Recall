@@ -71,6 +71,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Event.cs" />
+    <Compile Include="EventProcessing\Events\EventProcessorEvents.cs" />
+    <Compile Include="EventProcessing\Events\IEventProcessorEvents.cs" />
+    <Compile Include="EventProcessing\Events\ProjectionEventReaderEmptyEventArgs.cs" />
     <Compile Include="EventStream.cs" />
     <Compile Include="Exceptions\EventStreamEmptyException.cs" />
     <Compile Include="EventStreamExtensions.cs" />

@@ -7,6 +7,7 @@ namespace Shuttle.Recall.Core
         public void Execute(OnGetEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
+            var processor = state.Get<IEventProcessor>();
             var reader = state.Get<IProjectionEventReader>();
             var position = state.Get<IProjectionPosition>();
             var projection = state.Get<IEventProjection>();
@@ -15,6 +16,8 @@ namespace Shuttle.Recall.Core
 
             if (eventRead == null)
             {
+				processor.Events.OnProjectionEventReaderEmpty(this, new ProjectionEventReaderEmptyEventArgs(pipelineEvent, projection));
+
                 pipelineEvent.Pipeline.Abort();
             }
             else

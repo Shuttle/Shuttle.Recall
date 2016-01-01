@@ -9,5 +9,8 @@ namespace Shuttle.Recall.Core
 
         bool Started { get; }
         void AddEventProjection(IEventProjection eventProjection);
-    }
+
+		IEventProcessorConfiguration Configuration { get; }
+		IEventProcessorEvents Events { get; }
+	}
 }

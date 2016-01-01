@@ -6,8 +6,8 @@ namespace Shuttle.Recall.Core
 {
     public class EventProcessor : IEventProcessor
     {
-        private readonly IEventProcessorConfiguration _configuration;
-        private volatile bool _started;
+	    public IEventProcessorConfiguration Configuration { get; private set; }
+	    private volatile bool _started;
         private readonly List<ProcessorThread> _processorThreads = new List<ProcessorThread>();
 
         private readonly List<IEventProjection> _eventProjections = new List<IEventProjection>();
@@ -16,7 +16,9 @@ namespace Shuttle.Recall.Core
         {
             Guard.AgainstNull(configuration, "configuration");
 
-            _configuration = configuration;
+            Configuration = configuration;
+
+	        Events = new EventProcessorEvents();
         }
 
         public void Dispose()
@@ -34,7 +36,7 @@ namespace Shuttle.Recall.Core
             foreach (var eventProjection in _eventProjections)
             {
                 var processorThread = new ProcessorThread(string.Format("EventQueue-{0}", eventProjection.Name),
-                    new EventProjectionProcessor(_configuration, eventProjection));
+                    new EventProjectionProcessor(this, eventProjection));
 
                 processorThread.Start();
 
@@ -83,5 +85,7 @@ namespace Shuttle.Recall.Core
 
             _eventProjections.Add(eventProjection);
         }
+
+	    public IEventProcessorEvents Events { get; private set; }
     }
 }
