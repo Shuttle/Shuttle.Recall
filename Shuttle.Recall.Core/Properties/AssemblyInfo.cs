@@ -25,11 +25,11 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Shuttle.Recall.Core for .NET Framework 4.6.1")]
 #endif
 
-[assembly: AssemblyVersion("3.4.11.0")]
+[assembly: AssemblyVersion("3.4.12.0")]
 [assembly: AssemblyCopyright("Copyright © Eben Roux 2015")]
 [assembly: AssemblyProduct("Shuttle.Recall")]
 [assembly: AssemblyCompany("Shuttle")]
 [assembly: AssemblyConfiguration("Release")]
-[assembly: AssemblyInformationalVersion("3.4.11")]
+[assembly: AssemblyInformationalVersion("3.4.12")]
 [assembly: ComVisible(false)]
 

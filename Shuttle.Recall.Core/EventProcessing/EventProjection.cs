@@ -94,5 +94,10 @@ namespace Shuttle.Recall.Core
 
 			_explicitTypes.Add(type);
 		}
+
+		public void AddExplicitType<T>() where T : class
+		{
+			AddExplicitType(typeof(T));
+		}
 	}
 }
