@@ -59,8 +59,8 @@
     <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Shuttle.Core.Infrastructure, Version=4.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\shuttle-core-infrastructure.4.0.8\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
+    <Reference Include="Shuttle.Core.Infrastructure, Version=4.1.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\shuttle-core-infrastructure.4.1.4\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -70,7 +70,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DefaultSerializer.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="EventStream.cs" />
     <Compile Include="Exceptions\EventStreamEmptyException.cs" />
@@ -102,7 +101,6 @@
     <Compile Include="Exceptions\EventStreamConcurrencyException.cs" />
     <Compile Include="IEventStore.cs" />
     <Compile Include="IKeyStore.cs" />
-    <Compile Include="ISerializer.cs" />
     <Compile Include="ICanSnapshot.cs" />
     <Compile Include="ITypeStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -111,7 +109,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>RecallResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Exceptions\SerializerUnknownTypeExcption.cs" />
     <Compile Include="Exceptions\UnhandledEventException.cs" />
   </ItemGroup>
   <ItemGroup>
