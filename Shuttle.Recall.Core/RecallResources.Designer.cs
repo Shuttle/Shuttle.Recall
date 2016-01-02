@@ -61,6 +61,15 @@ namespace Shuttle.Recall.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} &apos;{1}&apos; has no default constructor..
+        /// </summary>
+        internal static string DefaultConstructorRequired {
+            get {
+                return ResourceManager.GetString("DefaultConstructorRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An event queue with name &apos;{0}&apos; has already been added..
         /// </summary>
         internal static string DuplicateEventQueueName {
@@ -115,6 +124,24 @@ namespace Shuttle.Recall.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Module could not be instantiated: {0}.
+        /// </summary>
+        internal static string ModuleInstantiationException {
+            get {
+                return ResourceManager.GetString("ModuleInstantiationException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find a section named &apos;{0}&apos; in configuration file &apos;{1}&apos; that is of type &apos;{2}&apos;..
+        /// </summary>
+        internal static string OpenSectionException {
+            get {
+                return ResourceManager.GetString("OpenSectionException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Handler type &apos;{0}&apos; does not have the required ProcessEvent method that handles domain event type &apos;{1}&apos;..
         /// </summary>
         internal static string ProcessEventMethodMissingException {
@@ -147,6 +174,15 @@ namespace Shuttle.Recall.Core {
         internal static string UnhandledEventException {
             get {
                 return ResourceManager.GetString("UnhandledEventException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not get type: {0}.
+        /// </summary>
+        internal static string UnknownTypeException {
+            get {
+                return ResourceManager.GetString("UnknownTypeException", resourceCulture);
             }
         }
         

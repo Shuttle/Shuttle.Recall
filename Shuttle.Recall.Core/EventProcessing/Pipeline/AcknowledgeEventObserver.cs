@@ -7,7 +7,7 @@ namespace Shuttle.Recall.Core
         public void Execute(OnAcknowledgeEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var position = state.Get<IProjectionPosition>();
+            var position = state.Get<IProjectionService>();
             var eventRead = state.Get<ProjectionEvent>();
             var projection = state.Get<IEventProjection>();
 

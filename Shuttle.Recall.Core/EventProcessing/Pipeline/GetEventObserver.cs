@@ -7,18 +7,17 @@ namespace Shuttle.Recall.Core
 		public void Execute(OnGetEvent pipelineEvent)
 		{
 			var state = pipelineEvent.Pipeline.State;
-			var processor = state.Get<IEventProcessor>();
-			var reader = state.Get<IProjectionEventReader>();
-			var position = state.Get<IProjectionPosition>();
+			var eventProcessor = state.Get<IEventProcessor>();
+			var projectionService = state.Get<IProjectionService>();
 			var projection = state.Get<IEventProjection>();
 
 			var eventRead = projection.HasExplicitTypes
-				? reader.GetEvent(position.GetSequenceNumber(projection.Name), projection.ExplicitTypes)
-				: reader.GetEvent(position.GetSequenceNumber(projection.Name));
+				? projectionService.GetEvent(projectionService.GetSequenceNumber(projection.Name), projection.ExplicitTypes)
+				: projectionService.GetEvent(projectionService.GetSequenceNumber(projection.Name));
 
 			if (eventRead == null)
 			{
-				processor.Events.OnProjectionEventReaderEmpty(this,
+				eventProcessor.Events.OnProjectionEventReaderEmpty(this,
 					new ProjectionEventReaderEmptyEventArgs(pipelineEvent, projection));
 
 				pipelineEvent.Pipeline.Abort();

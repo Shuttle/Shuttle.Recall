@@ -1,7 +1,7 @@
 using System;
 using System.Configuration;
 
-namespace Shuttle.ESB.Core
+namespace Shuttle.Recall.Core
 {
 	public class ModulesElement : ConfigurationElementCollection
     {

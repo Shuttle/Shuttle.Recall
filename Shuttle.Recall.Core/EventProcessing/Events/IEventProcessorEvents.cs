@@ -6,6 +6,7 @@
 	public interface IEventProcessorEvents
 	{
 		event ProjectionEventReaderEmptyDelegate ProjectionEventReaderEmpty;
+		event PipelineCreatedDelegate PipelineCreated;
 
 		void OnProjectionEventReaderEmpty(object sender, ProjectionEventReaderEmptyEventArgs args);
 		void OnPipelineCreated(object sender, PipelineEventArgs args);

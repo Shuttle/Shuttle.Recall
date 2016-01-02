@@ -24,12 +24,10 @@ namespace Shuttle.Recall.Core
         {
             while (state.Active)
             {
-                var pipeline = _eventProcessor.Configuration.PipelineFactory.GetPipeline<EventProcessingPipeline>(_eventProcessor.Configuration);
+                var pipeline = _eventProcessor.Configuration.PipelineFactory.GetPipeline<EventProcessingPipeline>(_eventProcessor);
 
-                pipeline.State.Add(_eventProcessor);
                 pipeline.State.Add(_eventProjection);
-                pipeline.State.Add(_eventProcessor.Configuration.ProjectionEventReader);
-                pipeline.State.Add(_eventProcessor.Configuration.ProjectionPosition);
+                pipeline.State.Add(_eventProcessor.Configuration.ProjectionService);
                 pipeline.State.Add(state);
 
                 try

@@ -6,7 +6,7 @@ namespace Shuttle.Recall.Core
     {
         TimeSpan[] DurationToSleepWhenIdle { get; set; }
         IPipelineFactory PipelineFactory { get; set; }
-        IProjectionPosition ProjectionPosition { get; set; }
-        IProjectionEventReader ProjectionEventReader { get; set; }
+        IProjectionService ProjectionService { get; set; }
+	    ModuleCollection Modules { get; }
     }
 }

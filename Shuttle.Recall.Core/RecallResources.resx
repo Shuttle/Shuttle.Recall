@@ -117,6 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DefaultConstructorRequired" xml:space="preserve">
+    <value>{0} '{1}' has no default constructor.</value>
+    <comment>{0} = name of required instance, {1} = full type name</comment>
+  </data>
   <data name="DuplicateEventQueueName" xml:space="preserve">
     <value>An event queue with name '{0}' has already been added.</value>
     <comment>{0} = name of the event queue</comment>
@@ -139,6 +143,14 @@
   <data name="MissingProjectionPositionException" xml:space="preserve">
     <value>No 'IProjectionPosition' implementation has been specified.</value>
   </data>
+  <data name="ModuleInstantiationException" xml:space="preserve">
+    <value>Module could not be instantiated: {0}</value>
+    <comment>{0} = full type name of module type to be instanced</comment>
+  </data>
+  <data name="OpenSectionException" xml:space="preserve">
+    <value>Could not find a section named '{0}' in configuration file '{1}' that is of type '{2}'.</value>
+    <comment>{0} = section name, {1} = configuration file, {2} = the section type</comment>
+  </data>
   <data name="ProcessEventMethodMissingException" xml:space="preserve">
     <value>Handler type '{0}' does not have the required ProcessEvent method that handles domain event type '{1}'.</value>
     <comment>{0} = handler full type name, {1} = domain event full type name</comment>
@@ -154,6 +166,10 @@
   <data name="UnhandledEventException" xml:space="preserve">
     <value>Instance of type '{0}' does not have a method named '{1}' that accepts event of type '{2}'.  It may be that the method is not public.</value>
     <comment>{0} = assembly qualified name of instance that event should be applied to, {1} = the method name that is expected, {2} = the assembly qualified name of the event</comment>
+  </data>
+  <data name="UnknownTypeException" xml:space="preserve">
+    <value>Could not get type: {0}</value>
+    <comment>{0} = type descriptor that cannot be found</comment>
   </data>
   <data name="VerboseTransactionScopeAmbient" xml:space="preserve">
     <value>TransactionScope ('{0}') using ambient transaction.</value>

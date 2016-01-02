@@ -33,7 +33,14 @@ namespace Shuttle.Recall.Core
                 return;
             }
 
-            foreach (var eventProjection in _eventProjections)
+			foreach (var module in Configuration.Modules)
+			{
+				module.Initialize(this);
+			}
+
+	        Configuration.ProjectionService.AttemptInitialization(this);
+
+			foreach (var eventProjection in _eventProjections)
             {
                 var processorThread = new ProcessorThread(string.Format("EventQueue-{0}", eventProjection.Name),
                     new EventProjectionProcessor(this, eventProjection));
@@ -87,5 +94,23 @@ namespace Shuttle.Recall.Core
         }
 
 	    public IEventProcessorEvents Events { get; private set; }
-    }
+
+		public static IEventProcessor Create()
+		{
+			return Create(null);
+		}
+
+		public static IEventProcessor Create(Action<DefaultConfigurator> configure)
+		{
+			var configurator = new DefaultConfigurator();
+
+			if (configure != null)
+			{
+				configure.Invoke(configurator);
+			}
+
+			return new EventProcessor(configurator.Configuration());
+		}
+
+	}
 }
