@@ -12,16 +12,19 @@ namespace Shuttle.Recall.Core
             _pool = new ReusableObjectPool<Pipeline>();
         }
 
-        public TPipeline GetPipeline<TPipeline>(IEventProcessorConfiguration configuration) where TPipeline : Pipeline
+        public TPipeline GetPipeline<TPipeline>(IEventProcessor eventProcessor) where TPipeline : Pipeline
         {
-            Guard.AgainstNull(configuration, "configuration");
+            Guard.AgainstNull(eventProcessor, "eventProcessor");
 
             var pipeline = (TPipeline)(_pool.Get(typeof(TPipeline)) ?? Activator.CreateInstance(typeof(TPipeline)));
 
             pipeline.State.Clear();
-            pipeline.State.Add(configuration);
+            pipeline.State.Add(eventProcessor);
+            pipeline.State.Add(eventProcessor.Configuration);
 
-            return pipeline;
+			eventProcessor.Events.OnPipelineCreated(this, new PipelineEventArgs(pipeline));
+
+			return pipeline;
         }
 
         public void ReleasePipeline(Pipeline pipeline)

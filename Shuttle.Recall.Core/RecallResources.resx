@@ -147,8 +147,28 @@
     <value>Type '{0}' is not registered with the serializer so it cannot be serialized.  Please use [SerialierInstance].AddKnownType to add the type before attempting to serialize or deserialize a TransportMessage containing this type in the object graph of the message property.</value>
     <comment>{0} = type name that is unknown.</comment>
   </data>
+  <data name="TransactionAlreadyStartedException" xml:space="preserve">
+    <value>Call to '{0}.{1}' already contains an active TransactionScope.</value>
+    <comment>{0} = full type name, {1} = method name</comment>
+  </data>
   <data name="UnhandledEventException" xml:space="preserve">
     <value>Instance of type '{0}' does not have a method named '{1}' that accepts event of type '{2}'.  It may be that the method is not public.</value>
     <comment>{0} = assembly qualified name of instance that event should be applied to, {1} = the method name that is expected, {2} = the assembly qualified name of the event</comment>
+  </data>
+  <data name="VerboseTransactionScopeAmbient" xml:space="preserve">
+    <value>TransactionScope ('{0}') using ambient transaction.</value>
+    <comment>{0} = transaction scope name</comment>
+  </data>
+  <data name="VerboseTransactionScopeAmbientCompleted" xml:space="preserve">
+    <value>TransactionScope ('{0}') using ambient transaction has completed.</value>
+    <comment>{0} = transaction scope name</comment>
+  </data>
+  <data name="VerboseTransactionScopeCompleted" xml:space="preserve">
+    <value>TransactionScope ('{0}') has completed.</value>
+    <comment>{0} = transaction scope name</comment>
+  </data>
+  <data name="VerboseTransactionScopeCreated" xml:space="preserve">
+    <value>TransactionScope ('{0}') created with isolation level '{1}' and timeout of '{2}'.</value>
+    <comment>{0} = transaction scope name, {1} = isolation level, {2} = timeout</comment>
   </data>
 </root>

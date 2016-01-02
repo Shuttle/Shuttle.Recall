@@ -67,13 +67,16 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Event.cs" />
     <Compile Include="EventProcessing\Events\EventProcessorEvents.cs" />
     <Compile Include="EventProcessing\Events\IEventProcessorEvents.cs" />
+    <Compile Include="EventProcessing\Events\PipelineEventArgs.cs" />
     <Compile Include="EventProcessing\Events\ProjectionEventReaderEmptyEventArgs.cs" />
+    <Compile Include="EventProcessing\Pipeline\TransactionScopeObserver.cs" />
     <Compile Include="EventStream.cs" />
     <Compile Include="Exceptions\EventStreamEmptyException.cs" />
     <Compile Include="EventStreamExtensions.cs" />
@@ -113,6 +116,8 @@
       <DependentUpon>RecallResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Exceptions\UnhandledEventException.cs" />
+    <Compile Include="Transactions\DefaultTransactionScope.cs" />
+    <Compile Include="Transactions\ITransactionScope.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="RecallResources.resx">

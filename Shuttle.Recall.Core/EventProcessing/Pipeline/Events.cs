@@ -25,4 +25,20 @@ namespace Shuttle.Recall.Core
     public class OnAfterAcknowledgeEvent : PipelineEvent
     {
     }
+
+	public class OnStartTransactionScope : PipelineEvent
+	{
+	}
+
+	public class OnAfterStartTransactionScope : PipelineEvent
+	{
+	}
+
+	public class OnCompleteTransactionScope : PipelineEvent
+	{
+	}
+
+	public class OnDisposeTransactionScope : PipelineEvent
+	{
+	}
 }

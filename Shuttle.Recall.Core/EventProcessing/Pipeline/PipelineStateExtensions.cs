@@ -13,5 +13,5 @@ namespace Shuttle.Recall.Core
         {
             return state.Get<bool>(StateKeys.Working);
         }
-    }
+	}
 }
