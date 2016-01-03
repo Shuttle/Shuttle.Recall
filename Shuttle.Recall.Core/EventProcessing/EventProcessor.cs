@@ -26,11 +26,11 @@ namespace Shuttle.Recall.Core
             Stop();
         }
 
-        public void Start()
+        public IEventProcessor Start()
         {
             if (Started)
             {
-                return;
+                return this;
             }
 
 			foreach (var module in Configuration.Modules)
@@ -51,6 +51,8 @@ namespace Shuttle.Recall.Core
             }
 
             _started = true;
+
+	        return this;
         }
 
         public void Stop()

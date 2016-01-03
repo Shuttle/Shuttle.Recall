@@ -28,7 +28,7 @@ namespace Shuttle.Recall.Core
 
 		public static EventProcessorSection Section
 		{
-			get { return _section ?? Synchronised(() => _section = ShuttleConfigurationSection.Open<EventProcessorSection>()); }
+			get { return _section ?? Synchronised(() => _section = ConfigurationSectionProvider.Open<EventProcessorSection>("shuttle", "eventProcessor")); }
 		}
 
 		public TimeSpan[] DurationToSleepWhenIdle
@@ -53,7 +53,7 @@ namespace Shuttle.Recall.Core
             {
                 if (_projectionService == null)
                 {
-                    throw new ConfigurationErrorsException(RecallResources.MissingProjectionPositionException);
+                    throw new ConfigurationErrorsException(RecallResources.MissingProjectionServiceException);
                 }
 
                 return _projectionService;

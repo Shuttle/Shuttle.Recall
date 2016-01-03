@@ -106,20 +106,11 @@ namespace Shuttle.Recall.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No &apos;IProjectionEventReader&apos; implementation has been specified..
+        ///   Looks up a localized string similar to No &apos;IProjectionService implementation has been specified..
         /// </summary>
-        internal static string MissingEventReaderException {
+        internal static string MissingProjectionServiceException {
             get {
-                return ResourceManager.GetString("MissingEventReaderException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No &apos;IProjectionPosition&apos; implementation has been specified..
-        /// </summary>
-        internal static string MissingProjectionPositionException {
-            get {
-                return ResourceManager.GetString("MissingProjectionPositionException", resourceCulture);
+                return ResourceManager.GetString("MissingProjectionServiceException", resourceCulture);
             }
         }
         

@@ -4,7 +4,7 @@ namespace Shuttle.Recall.Core
 {
     public interface IEventProcessor : IDisposable
     {
-        void Start();
+		IEventProcessor Start();
         void Stop();
 
         bool Started { get; }

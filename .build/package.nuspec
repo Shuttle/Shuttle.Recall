@@ -11,7 +11,7 @@
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>Event Sourcing mechanism.</description>
 		<releaseNotes/>
-		<copyright>Copyright (c) 2011-{year}, Eben Roux</copyright>
+		<copyright>Copyright (c) {year}, Eben Roux</copyright>
 		<tags>shuttle shuttle-recall event-sourcing</tags>
     <dependencies>
       <dependency id="shuttle-core-infrastructure" version="{shuttle-core-infrastructure-version}" />
