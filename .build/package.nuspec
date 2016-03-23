@@ -13,8 +13,8 @@
 		<releaseNotes/>
 		<copyright>Copyright (c) {year}, Eben Roux</copyright>
 		<tags>shuttle shuttle-recall event-sourcing</tags>
-    <dependencies>
-      <dependency id="Shuttle.Core.Infrastructure" version="{Shuttle.Core.Infrastructure-version}" />
-    </dependencies>
-  </metadata>
+		<dependencies>
+			<dependency id="Shuttle.Core.Infrastructure" version="{Shuttle.Core.Infrastructure-version}" />
+		</dependencies>
+	</metadata>
 </package>
