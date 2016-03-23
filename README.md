@@ -1,4 +1,4 @@
-shuttle-recall-core
+Shuttle.Recall
 ===================
 
 *PLEASE NOTE* : THIS PACKAGE IS STILL HIGHLY EXPERIMENTAL
