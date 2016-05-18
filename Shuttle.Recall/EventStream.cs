@@ -36,9 +36,11 @@ namespace Shuttle.Recall
 		public Event Snapshot { get; private set; }
 	    public bool Removed { get; private set; }
 
-	    public void Remove()
+	    public EventStream Remove()
 	    {
 	        Removed = true;
+
+	        return this;
 	    }
 
 	    public bool IsEmpty
@@ -46,26 +48,32 @@ namespace Shuttle.Recall
 	        get { return _events.Count == 0; }
 	    }
 
-		public void CommitVersion()
+		public EventStream CommitVersion()
 		{
 			_initialVersion = Version;
-		}
 
-		public void AddEvent(object data)
+            return this;
+        }
+
+		public EventStream AddEvent(object data)
 		{
 			Guard.AgainstNull(data, "data");
 
 			Version = Version + 1;
 
 			_events.Add(new Event(Version, data.GetType().AssemblyQualifiedName, data));
-		}
 
-		public void AddSnapshot(object data)
+            return this;
+        }
+
+		public EventStream AddSnapshot(object data)
 		{
 			Guard.AgainstNull(data, "data");
 
 			Snapshot = new Event(Version, data.GetType().AssemblyQualifiedName, data);
-		}
+
+            return this;
+        }
 
 		public bool ShouldSnapshot(int snapshotEventCount)
 		{
