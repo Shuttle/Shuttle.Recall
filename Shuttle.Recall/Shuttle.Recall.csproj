@@ -124,8 +124,6 @@
       <DependentUpon>RecallResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Exceptions\UnhandledEventException.cs" />
-    <Compile Include="Transactions\DefaultTransactionScope.cs" />
-    <Compile Include="Transactions\ITransactionScope.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="RecallResources.resx">
