@@ -12,8 +12,8 @@ namespace Shuttle.Recall
 			var projection = state.Get<IEventProjection>();
 
 			var eventRead = projection.HasExplicitTypes
-				? projectionService.GetEvent(projectionService.GetSequenceNumber(projection.Name), projection.ExplicitTypes)
-				: projectionService.GetEvent(projectionService.GetSequenceNumber(projection.Name));
+				? projectionService.GetEvent(projection.Name, projectionService.GetSequenceNumber(projection.Name), projection.ExplicitTypes)
+				: projectionService.GetEvent(projection.Name, projectionService.GetSequenceNumber(projection.Name));
 
 			if (eventRead == null)
 			{

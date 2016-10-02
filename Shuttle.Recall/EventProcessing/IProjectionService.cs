@@ -7,7 +7,7 @@ namespace Shuttle.Recall
     {
         long GetSequenceNumber(string name);
         void SetSequenceNumber(string name, long sequenceNumber);
-		ProjectionEvent GetEvent(long sequenceNumber);
-		ProjectionEvent GetEvent(long sequenceNumber, IEnumerable<Type> eventTypes);
+		ProjectionEvent GetEvent(string name, long sequenceNumber);
+		ProjectionEvent GetEvent(string name, long sequenceNumber, IEnumerable<Type> eventTypes);
 	}
 }
