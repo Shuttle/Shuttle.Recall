@@ -4,6 +4,13 @@ namespace Shuttle.Recall
 {
     public class ProcessEventObserver : IPipelineObserver<OnProcessEvent>
     {
+        private readonly ILog _log;
+
+        public ProcessEventObserver()
+        {
+            _log = Log.For(this);
+        }
+
         public void Execute(OnProcessEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
@@ -12,6 +19,11 @@ namespace Shuttle.Recall
 
             if (!projection.HandlesType(eventRead.Event.Data.GetType()))
             {
+                if (Log.IsTraceEnabled)
+                {
+                    _log.Trace(string.Format(RecallResources.TraceTypeNotHandled, projection.Name, eventRead.Event.Data.GetType()));
+                }
+
                 return;
             }
 

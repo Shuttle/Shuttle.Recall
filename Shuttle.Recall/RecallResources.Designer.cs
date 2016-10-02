@@ -151,6 +151,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Projection &apos;{0}&apos; does not handle type &apos;{1}&apos;..
+        /// </summary>
+        internal static string TraceTypeNotHandled {
+            get {
+                return ResourceManager.GetString("TraceTypeNotHandled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Call to &apos;{0}.{1}&apos; already contains an active TransactionScope..
         /// </summary>
         internal static string TransactionAlreadyStartedException {
