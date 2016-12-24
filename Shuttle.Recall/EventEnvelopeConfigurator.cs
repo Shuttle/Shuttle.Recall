@@ -1,0 +1,34 @@
+﻿using System;
+using System.Collections.Generic;
+using Shuttle.Core.Infrastructure;
+
+namespace Shuttle.Recall
+{
+    public class EventEnvelopeConfigurator
+    {
+        public EventEnvelopeConfigurator()
+        {
+            Headers = new List<EnvelopeHeader>();
+        }
+
+        public List<EnvelopeHeader> Headers { get; set; }
+
+        public EventEnvelope EventEnvelope(object @event, string encryptionAlgorithm, string compressionAlgorithm)
+        {
+            Guard.AgainstNull(@event, "@event");
+
+            var result = new EventEnvelope
+            {
+                EventType = @event.GetType().FullName,
+                AssemblyQualifiedName = @event.GetType().AssemblyQualifiedName,
+                EncryptionAlgorithm = encryptionAlgorithm,
+                CompressionAlgorithm = compressionAlgorithm,
+                EventDate = DateTime.Now
+            };
+
+            result.Headers.Merge(Headers);
+
+            return result;
+        }
+    }
+}

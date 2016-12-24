@@ -2,11 +2,12 @@
 
 namespace Shuttle.Recall
 {
-	public interface IEventStore
-	{
-		EventStream Get(Guid id);
-		EventStream GetRaw(Guid id);
-		void Remove(Guid id);
-		void SaveEventStream(EventStream eventStream);
-	}
+    public interface IEventStore
+    {
+        EventStream GetEventStream(Guid id);
+        EventStream GetEventStreamAll(Guid id);
+        void RemoveEventStream(Guid id);
+        void SaveEventStream(EventStream eventStream);
+        void SaveEventStream(EventStream eventStream, Action<EventEnvelopeConfigurator> configure);
+    }
 }

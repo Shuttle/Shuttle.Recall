@@ -4,11 +4,10 @@ using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Recall
 {
-	public class EventProjection : IEventProjection
+	public class EventProjection
 	{
 		private static readonly Type EventHandlerType = typeof (IEventHandler<>);
-		private readonly Dictionary<Type, object> _eventHandlers = new Dictionary<Type, object>();
-		private readonly List<Type> _explicitTypes = new List<Type>();
+        private readonly Dictionary<Type, object> _eventHandlers = new Dictionary<Type, object>();
 
 		public EventProjection(string name)
 		{
@@ -19,14 +18,9 @@ namespace Shuttle.Recall
 
 		public string Name { get; private set; }
 
-		public bool HasExplicitTypes
+		public IEnumerable<Type> EventTypes
 		{
-			get { return _explicitTypes.Count > 0; }
-		}
-
-		public IEnumerable<Type> ExplicitTypes
-		{
-			get { return _explicitTypes; }
+			get { return _eventHandlers.Keys; }
 		}
 
 		public bool HandlesType(Type type)
@@ -60,12 +54,12 @@ namespace Shuttle.Recall
 			return this;
 		}
 
-		public void Process(ProjectionEvent projectionEvent, IThreadState threadState)
+		public void Process(EventEnvelope eventEnvelope, long sequenceNumber, IThreadState threadState)
 		{
-			Guard.AgainstNull(projectionEvent, "ProjectionEvent");
+			Guard.AgainstNull(eventEnvelope, "ProjectionEvent");
 			Guard.AgainstNull(threadState, "threadState");
 
-			var domainEventType = projectionEvent.Event.Data.GetType();
+			var domainEventType = Type.GetType(eventEnvelope.AssemblyQualifiedName, true);
 
 			if (!HandlesType(domainEventType))
 			{
@@ -83,21 +77,9 @@ namespace Shuttle.Recall
 					domainEventType.FullName));
 			}
 
-			var handlerContext = Activator.CreateInstance(contextType, projectionEvent, projectionEvent.Event.Data, threadState);
+			var handlerContext = Activator.CreateInstance(contextType, eventEnvelope, eventEnvelope.Event, sequenceNumber, threadState);
 
 			method.Invoke(_eventHandlers[domainEventType], new[] {handlerContext});
-		}
-
-		public void AddExplicitType(Type type)
-		{
-			Guard.AgainstNull(type, "type");
-
-			_explicitTypes.Add(type);
-		}
-
-		public void AddExplicitType<T>() where T : class
-		{
-			AddExplicitType(typeof(T));
 		}
 	}
 }

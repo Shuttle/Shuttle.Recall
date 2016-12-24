@@ -4,8 +4,9 @@ namespace Shuttle.Recall
 {
     public interface IEventHandlerContext<out T> where T : class
     {
-        ProjectionEvent ProjectionEvent { get; }
-        T DomainEvent { get; }
+        EventEnvelope EventEnvelope { get; }
+        long SequenceNumber { get; }
+        T Event { get; }
         IThreadState ActiveState { get; }
     }
 }

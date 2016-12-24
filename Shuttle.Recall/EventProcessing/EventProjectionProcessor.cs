@@ -4,40 +4,31 @@ namespace Shuttle.Recall
 {
     public class EventProjectionProcessor : IProcessor
     {
-        private readonly ReusableObjectPool<EventProcessingPipeline> _pool = new ReusableObjectPool<EventProcessingPipeline>();
-	    private readonly IEventProcessor _eventProcessor;
-	    private readonly IEventProjection _eventProjection;
+        private readonly IPipelineFactory _pipelineFactory;
+        private readonly EventProjection _eventProjection;
         private readonly IThreadActivity _threadActivity;
 
-        public EventProjectionProcessor(IEventProcessor eventProcessor, IEventProjection eventProjection)
+        public EventProjectionProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory, EventProjection eventProjection)
         {
+            Guard.AgainstNull(configuration, "configuration");
+            Guard.AgainstNull(pipelineFactory, "pipelineFactory");
             Guard.AgainstNull(eventProjection, "eventProjection");
-            Guard.AgainstNull(eventProcessor, "eventProcessor");
 
-	        _eventProcessor = eventProcessor;
-	        _eventProjection = eventProjection;
-			_eventProcessor = eventProcessor;
-            _threadActivity = new ThreadActivity(_eventProcessor.Configuration.DurationToSleepWhenIdle);
+            _pipelineFactory = pipelineFactory;
+            _eventProjection = eventProjection;
+            _threadActivity = new ThreadActivity(configuration.DurationToSleepWhenIdle);
         }
 
         public void Execute(IThreadState state)
         {
+            var pipeline = _pipelineFactory.GetPipeline<EventProcessingPipeline>();
+
             while (state.Active)
             {
-                var pipeline = _eventProcessor.Configuration.PipelineFactory.GetPipeline<EventProcessingPipeline>(_eventProcessor);
+                pipeline.State.SetEventProjection(_eventProjection);
+                pipeline.State.SetThreadState(state);
 
-                pipeline.State.Add(_eventProjection);
-                pipeline.State.Add(_eventProcessor.Configuration.ProjectionService);
-                pipeline.State.Add(state);
-
-                try
-                {
-                    pipeline.Execute();
-                }
-                finally
-                {
-                    _pool.Release(pipeline);
-                }
+                pipeline.Execute();
 
                 if (pipeline.State.GetWorking())
                 {
@@ -48,6 +39,8 @@ namespace Shuttle.Recall
                     _threadActivity.Waiting(state);
                 }
             }
+
+            _pipelineFactory.ReleasePipeline(pipeline);
         }
     }
 }

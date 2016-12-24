@@ -58,8 +58,8 @@
     <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Shuttle.Core.Infrastructure, Version=4.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Core.Infrastructure.4.2.0\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
+    <Reference Include="Shuttle.Core.Infrastructure, Version=4.2.52.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Shuttle.Core.Infrastructure.4.2.52\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -70,54 +70,57 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventProcessing\Configuration\EventProcessorSection.cs" />
-    <Compile Include="EventProcessing\Configuration\ModuleElement.cs" />
-    <Compile Include="EventProcessing\Configuration\ModulesElement.cs" />
+    <Compile Include="EnvelopeHeader.cs" />
+    <Compile Include="EventEnvelope.cs" />
+    <Compile Include="EventEnvelopeConfigurator.cs" />
+    <Compile Include="EventEnvelopeExtensions.cs" />
+    <Compile Include="Configuration\EventStoreSection.cs" />
     <Compile Include="Event.cs" />
-    <Compile Include="EventProcessing\Configurator\DefaultConfigurator.cs" />
-    <Compile Include="EventProcessing\Configurator\IConfigurator.cs" />
-    <Compile Include="EventProcessing\Configurator\ModuleConfigurator.cs" />
-    <Compile Include="EventProcessing\EventProcessorExtensions.cs" />
-    <Compile Include="EventProcessing\Events\EventProcessorEvents.cs" />
-    <Compile Include="EventProcessing\Events\IEventProcessorEvents.cs" />
-    <Compile Include="EventProcessing\Events\PipelineEventArgs.cs" />
-    <Compile Include="EventProcessing\Events\ProjectionEventReaderEmptyEventArgs.cs" />
-    <Compile Include="EventProcessing\Configuration\ModuleCollection.cs" />
-    <Compile Include="EventProcessing\IModule.cs" />
-    <Compile Include="EventProcessing\IRequireInitialization.cs" />
-    <Compile Include="EventProcessing\Pipeline\TransactionScopeObserver.cs" />
+    <Compile Include="Configurator\EventStoreConfigurator.cs" />
+    <Compile Include="Configurator\CoreConfigurator.cs" />
+    <Compile Include="Configurator\IConfigurator.cs" />
+    <Compile Include="EventProcessing\IEventProjectionRepository.cs" />
+    <Compile Include="EventProcessing\IPrimitiveEventProvider.cs" />
+    <Compile Include="EventStore.cs" />
+    <Compile Include="EventStoreConfiguration.cs" />
     <Compile Include="EventStream.cs" />
     <Compile Include="Exceptions\EventStreamEmptyException.cs" />
     <Compile Include="EventStreamExtensions.cs" />
     <Compile Include="EventProcessing\EventHandlerContext.cs" />
     <Compile Include="EventProcessing\EventProcessingException.cs" />
-    <Compile Include="EventProcessing\ProjectionEvent.cs" />
     <Compile Include="EventProcessing\IEventHandlerContext.cs" />
-    <Compile Include="EventProcessing\Pipeline\AcknowledgeEventObserver.cs" />
-    <Compile Include="EventProcessing\Pipeline\EventProcessingPipeline.cs" />
     <Compile Include="EventProcessing\EventProcessor.cs" />
-    <Compile Include="EventProcessing\EventProcessorConfiguration.cs" />
     <Compile Include="EventProcessing\EventProjection.cs" />
     <Compile Include="EventProcessing\EventProjectionProcessor.cs" />
-    <Compile Include="EventProcessing\Pipeline\Events.cs" />
     <Compile Include="EventProcessing\IEventHandler.cs" />
     <Compile Include="EventProcessing\IEventProcessor.cs" />
-    <Compile Include="EventProcessing\IEventProcessorConfiguration.cs" />
-    <Compile Include="EventProcessing\IProjectionService.cs" />
-    <Compile Include="EventProcessing\IEventProjection.cs" />
-    <Compile Include="EventProcessing\IPipelineFactory.cs" />
-    <Compile Include="EventProcessing\PipelineFactory.cs" />
-    <Compile Include="EventProcessing\Pipeline\GetEventObserver.cs" />
-    <Compile Include="EventProcessing\Pipeline\PipelineStateExtensions.cs" />
-    <Compile Include="EventProcessing\Pipeline\ProcessEventObserver.cs" />
-    <Compile Include="EventProcessing\Pipeline\StateKeys.cs" />
     <Compile Include="Exceptions\ProcessEventMethodMissingException.cs" />
     <Compile Include="Exceptions\EventStreamConcurrencyException.cs" />
+    <Compile Include="IPrimitiveEventRepository.cs" />
     <Compile Include="IEventStore.cs" />
+    <Compile Include="IEventStoreConfiguration.cs" />
     <Compile Include="IKeyStore.cs" />
     <Compile Include="ICanSnapshot.cs" />
-    <Compile Include="ITypeStore.cs" />
+    <Compile Include="Pipeline\Events.cs" />
+    <Compile Include="Pipeline\Pipelines\GetEventEnvelopePipeline.cs" />
+    <Compile Include="Pipeline\Observers\AcknowledgeEventObserver.cs" />
+    <Compile Include="Pipeline\Observers\EventStream\GetStreamEventEnvelopesObserver.cs" />
+    <Compile Include="Pipeline\Observers\EventProjection\GetProjectionPrimitiveEventObserver.cs" />
+    <Compile Include="Pipeline\Observers\ProcessEventObserver.cs" />
+    <Compile Include="Pipeline\Observers\Shared\CompressMessageObserver.cs" />
+    <Compile Include="Pipeline\Observers\Shared\DecompressEventObserver.cs" />
+    <Compile Include="Pipeline\Observers\Shared\DecryptEventObserver.cs" />
+    <Compile Include="Pipeline\Observers\Shared\DeserializeEventObserver.cs" />
+    <Compile Include="Pipeline\Observers\Shared\DeserializeEventEnvelopeObserver.cs" />
+    <Compile Include="Pipeline\Observers\Shared\EncryptMessageObserver.cs" />
+    <Compile Include="Pipeline\Observers\Shared\SerializeMessageObserver.cs" />
+    <Compile Include="Pipeline\Observers\Shared\SerializeTransportMessageObserver.cs" />
+    <Compile Include="Pipeline\PipelineStateExtensions.cs" />
+    <Compile Include="Pipeline\Pipelines\EventProcessingPipeline.cs" />
+    <Compile Include="Pipeline\Pipelines\GetEventStreamPipeline.cs" />
+    <Compile Include="Pipeline\StateKeys.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PrimitiveEvent.cs" />
     <Compile Include="RecallResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -135,6 +138,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

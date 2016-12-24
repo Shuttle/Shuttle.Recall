@@ -142,7 +142,7 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{0}&apos; is not registered with the serializer so it cannot be serialized.  Please use [SerialierInstance].AddKnownType to add the type before attempting to serialize or deserialize a TransportMessage containing this type in the object graph of the message property..
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; is not registered with the serializer so it cannot be serialized.  Please use [SerialierInstance].AddKnownType to add the type before attempting to serialize or deserialize a EventEnvelope containing this type in the object graph of the message property..
         /// </summary>
         internal static string SerializerUnknownTypeExcption {
             get {

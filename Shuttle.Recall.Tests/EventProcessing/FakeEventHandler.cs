@@ -17,7 +17,7 @@ namespace Shuttle.Recall.Tests.EventProcessing
 
             lock (_padlock)
             {
-                _propertyValues.Add(context.DomainEvent.PropertyOne);
+                _propertyValues.Add(context.Event.PropertyOne);
             }
         }
 
@@ -27,7 +27,7 @@ namespace Shuttle.Recall.Tests.EventProcessing
 
             lock (_padlock)
             {
-                _propertyValues.Add(context.DomainEvent.PropertyTwo);
+                _propertyValues.Add(context.Event.PropertyTwo);
             }
         }
 

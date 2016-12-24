@@ -6,19 +6,20 @@ namespace Shuttle.Recall
 {
     public class EventProcessor : IEventProcessor
     {
-	    public IEventProcessorConfiguration Configuration { get; private set; }
-	    private volatile bool _started;
+        private readonly List<EventProjection> _eventProjections = new List<EventProjection>();
+        private readonly IPipelineFactory _pipelineFactory;
         private readonly List<ProcessorThread> _processorThreads = new List<ProcessorThread>();
+        private readonly IEventStoreConfiguration _configuration;
+        private volatile bool _started;
 
-        private readonly List<IEventProjection> _eventProjections = new List<IEventProjection>();
-
-        public EventProcessor(IEventProcessorConfiguration configuration)
+        public EventProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory)
         {
             Guard.AgainstNull(configuration, "configuration");
+            Guard.AgainstNull(pipelineFactory, "pipelineFactory");
 
-            Configuration = configuration;
+            _pipelineFactory = pipelineFactory;
 
-	        Events = new EventProcessorEvents();
+            _configuration = configuration;
         }
 
         public void Dispose()
@@ -33,17 +34,10 @@ namespace Shuttle.Recall
                 return this;
             }
 
-			foreach (var module in Configuration.Modules)
-			{
-				module.Initialize(this);
-			}
-
-	        Configuration.ProjectionService.AttemptInitialization(this);
-
-			foreach (var eventProjection in _eventProjections)
+            foreach (var eventProjection in _eventProjections)
             {
-                var processorThread = new ProcessorThread(string.Format("EventQueue-{0}", eventProjection.Name),
-                    new EventProjectionProcessor(this, eventProjection));
+                var processorThread = new ProcessorThread(string.Format("EventProjection-{0}", eventProjection.Name),
+                    new EventProjectionProcessor(_configuration, _pipelineFactory, eventProjection));
 
                 processorThread.Start();
 
@@ -52,7 +46,7 @@ namespace Shuttle.Recall
 
             _started = true;
 
-	        return this;
+            return this;
         }
 
         public void Stop()
@@ -75,7 +69,7 @@ namespace Shuttle.Recall
             get { return _started; }
         }
 
-        public void AddEventProjection(IEventProjection eventProjection)
+        public void AddEventProjection(EventProjection eventProjection)
         {
             Guard.AgainstNull(eventProjection, "eventProjection");
 
@@ -87,32 +81,43 @@ namespace Shuttle.Recall
 
             if (
                 _eventProjections.Find(
-                    queue => queue.Name.Equals(eventProjection.Name, StringComparison.InvariantCultureIgnoreCase)) != null)
+                    queue => queue.Name.Equals(eventProjection.Name, StringComparison.InvariantCultureIgnoreCase)) !=
+                null)
             {
-                throw new EventProcessingException(string.Format(RecallResources.DuplicateEventQueueName, eventProjection.Name));
+                throw new EventProcessingException(string.Format(RecallResources.DuplicateEventQueueName,
+                    eventProjection.Name));
             }
 
             _eventProjections.Add(eventProjection);
         }
 
-	    public IEventProcessorEvents Events { get; private set; }
+        public static IEventProcessor Create()
+        {
+            return Create(null);
+        }
 
-		public static IEventProcessor Create()
-		{
-			return Create(null);
-		}
+        public static IEventProcessor Create(IComponentResolver resolver)
+        {
+            Guard.AgainstNull(resolver, "resolver");
 
-		public static IEventProcessor Create(Action<DefaultConfigurator> configure)
-		{
-			var configurator = new DefaultConfigurator();
+            var configuration = resolver.Resolve<IEventStoreConfiguration>();
 
-			if (configure != null)
-			{
-				configure.Invoke(configurator);
-			}
+            if (configuration == null)
+            {
+                throw new InvalidOperationException(string.Format(InfrastructureResources.TypeNotRegisteredException,
+                    typeof (IEventStoreConfiguration).FullName));
+            }
 
-			return new EventProcessor(configurator.Configuration());
-		}
+            configuration.Assign(resolver);
 
-	}
+            var defaultPipelineFactory = resolver.Resolve<IPipelineFactory>() as DefaultPipelineFactory;
+
+            if (defaultPipelineFactory != null)
+            {
+                defaultPipelineFactory.Assign(resolver);
+            }
+
+            return resolver.Resolve<IEventProcessor>();
+        }
+    }
 }

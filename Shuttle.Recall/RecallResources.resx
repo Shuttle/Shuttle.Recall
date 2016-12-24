@@ -153,7 +153,7 @@
     <comment>{0} = handler full type name, {1} = domain event full type name</comment>
   </data>
   <data name="SerializerUnknownTypeExcption" xml:space="preserve">
-    <value>Type '{0}' is not registered with the serializer so it cannot be serialized.  Please use [SerialierInstance].AddKnownType to add the type before attempting to serialize or deserialize a TransportMessage containing this type in the object graph of the message property.</value>
+    <value>Type '{0}' is not registered with the serializer so it cannot be serialized.  Please use [SerialierInstance].AddKnownType to add the type before attempting to serialize or deserialize a EventEnvelope containing this type in the object graph of the message property.</value>
     <comment>{0} = type name that is unknown.</comment>
   </data>
   <data name="TraceTypeNotHandled" xml:space="preserve">

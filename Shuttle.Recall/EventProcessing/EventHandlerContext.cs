@@ -4,15 +4,17 @@ namespace Shuttle.Recall
 {
     public class EventHandlerContext<T> : IEventHandlerContext<T> where T : class
     {
-        public EventHandlerContext(ProjectionEvent projectionEvent, T domainEvent, IThreadState activeState)
+        public EventHandlerContext(EventEnvelope eventEnvelope, T @event, long sequenceNumber, IThreadState activeState)
         {
 	        ActiveState = activeState;
-            DomainEvent = domainEvent;
-            ProjectionEvent = projectionEvent;
+            Event = @event;
+            SequenceNumber = sequenceNumber;
+            EventEnvelope = eventEnvelope;
         }
 
-        public ProjectionEvent ProjectionEvent { get; private set; }
-        public T DomainEvent { get; private set; }
-	    public IThreadState ActiveState { get; private set; }
+        public EventEnvelope EventEnvelope { get; private set; }
+        public T Event { get; private set; }
+        public long SequenceNumber { get; private set; }
+        public IThreadState ActiveState { get; private set; }
     }
 }

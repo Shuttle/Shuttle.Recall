@@ -8,9 +8,6 @@ namespace Shuttle.Recall
         void Stop();
 
         bool Started { get; }
-        void AddEventProjection(IEventProjection eventProjection);
-
-		IEventProcessorConfiguration Configuration { get; }
-		IEventProcessorEvents Events { get; }
+        void AddEventProjection(EventProjection eventProjection);
 	}
 }
