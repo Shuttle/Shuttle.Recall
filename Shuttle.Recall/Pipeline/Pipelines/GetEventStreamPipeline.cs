@@ -5,32 +5,28 @@ namespace Shuttle.Recall
 {
     public class GetEventStreamPipeline : Pipeline
     {
-        public GetEventStreamPipeline(GetStreamEventEnvelopesObserver getStreamEventEnvelopesObserver)
+        public GetEventStreamPipeline(GetStreamEventsObserver getStreamEventsObserver, AssembleEventStreamObserver assembleEventStreamObserver)
         {
-            Guard.AgainstNull(getStreamEventEnvelopesObserver, "GetStreamEventEnvelopesObserver");
-            Guard.AgainstNull(processEventObserver, "processEventObserver");
-            Guard.AgainstNull(acknowledgeEventObserver, "acknowledgeEventObserver");
-            Guard.AgainstNull(transactionScopeObserver, "TransactionScopeObserver");
+            Guard.AgainstNull(getStreamEventsObserver, "GetStreamEventsObserver");
+            Guard.AgainstNull(assembleEventStreamObserver, "assembleEventStreamObserver");
 
             RegisterStage("Process")
-                .WithEvent<OnGetStreamEventEnvelopes>()
-                .WithEvent<OnAfterGetStreamEventEnvelopes>()
-                .WithEvent<OnProcessEvent>()
-                .WithEvent<OnAfterProcessEvent>()
-                .WithEvent<OnAcknowledgeEvent>()
-                .WithEvent<OnAfterAcknowledgeEvent>();
+                .WithEvent<OnGetStreamEvents>()
+                .WithEvent<OnAfterGetStreamEvents>()
+                .WithEvent<OnAssembleEventStream>()
+                .WithEvent<OnAfterAssembleEventStream>();
 
-            RegisterObserver(getStreamEventEnvelopesObserver);
-            RegisterObserver(processEventObserver);
-            RegisterObserver(acknowledgeEventObserver);
-            RegisterObserver(transactionScopeObserver);
+            RegisterObserver(getStreamEventsObserver);
+            RegisterObserver(assembleEventStreamObserver);
         }
 
         public EventStream Execute(Guid id)
         {
-
-
             State.SetId(id);
+
+            Execute();
+
+            return State.GetEventStream();
         }
     }
 }

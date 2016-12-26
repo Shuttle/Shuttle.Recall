@@ -137,6 +137,10 @@
     <value>Type '{0}' does not implement IEventHandler&lt;T&gt;.</value>
     <comment>{0} = full name of invalid type</comment>
   </data>
+  <data name="InvalidEventOrderingException" xml:space="preserve">
+    <value>Received primitive events from the IPrimitiveEventRepository implementation that were not sequential.  Version on next primitive event is '{0}' but currently on version '{1}'.</value>
+    <comment>{0} = primitivate event version, {1} = next event version</comment>
+  </data>
   <data name="MissingProjectionServiceException" xml:space="preserve">
     <value>No 'IProjectionService implementation has been specified.</value>
   </data>

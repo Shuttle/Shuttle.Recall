@@ -2,11 +2,19 @@
 
 namespace Shuttle.Recall
 {
-    public class OnGetStreamEventEnvelopes : PipelineEvent
+    public class OnGetStreamEvents : PipelineEvent
     {
     }
 
-    public class OnAfterGetStreamEventEnvelopes : PipelineEvent
+    public class OnAfterGetStreamEvents : PipelineEvent
+    {
+    }
+
+    public class OnAssembleEventStream : PipelineEvent
+    {
+    }
+
+    public class OnAfterAssembleEventStream : PipelineEvent
     {
     }
 

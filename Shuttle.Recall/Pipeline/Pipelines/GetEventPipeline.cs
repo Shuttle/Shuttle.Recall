@@ -3,9 +3,9 @@ using Shuttle.Recall.Shared;
 
 namespace Shuttle.Recall
 {
-    public class GetEventEnvelopePipeline : Pipeline
+    public class GetEventPipeline : Pipeline
     {
-        public GetEventEnvelopePipeline(DeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver, DecompressEventObserver decompressEventObserver, DecryptEventObserver decryptEventObserver, DeserializeEventObserver deserializeEventObserver)
+        public GetEventPipeline(DeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver, DecompressEventObserver decompressEventObserver, DecryptEventObserver decryptEventObserver, DeserializeEventObserver deserializeEventObserver)
         {
             Guard.AgainstNull(deserializeEventEnvelopeObserver, "deserializeEventEnvelopeObserver");
             Guard.AgainstNull(decompressEventObserver, "decompressEventObserver");
@@ -28,15 +28,13 @@ namespace Shuttle.Recall
             RegisterObserver(deserializeEventObserver);
         }
 
-        public EventEnvelope Execute(PrimitiveEvent primitiveEvent)
+        public void Execute(PrimitiveEvent primitiveEvent)
         {
             Guard.AgainstNull(primitiveEvent, "primitiveEvent");
 
             State.SetPrimitiveEvent(primitiveEvent);
 
             Execute();
-
-            return State.GetEventEnvelope();
         }
     }
 }

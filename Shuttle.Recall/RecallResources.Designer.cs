@@ -106,6 +106,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Received primitive events from the IPrimitiveEventRepository implementation that were not sequential.  Version on next primitive event is &apos;{0}&apos; but currently on version &apos;{1}&apos;..
+        /// </summary>
+        internal static string InvalidEventOrderingException {
+            get {
+                return ResourceManager.GetString("InvalidEventOrderingException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No &apos;IProjectionService implementation has been specified..
         /// </summary>
         internal static string MissingProjectionServiceException {

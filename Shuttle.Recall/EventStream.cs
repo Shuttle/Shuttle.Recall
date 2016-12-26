@@ -5,163 +5,132 @@ using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Recall
 {
-	public class EventStream
-	{
-	    private ICanSnapshot _canSnapshot = null;
-		private readonly List<Event> _events = new List<Event>();
-		private int _initialVersion;
+    public class EventStream
+    {
+        private ICanSnapshot _canSnapshot;
+        private readonly IEnumerable<object> _events;
+        private readonly List<object> _newEvents = new List<object>();
 
-		public EventStream(Guid id)
-		{
-			Id = id;
-			Version = 0;
-			_initialVersion = 0;
-		}
+        public EventStream(Guid id)
+        {
+            Id = id;
+            Version = 0;
+        }
 
-		public EventStream(Guid id, int version, IEnumerable<Event> events, Event snapshot)
-		{
-			Id = id;
-			Version = version;
-			_initialVersion = version;
-			Snapshot = snapshot;
+        public EventStream(Guid id, int version, IEnumerable<object> events)
+        {
+            Guard.AgainstNull(events,"events");
 
-			if (events != null)
-			{
-				_events.AddRange(events);
-			}
-		}
+            Id = id;
+            Version = version;
 
-		public Guid Id { get; private set; }
-		public int Version { get; private set; }
-		public Event Snapshot { get; private set; }
-	    public bool Removed { get; private set; }
+            _events = events;
+        }
 
-	    public EventStream Remove()
-	    {
-	        Removed = true;
+        public Guid Id { get; private set; }
+        public int Version { get; private set; }
+        public object Snapshot { get; private set; }
+        public bool Removed { get; private set; }
 
-	        return this;
-	    }
-
-	    public bool IsEmpty
-	    {
-	        get { return _events.Count == 0; }
-	    }
-
-		public EventStream CommitVersion()
-		{
-			_initialVersion = Version;
+        public EventStream Remove()
+        {
+            Removed = true;
 
             return this;
         }
 
-		public EventStream AddEvent(object data)
-		{
-			Guard.AgainstNull(data, "data");
+        public int Count {
+            get { return (_events == null ? 0 : _events.Count()) + _newEvents.Count; }
+        }
 
-			Version = Version + 1;
+        public bool IsEmpty
+        {
+            get { return Count == 0; }
+        }
 
-			_events.Add(new Event(Version, data.GetType().AssemblyQualifiedName, data));
+        public EventStream AddEvent(object @event)
+        {
+            Guard.AgainstNull(@event, "@event");
+
+            _newEvents.Add(@event);
 
             return this;
         }
 
-		public EventStream AddSnapshot(object data)
-		{
-			Guard.AgainstNull(data, "data");
+        public EventStream AddSnapshot(object snapshot)
+        {
+            Guard.AgainstNull(snapshot, "snapshot");
 
-			Snapshot = new Event(Version, data.GetType().AssemblyQualifiedName, data);
+            Snapshot = snapshot;
 
             return this;
         }
 
-		public bool ShouldSnapshot(int snapshotEventCount)
-		{
-			return _events.Count >= snapshotEventCount;
-		}
+        public bool ShouldSnapshot(int snapshotEventCount)
+        {
+            return Count >= snapshotEventCount;
+        }
 
-	    public bool AttemptSnapshot(int snapshotEventCount)
-	    {
-	        if (!CanSnapshot || !ShouldSnapshot(snapshotEventCount))
-	        {
-	            return false;
-	        }
+        public bool AttemptSnapshot(int snapshotEventCount)
+        {
+            if (!CanSnapshot || !ShouldSnapshot(snapshotEventCount))
+            {
+                return false;
+            }
 
             AddSnapshot(_canSnapshot.GetSnapshotEvent());
 
-	        return true;
-	    }
+            return true;
+        }
 
-	    public bool CanSnapshot
-	    {
-	        get { return _canSnapshot != null; }
-	    }
+        public bool CanSnapshot
+        {
+            get { return _canSnapshot != null; }
+        }
 
-	    public IEnumerable<Event> EventsAfter(Event @event)
-		{
-			return _events.Where(e => e.Version > @event.Version);
-		}
+        public void Apply(object instance)
+        {
+            Apply(instance, "On");
+        }
 
-		public IEnumerable<Event> EventsAfter(int version)
-		{
-			return _events.Where(e => e.Version > version);
-		}
+        public void Apply(object instance, string eventHandlingMethodName)
+        {
+            Guard.AgainstNull(instance, "instance");
 
-		public IEnumerable<Event> NewEvents()
-		{
-			return _events.Where(e => e.Version > _initialVersion);
-		}
-
-		public IEnumerable<Event> PastEvents()
-		{
-			return _events.Where(e => e.Version <= _initialVersion);
-		}
-
-		public void Apply(object instance)
-		{
-			Apply(instance, "On");
-		}
-
-		public void Apply(object instance, string eventHandlingMethodName)
-		{
-			Guard.AgainstNull(instance, "instance");
+            if (_events == null)
+            {
+                return;
+            }
 
             _canSnapshot = instance as ICanSnapshot;
-            
-			var events = new List<Event>(PastEvents());
-
-			if (HasSnapshot)
-			{
-				events.Insert(0, Snapshot);
-			}
 
             var instanceType = instance.GetType();
-            
-            foreach (var @event in events)
-			{
-			    var method = instanceType.GetMethod(eventHandlingMethodName, new[] {@event.Data.GetType()});
 
-				if (method == null)
-				{
-					throw new UnhandledEventException(string.Format(RecallResources.UnhandledEventException,
-						instanceType.AssemblyQualifiedName, eventHandlingMethodName, @event.Data.GetType().AssemblyQualifiedName));
-				}
+            foreach (var @event in _events)
+            {
+                var method = instanceType.GetMethod(eventHandlingMethodName, new[] { @event.GetType() });
 
-				method.Invoke(instance, new[] {@event.Data});
-			}
-		}
+                if (method == null)
+                {
+                    throw new UnhandledEventException(string.Format(RecallResources.UnhandledEventException,
+                        instanceType.AssemblyQualifiedName, eventHandlingMethodName, @event.GetType().AssemblyQualifiedName));
+                }
 
-		public bool HasSnapshot
-		{
-			get { return Snapshot != null; }
-		}
+                method.Invoke(instance, new[] { @event });
+            }
+        }
 
-		public void ConcurrencyInvariant(int expectedVersion)
-		{
-			if (expectedVersion != _initialVersion)
-			{
-				throw new EventStreamConcurrencyException(string.Format(RecallResources.EventStreamConcurrencyException, Id, _initialVersion, expectedVersion));
-			}
-		}
-	}
+        public bool HasSnapshot
+        {
+            get { return Snapshot != null; }
+        }
+
+        public void ConcurrencyInvariant(int expectedVersion)
+        {
+            if (expectedVersion != Version)
+            {
+                throw new EventStreamConcurrencyException(string.Format(RecallResources.EventStreamConcurrencyException, Id, Version, expectedVersion));
+            }
+        }
+    }
 }

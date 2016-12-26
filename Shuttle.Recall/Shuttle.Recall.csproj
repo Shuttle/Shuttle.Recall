@@ -75,7 +75,6 @@
     <Compile Include="EventEnvelopeConfigurator.cs" />
     <Compile Include="EventEnvelopeExtensions.cs" />
     <Compile Include="Configuration\EventStoreSection.cs" />
-    <Compile Include="Event.cs" />
     <Compile Include="Configurator\EventStoreConfigurator.cs" />
     <Compile Include="Configurator\CoreConfigurator.cs" />
     <Compile Include="Configurator\IConfigurator.cs" />
@@ -102,9 +101,10 @@
     <Compile Include="IKeyStore.cs" />
     <Compile Include="ICanSnapshot.cs" />
     <Compile Include="Pipeline\Events.cs" />
-    <Compile Include="Pipeline\Pipelines\GetEventEnvelopePipeline.cs" />
+    <Compile Include="Pipeline\Observers\EventStream\AssembleEventStreamObserver.cs" />
+    <Compile Include="Pipeline\Pipelines\GetEventPipeline.cs" />
     <Compile Include="Pipeline\Observers\AcknowledgeEventObserver.cs" />
-    <Compile Include="Pipeline\Observers\EventStream\GetStreamEventEnvelopesObserver.cs" />
+    <Compile Include="Pipeline\Observers\EventStream\GetStreamEventsObserver.cs" />
     <Compile Include="Pipeline\Observers\EventProjection\GetProjectionPrimitiveEventObserver.cs" />
     <Compile Include="Pipeline\Observers\ProcessEventObserver.cs" />
     <Compile Include="Pipeline\Observers\Shared\CompressMessageObserver.cs" />

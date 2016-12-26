@@ -54,10 +54,6 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventProcessing\EventProcessorFixture.cs" />
-    <Compile Include="EventProcessing\FakeEvent1.cs" />
-    <Compile Include="EventProcessing\FakeEvent2.cs" />
-    <Compile Include="EventProcessing\FakeEventHandler.cs" />
     <Compile Include="EventStreamTests.cs" />
     <Compile Include="Mocks\Aggregate.cs" />
     <Compile Include="Mocks\AggregateState.cs" />
