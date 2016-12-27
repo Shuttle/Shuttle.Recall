@@ -51,20 +51,25 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventStreamTests.cs" />
-    <Compile Include="Mocks\Aggregate.cs" />
-    <Compile Include="Mocks\AggregateState.cs" />
-    <Compile Include="Mocks\AggregateCanSnapshot.cs" />
-    <Compile Include="Mocks\Location.cs" />
-    <Compile Include="Mocks\MoveCommand.cs" />
-    <Compile Include="Mocks\MovedEvent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Section\EventStoreSectionFixture.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Section\files\EventStore-Grouped.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Section\files\EventStore.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Section\files\Empty.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shuttle.Recall\Shuttle.Recall.csproj">

@@ -70,6 +70,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\EventStoreConfiguration.cs" />
+    <Compile Include="Configuration\IEventStoreConfiguration.cs" />
     <Compile Include="EnvelopeHeader.cs" />
     <Compile Include="EventEnvelope.cs" />
     <Compile Include="EventEnvelopeConfigurator.cs" />
@@ -81,7 +83,6 @@
     <Compile Include="EventProcessing\IEventProjectionRepository.cs" />
     <Compile Include="EventProcessing\IPrimitiveEventProvider.cs" />
     <Compile Include="EventStore.cs" />
-    <Compile Include="EventStoreConfiguration.cs" />
     <Compile Include="EventStream.cs" />
     <Compile Include="Exceptions\EventStreamEmptyException.cs" />
     <Compile Include="EventStreamExtensions.cs" />
@@ -97,7 +98,6 @@
     <Compile Include="Exceptions\EventStreamConcurrencyException.cs" />
     <Compile Include="IPrimitiveEventRepository.cs" />
     <Compile Include="IEventStore.cs" />
-    <Compile Include="IEventStoreConfiguration.cs" />
     <Compile Include="IKeyStore.cs" />
     <Compile Include="ICanSnapshot.cs" />
     <Compile Include="Pipeline\Events.cs" />
