@@ -53,13 +53,17 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CoreConfiguratorFixture.cs" />
     <Compile Include="EventStreamTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Section\EventStoreSectionFixture.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
     <None Include="Section\files\EventStore-Grouped.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

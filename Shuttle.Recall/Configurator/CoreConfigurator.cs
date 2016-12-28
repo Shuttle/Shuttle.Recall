@@ -9,21 +9,23 @@ namespace Shuttle.Recall
             var transactionScopeElement = TransactionScopeSection.Get();
 
             configuration.TransactionScope = transactionScopeElement != null
-            ? new TransactionScopeConfiguration
-            {
-                Enabled = transactionScopeElement.Enabled,
-                IsolationLevel = transactionScopeElement.IsolationLevel,
-                TimeoutSeconds = transactionScopeElement.TimeoutSeconds
-            }
-            : new TransactionScopeConfiguration();
-
-
+                ? new TransactionScopeConfiguration
+                {
+                    Enabled = transactionScopeElement.Enabled,
+                    IsolationLevel = transactionScopeElement.IsolationLevel,
+                    TimeoutSeconds = transactionScopeElement.TimeoutSeconds
+                }
+                : new TransactionScopeConfiguration();
+            
             var eventProcessorSection = EventStoreSection.Get();
 
             if (eventProcessorSection == null)
             {
                 return;
             }
+
+            configuration.CompressionAlgorithm = eventProcessorSection.CompressionAlgorithm;
+            configuration.EncryptionAlgorithm = eventProcessorSection.EncryptionAlgorithm;
 
             configuration.DurationToSleepWhenIdle =
                 eventProcessorSection.DurationToSleepWhenIdle ??

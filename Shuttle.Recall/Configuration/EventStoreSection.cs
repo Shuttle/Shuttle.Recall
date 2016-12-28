@@ -11,6 +11,18 @@ namespace Shuttle.Recall
         private static readonly object Padlock = new object();
         private static EventStoreSection _section;
 
+        [ConfigurationProperty("encryptionAlgorithm", IsRequired = false, DefaultValue = "")]
+        public string EncryptionAlgorithm
+        {
+            get { return (string)this["encryptionAlgorithm"]; }
+        }
+
+        [ConfigurationProperty("compressionAlgorithm", IsRequired = false, DefaultValue = "")]
+        public string CompressionAlgorithm
+        {
+            get { return (string)this["compressionAlgorithm"]; }
+        }
+
         [TypeConverter(typeof(StringDurationArrayConverter))]
         [ConfigurationProperty("durationToSleepWhenIdle", IsRequired = false, DefaultValue = null)]
         public TimeSpan[] DurationToSleepWhenIdle
