@@ -1,5 +1,4 @@
 ﻿using Shuttle.Core.Infrastructure;
-using Shuttle.Recall.Shared;
 
 namespace Shuttle.Recall
 {

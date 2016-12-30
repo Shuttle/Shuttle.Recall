@@ -30,16 +30,6 @@ namespace Shuttle.Recall
             }
         }
 
-        public EventStream GetEventStreamAll(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RemoveEventStream(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
         public void SaveEventStream(EventStream eventStream)
         {
             SaveEventStream(eventStream, null);
@@ -47,7 +37,30 @@ namespace Shuttle.Recall
 
         public void SaveEventStream(EventStream eventStream, Action<EventEnvelopeConfigurator> configure)
         {
-            throw new NotImplementedException();
+            Guard.AgainstNull(eventStream, "eventStream");
+
+            if (!eventStream.ShouldSave())
+            {
+                return;
+            }
+
+            var pipeline = _pipelineFactory.GetPipeline<SaveEventStreamPipeline>();
+
+            try
+            {
+                var configurator = new EventEnvelopeConfigurator();
+
+                if (configure != null)
+                {
+                    configure(configurator);
+                }
+
+                pipeline.Execute(eventStream, configurator);
+            }
+            finally
+            {
+                _pipelineFactory.ReleasePipeline(pipeline);
+            }
         }
 
         public IEventStore Create(IComponentResolver resolver)

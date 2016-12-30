@@ -37,6 +37,16 @@ namespace Shuttle.Recall
             return state.Get<EventEnvelope>(StateKeys.EventEnvelope);
         }
 
+        public static void SetEventEnvelopes(this IState state, IEnumerable<EventEnvelope> value)
+        {
+            state.Replace(StateKeys.EventEnvelopes, value);
+        }
+
+        public static IEnumerable<EventEnvelope> GetEventEnvelopes(this IState state)
+        {
+            return state.Get<IEnumerable<EventEnvelope>>(StateKeys.EventEnvelopes);
+        }
+
         public static void SetEventStream(this IState state, EventStream value)
         {
             state.Replace(StateKeys.EventStream, value);
@@ -45,6 +55,16 @@ namespace Shuttle.Recall
         public static EventStream GetEventStream(this IState state)
         {
             return state.Get<EventStream>(StateKeys.EventStream);
+        }
+
+        public static void SetEventEnvelopeConfigurator(this IState state, EventEnvelopeConfigurator value)
+        {
+            state.Replace(StateKeys.EventEnvelopeConfigurator, value);
+        }
+
+        public static EventEnvelopeConfigurator GetEventEnvelopeConfigurator(this IState state)
+        {
+            return state.Get<EventEnvelopeConfigurator>(StateKeys.EventEnvelopeConfigurator);
         }
 
         public static void SetEvents(this IState state, IEnumerable<object> value)
@@ -67,24 +87,14 @@ namespace Shuttle.Recall
             return state.Get<int>(StateKeys.Version);
         }
 
-        public static void SetEventEnvelopeStream(this IState state, Stream value)
+        public static byte[] GetEventBytes(this IState state)
         {
-            state.Replace(StateKeys.EventEnvelopeStream, value);
-        }
-
-        public static Stream GetEventEnvelopeStream(this IState state)
-        {
-            return state.Get<Stream>(StateKeys.EventEnvelopeStream);
-        }
-
-        public static byte[] GetMessageBytes(this IState state)
-        {
-            return state.Get<byte[]>(StateKeys.MessageBytes);
+            return state.Get<byte[]>(StateKeys.EventBytes);
         }
 
         public static void SetEventBytes(this IState state, byte[] bytes)
         {
-            state.Replace(StateKeys.MessageBytes, bytes);
+            state.Replace(StateKeys.EventBytes, bytes);
         }
 
         public static object GetEvent(this IState state)

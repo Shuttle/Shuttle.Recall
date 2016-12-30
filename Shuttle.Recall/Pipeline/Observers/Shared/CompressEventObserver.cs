@@ -1,13 +1,13 @@
 ﻿using System;
 using Shuttle.Core.Infrastructure;
 
-namespace Shuttle.Recall.Shared
+namespace Shuttle.Recall
 {
-	public class CompressMessageObserver : IPipelineObserver<OnCompressEvent>
+	public class CompressEventObserver : IPipelineObserver<OnCompressEvent>
 	{
 	    private readonly IEventStoreConfiguration _configuration;
 
-	    public CompressMessageObserver(IEventStoreConfiguration configuration)
+	    public CompressEventObserver(IEventStoreConfiguration configuration)
 	    {
             Guard.AgainstNull(configuration, "configuration");
 
@@ -17,24 +17,24 @@ namespace Shuttle.Recall.Shared
 	    public void Execute(OnCompressEvent pipelineEvent)
 		{
 			var state = pipelineEvent.Pipeline.State;
-			var transportMessage = state.GetEventEnvelope();
+			var eventEnvelope = state.GetEventEnvelope();
 
-			if (!transportMessage.CompressionEnabled())
+			if (!eventEnvelope.CompressionEnabled())
 			{
 				return;
 			}
 
-			var algorithm = _configuration.FindCompressionAlgorithm(transportMessage.CompressionAlgorithm);
+			var algorithm = _configuration.FindCompressionAlgorithm(eventEnvelope.CompressionAlgorithm);
 
 	        if (algorithm == null)
 	        {
 	            throw new InvalidOperationException(
 	                string.Format(InfrastructureResources.MissingCompressionAlgorithmException,
-	                    transportMessage.CompressionAlgorithm));
+	                    eventEnvelope.CompressionAlgorithm));
 
 	        }
 
-			transportMessage.Event = algorithm.Compress(transportMessage.Event);
+			eventEnvelope.Event = algorithm.Compress(eventEnvelope.Event);
 		}
 	}
 }

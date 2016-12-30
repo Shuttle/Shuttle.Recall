@@ -1,8 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Shuttle.Core.Infrastructure;
 
-namespace Shuttle.Recall.Shared
+namespace Shuttle.Recall
 {
     public class DeserializeEventEnvelopeObserver : IPipelineObserver<OnDeserializeEventEnvelope>
     {

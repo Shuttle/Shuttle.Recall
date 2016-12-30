@@ -1,12 +1,12 @@
 ﻿using Shuttle.Core.Infrastructure;
 
-namespace Shuttle.Recall.Shared
+namespace Shuttle.Recall
 {
-    public class SerializeMessageObserver : IPipelineObserver<OnSerializeEvent>
+    public class SerializeEventObserver : IPipelineObserver<OnSerializeEvent>
     {
         private readonly ISerializer _serializer;
 
-        public SerializeMessageObserver(ISerializer serializer)
+        public SerializeEventObserver(ISerializer serializer)
         {
             Guard.AgainstNull(serializer, "serializer");
 
@@ -16,9 +16,9 @@ namespace Shuttle.Recall.Shared
         public void Execute(OnSerializeEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var message = state.GetEvent();
+            var @event = state.GetEvent();
             var eventEnvelope = state.GetEventEnvelope();
-            var bytes = _serializer.Serialize(message).ToBytes();
+            var bytes = _serializer.Serialize(@event).ToBytes();
 
             state.SetEventBytes(bytes);
 

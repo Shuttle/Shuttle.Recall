@@ -6,6 +6,13 @@ namespace Shuttle.Recall
     [Serializable]
     public class EventEnvelope
     {
+        public EventEnvelope()
+        {
+            EventId = new Guid();
+            EventDate = DateTime.Now;
+            Headers = new List<EnvelopeHeader>();
+        }
+
         public byte[] Event { get; set; }
 
         public Guid EventId { get; set; }

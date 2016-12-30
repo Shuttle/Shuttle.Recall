@@ -2,6 +2,22 @@
 
 namespace Shuttle.Recall
 {
+    public class OnAssembleEventEnvelopes : PipelineEvent
+    {
+    }
+
+    public class OnAfterAssembleEventEnvelopes : PipelineEvent
+    {
+    }
+
+    public class OnSavePrimitiveEvents : PipelineEvent
+    {
+    }
+
+    public class OnAfterSavePrimitiveEvents : PipelineEvent
+    {
+    }
+
     public class OnGetStreamEvents : PipelineEvent
     {
     }
@@ -82,11 +98,11 @@ namespace Shuttle.Recall
     {
     }
 
-    public class OnSerializeEventEnvelope : PipelineEvent
+    public class OnAssembleEventEnvelope : PipelineEvent
     {
     }
 
-    public class OnAfterSerializeEventEnvelope : PipelineEvent
+    public class OnAfterAssembleEventEnvelope : PipelineEvent
     {
     }
 

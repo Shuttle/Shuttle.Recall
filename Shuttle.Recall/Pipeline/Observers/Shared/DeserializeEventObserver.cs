@@ -2,7 +2,7 @@
 using System.IO;
 using Shuttle.Core.Infrastructure;
 
-namespace Shuttle.Recall.Shared
+namespace Shuttle.Recall
 {
     public class DeserializeEventObserver : IPipelineObserver<OnDeserializeEvent>
     {

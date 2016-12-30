@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Shuttle.Core.Infrastructure;
 
@@ -9,7 +10,7 @@ namespace Shuttle.Recall
     {
         private ICanSnapshot _canSnapshot;
         private readonly IEnumerable<object> _events;
-        private readonly List<object> _newEvents = new List<object>();
+        private readonly List<object> _appendedEvents = new List<object>();
 
         public EventStream(Guid id)
         {
@@ -30,17 +31,9 @@ namespace Shuttle.Recall
         public Guid Id { get; private set; }
         public int Version { get; private set; }
         public object Snapshot { get; private set; }
-        public bool Removed { get; private set; }
-
-        public EventStream Remove()
-        {
-            Removed = true;
-
-            return this;
-        }
-
+        
         public int Count {
-            get { return (_events == null ? 0 : _events.Count()) + _newEvents.Count; }
+            get { return (_events == null ? 0 : _events.Count()) + _appendedEvents.Count; }
         }
 
         public bool IsEmpty
@@ -52,7 +45,7 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNull(@event, "@event");
 
-            _newEvents.Add(@event);
+            _appendedEvents.Add(@event);
 
             return this;
         }
@@ -131,6 +124,16 @@ namespace Shuttle.Recall
             {
                 throw new EventStreamConcurrencyException(string.Format(RecallResources.EventStreamConcurrencyException, Id, Version, expectedVersion));
             }
+        }
+
+        public bool ShouldSave()
+        {
+            return _appendedEvents.Count > 0;
+        }
+
+        public IEnumerable<object> AppendedEvents
+        {
+            get { return new ReadOnlyCollection<object>(_appendedEvents); }
         }
     }
 }

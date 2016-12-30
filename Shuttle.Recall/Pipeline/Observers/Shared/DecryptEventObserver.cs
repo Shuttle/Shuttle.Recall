@@ -1,7 +1,7 @@
 ﻿using System;
 using Shuttle.Core.Infrastructure;
 
-namespace Shuttle.Recall.Shared
+namespace Shuttle.Recall
 {
     public class DecryptEventObserver : IPipelineObserver<OnDecryptEvent>
     {
@@ -17,21 +17,21 @@ namespace Shuttle.Recall.Shared
         public void Execute(OnDecryptEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var transportMessage = state.GetEventEnvelope();
+            var eventEnvelope = state.GetEventEnvelope();
 
-            if (!transportMessage.EncryptionEnabled())
+            if (!eventEnvelope.EncryptionEnabled())
             {
                 return;
             }
 
-            var algorithm = _configuration.FindEncryptionAlgorithm(transportMessage.EncryptionAlgorithm);
+            var algorithm = _configuration.FindEncryptionAlgorithm(eventEnvelope.EncryptionAlgorithm);
 
             if (algorithm == null)
             {
-                throw new InvalidOperationException(string.Format(InfrastructureResources.MissingCompressionAlgorithmException, transportMessage.CompressionAlgorithm));
+                throw new InvalidOperationException(string.Format(InfrastructureResources.MissingCompressionAlgorithmException, eventEnvelope.CompressionAlgorithm));
             }
 
-            transportMessage.Event = algorithm.Decrypt(transportMessage.Event);
+            eventEnvelope.Event = algorithm.Decrypt(eventEnvelope.Event);
         }
     }
 }
