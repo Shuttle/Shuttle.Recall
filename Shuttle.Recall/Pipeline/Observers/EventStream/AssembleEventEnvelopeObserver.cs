@@ -17,15 +17,12 @@ namespace Shuttle.Recall
         {
             var state = pipelineEvent.Pipeline.State;
             var @event = state.GetEvent();
-            var eventBytes = state.GetEventBytes();
             var configurator = state.GetEventEnvelopeConfigurator();
 
             Guard.AgainstNull(@event, "state.GetEvent()");
-            Guard.AgainstNull(eventBytes, "state.GetEventBytes()");
 
             var eventEnvelope = new EventEnvelope
             {
-                Event = eventBytes,
                 AssemblyQualifiedName = @event.GetType().AssemblyQualifiedName,
                 EventType = @event.GetType().FullName,
                 EncryptionAlgorithm = _configuration.EncryptionAlgorithm,

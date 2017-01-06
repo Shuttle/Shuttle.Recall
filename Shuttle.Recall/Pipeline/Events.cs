@@ -34,6 +34,14 @@ namespace Shuttle.Recall
     {
     }
 
+    public class OnRemoveEventStream : PipelineEvent
+    {
+    }
+
+    public class OnAfterRemoveEventStream : PipelineEvent
+    {
+    }
+
     public class OnGetProjectionPrimitiveEvent : PipelineEvent
     {
     }

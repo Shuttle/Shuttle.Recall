@@ -11,6 +11,8 @@ namespace Shuttle.Recall
             Guard.AgainstNull(serializeEventObserver, "serializeEventObserver");
 
             RegisterStage("Get")
+                .WithEvent<OnAssembleEventEnvelope>()
+                .WithEvent<OnAfterAssembleEventEnvelope>()
                 .WithEvent<OnSerializeEvent>()
                 .WithEvent<OnAfterSerializeEvent>()
                 .WithEvent<OnEncryptEvent>()

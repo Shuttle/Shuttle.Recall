@@ -58,8 +58,8 @@
     <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Shuttle.Core.Infrastructure, Version=4.2.52.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Core.Infrastructure.4.2.52\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
+    <Reference Include="Shuttle.Core.Infrastructure, Version=4.2.54.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Shuttle.Core.Infrastructure.4.2.54\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -104,6 +104,7 @@
     <Compile Include="Pipeline\Observers\EventStream\AssembleEventEnvelopeObserver.cs" />
     <Compile Include="Pipeline\Observers\EventStream\AssembleEventEnvelopesObserver.cs" />
     <Compile Include="Pipeline\Observers\EventStream\AssembleEventStreamObserver.cs" />
+    <Compile Include="Pipeline\Observers\EventStream\GetStreamEventsObserver - Copy.cs" />
     <Compile Include="Pipeline\Observers\EventStream\SavePrimitiveEventsObserver.cs" />
     <Compile Include="Pipeline\Pipelines\EventEnvelopePipeline.cs" />
     <Compile Include="Pipeline\Pipelines\GetEventPipeline.cs" />
@@ -120,6 +121,7 @@
     <Compile Include="Pipeline\Observers\Shared\SerializeEventObserver.cs" />
     <Compile Include="Pipeline\PipelineStateExtensions.cs" />
     <Compile Include="Pipeline\Pipelines\EventProcessingPipeline.cs" />
+    <Compile Include="Pipeline\Pipelines\RemoveEventStreamPipeline.cs" />
     <Compile Include="Pipeline\Pipelines\SaveEventStreamPipeline.cs" />
     <Compile Include="Pipeline\Pipelines\GetEventStreamPipeline.cs" />
     <Compile Include="Pipeline\StateKeys.cs" />
@@ -142,7 +144,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

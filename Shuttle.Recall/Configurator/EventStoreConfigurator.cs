@@ -32,6 +32,35 @@ namespace Shuttle.Recall
 
             new CoreConfigurator().Apply(configuration);
 
+            RegisterComponents(configuration);
+
+            return configuration;
+        }
+
+        public void RegisterComponents(IEventStoreConfiguration configuration)
+        {
+            Guard.AgainstNull(configuration, "configuration");
+
+            RegisterDefaultInstance(_registry, configuration);
+
+            RegisterDefault<ISerializer, DefaultSerializer>(_registry);
+
+            var transactionScopeConfiguration = configuration.TransactionScope ?? new TransactionScopeConfiguration();
+
+            RegisterDefaultInstance<ITransactionScopeFactory>(_registry,
+                new DefaultTransactionScopeFactory(transactionScopeConfiguration.Enabled,
+                    transactionScopeConfiguration.IsolationLevel,
+                    TimeSpan.FromSeconds(transactionScopeConfiguration.TimeoutSeconds)));
+
+            RegisterDefault<IPipelineFactory, DefaultPipelineFactory>(_registry);
+
+            _registry.Register(typeof(GetEventPipeline), typeof(GetEventPipeline), Lifestyle.Transient);
+            _registry.Register(typeof(EventEnvelopePipeline), typeof(EventEnvelopePipeline), Lifestyle.Transient);
+            _registry.Register(typeof(GetEventStreamPipeline), typeof(GetEventStreamPipeline), Lifestyle.Transient);
+            _registry.Register(typeof(EventProcessingPipeline), typeof(EventProcessingPipeline), Lifestyle.Transient);
+            _registry.Register(typeof(SaveEventStreamPipeline), typeof(SaveEventStreamPipeline), Lifestyle.Transient);
+            _registry.Register(typeof(RemoveEventStreamPipeline), typeof(RemoveEventStreamPipeline), Lifestyle.Transient);
+
             var reflectionService = new ReflectionService();
 
             foreach (var type in reflectionService.GetTypes<IPipelineObserver>())
@@ -44,18 +73,13 @@ namespace Shuttle.Recall
                 _registry.Register(type, type, Lifestyle.Singleton);
             }
 
-            return configuration;
-        }
-
-        public void RegisterComponents(IEventStoreConfiguration configuration)
-        {
-            Guard.AgainstNull(configuration, "configuration");
-
-            RegisterDefaultInstance(_registry, configuration);
+            _registry.Register<IEventStore, EventStore>();
+            _registry.Register<IEventProcessor, EventProcessor>();
         }
 
         private void RegisterDefault<TDependency, TImplementation>(IComponentRegistry registry)
-            where TImplementation : class where TDependency : class
+            where TDependency : class 
+            where TImplementation : class, TDependency 
         {
             if (_dontRegisterTypes.Contains(typeof (TDependency)))
             {
@@ -74,6 +98,11 @@ namespace Shuttle.Recall
             }
 
             registry.Register(instance);
+        }
+
+        public static IEventStoreConfiguration Configure(IComponentRegistry registry)
+        {
+            return new EventStoreConfigurator(registry).Configure();
         }
     }
 }

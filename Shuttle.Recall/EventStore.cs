@@ -14,7 +14,7 @@ namespace Shuttle.Recall
             _pipelineFactory = pipelineFactory;
         }
 
-        public EventStream GetEventStream(Guid id)
+        public EventStream Get(Guid id)
         {
             Guard.AgainstNull(id, "id");
 
@@ -30,12 +30,12 @@ namespace Shuttle.Recall
             }
         }
 
-        public void SaveEventStream(EventStream eventStream)
+        public void Save(EventStream eventStream)
         {
-            SaveEventStream(eventStream, null);
+            Save(eventStream, null);
         }
 
-        public void SaveEventStream(EventStream eventStream, Action<EventEnvelopeConfigurator> configure)
+        public void Save(EventStream eventStream, Action<EventEnvelopeConfigurator> configure)
         {
             Guard.AgainstNull(eventStream, "eventStream");
 
@@ -63,7 +63,23 @@ namespace Shuttle.Recall
             }
         }
 
-        public IEventStore Create(IComponentResolver resolver)
+        public void Remove(Guid id)
+        {
+            Guard.AgainstNull(id, "id");
+
+            var pipeline = _pipelineFactory.GetPipeline<RemoveEventStreamPipeline>();
+
+            try
+            {
+                pipeline.Execute(id);
+            }
+            finally
+            {
+                _pipelineFactory.ReleasePipeline(pipeline);
+            }
+        }
+
+        public static IEventStore Create(IComponentResolver resolver)
         {
             Guard.AgainstNull(resolver, "resolver");
 
