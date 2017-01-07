@@ -8,9 +8,9 @@ namespace Shuttle.Recall
 {
     public class EventStream
     {
-        private ICanSnapshot _canSnapshot;
         private readonly IEnumerable<object> _events;
-        private readonly List<object> _appendedEvents = new List<object>();
+        private readonly List<DomainEvent> _appendedEvents = new List<DomainEvent>();
+        private int _nextVersion;
 
         public EventStream(Guid id)
         {
@@ -24,6 +24,7 @@ namespace Shuttle.Recall
 
             Id = id;
             Version = version;
+            _nextVersion = version + 1;
 
             _events = events;
         }
@@ -45,9 +46,18 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNull(@event, "@event");
 
-            _appendedEvents.Add(@event);
+            _appendedEvents.Add(new DomainEvent( @event, GetNextVersion()));
 
             return this;
+        }
+
+        private int GetNextVersion()
+        {
+            var result = _nextVersion;
+
+            _nextVersion = _nextVersion + 1;
+
+            return result;
         }
 
         public EventStream AddSnapshot(object snapshot)
@@ -56,29 +66,9 @@ namespace Shuttle.Recall
 
             Snapshot = snapshot;
 
+            _appendedEvents.Add(new DomainEvent(snapshot, GetNextVersion()).AsSnapshot());
+
             return this;
-        }
-
-        public bool ShouldSnapshot(int snapshotEventCount)
-        {
-            return Count >= snapshotEventCount;
-        }
-
-        public bool AttemptSnapshot(int snapshotEventCount)
-        {
-            if (!CanSnapshot || !ShouldSnapshot(snapshotEventCount))
-            {
-                return false;
-            }
-
-            AddSnapshot(_canSnapshot.GetSnapshotEvent());
-
-            return true;
-        }
-
-        public bool CanSnapshot
-        {
-            get { return _canSnapshot != null; }
         }
 
         public void Apply(object instance)
@@ -94,8 +84,6 @@ namespace Shuttle.Recall
             {
                 return;
             }
-
-            _canSnapshot = instance as ICanSnapshot;
 
             var instanceType = instance.GetType();
 
@@ -131,9 +119,9 @@ namespace Shuttle.Recall
             return _appendedEvents.Count > 0;
         }
 
-        public IEnumerable<object> AppendedEvents
+        public IEnumerable<object> GetEvents()
         {
-            get { return new ReadOnlyCollection<object>(_appendedEvents); }
+            return new ReadOnlyCollection<DomainEvent>(_appendedEvents);
         }
     }
 }

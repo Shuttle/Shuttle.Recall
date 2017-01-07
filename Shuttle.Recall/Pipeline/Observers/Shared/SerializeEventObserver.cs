@@ -16,9 +16,9 @@ namespace Shuttle.Recall
         public void Execute(OnSerializeEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var @event = state.GetEvent();
+            var domainEvent = state.GetDomainEvent();
             var eventEnvelope = state.GetEventEnvelope();
-            var bytes = _serializer.Serialize(@event).ToBytes();
+            var bytes = _serializer.Serialize(domainEvent.Event).ToBytes();
 
             state.SetEventBytes(bytes);
 

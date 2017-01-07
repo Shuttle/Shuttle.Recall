@@ -23,14 +23,10 @@ namespace Shuttle.Recall
 
             var eventEnvelope = state.GetEventEnvelope();
 
-            object message;
-
             using (var stream = new MemoryStream(eventEnvelope.Event))
             {
-                message = _serializer.Deserialize(Type.GetType(eventEnvelope.AssemblyQualifiedName, true, true), stream);
+                state.SetEvent(_serializer.Deserialize(Type.GetType(eventEnvelope.AssemblyQualifiedName, true, true), stream));
             }
-
-            state.SetEvent(message);
         }
     }
 }

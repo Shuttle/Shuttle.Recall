@@ -24,7 +24,6 @@ namespace Shuttle.Recall
         public static void AcceptInvariants(this EventEnvelope eventEnvelope)
         {
             Guard.AgainstNull(eventEnvelope.EventId, "EventId");
-            Guard.AgainstNullOrEmptyString(eventEnvelope.EventType, "EventType");
             Guard.AgainstNullOrEmptyString(eventEnvelope.AssemblyQualifiedName, "AssemblyQualifiedName");
         }
 

@@ -47,6 +47,16 @@ namespace Shuttle.Recall
             return state.Get<IEnumerable<EventEnvelope>>(StateKeys.EventEnvelopes);
         }
 
+        public static void SetEvent(this IState state, object value)
+        {
+            state.Replace(StateKeys.Event, value);
+        }
+
+        public static object GetEvent(this IState state)
+        {
+            return state.Get<object>(StateKeys.Event);
+        }
+
         public static void SetEventStream(this IState state, EventStream value)
         {
             state.Replace(StateKeys.EventStream, value);
@@ -97,14 +107,14 @@ namespace Shuttle.Recall
             state.Replace(StateKeys.EventBytes, bytes);
         }
 
-        public static object GetEvent(this IState state)
+        public static DomainEvent GetDomainEvent(this IState state)
         {
-            return state.Get<object>(StateKeys.Event);
+            return state.Get<DomainEvent>(StateKeys.DomainEvent);
         }
 
-        public static void SetEvent(this IState state, object @event)
+        public static void SetDomainEvent(this IState state, DomainEvent domainEvent)
         {
-            state.Replace(StateKeys.Event, @event);
+            state.Replace(StateKeys.DomainEvent, domainEvent);
         }
 
         public static void SetPrimitiveEvent(this IState state, PrimitiveEvent primitiveEvent)

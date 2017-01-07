@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DomainEvent.cs" />
     <Compile Include="Configuration\EventStoreConfiguration.cs" />
     <Compile Include="Configuration\IEventStoreConfiguration.cs" />
     <Compile Include="EnvelopeHeader.cs" />
@@ -99,7 +100,6 @@
     <Compile Include="IPrimitiveEventRepository.cs" />
     <Compile Include="IEventStore.cs" />
     <Compile Include="IKeyStore.cs" />
-    <Compile Include="ICanSnapshot.cs" />
     <Compile Include="Pipeline\Events.cs" />
     <Compile Include="Pipeline\Observers\EventStream\AssembleEventEnvelopeObserver.cs" />
     <Compile Include="Pipeline\Observers\EventStream\AssembleEventEnvelopesObserver.cs" />

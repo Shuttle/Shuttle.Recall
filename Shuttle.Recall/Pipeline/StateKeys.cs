@@ -4,6 +4,7 @@
     {
         public const string ThreadState = "ThreadState";
         public const string Working = "Working";
+        public const string DomainEvent = "DomainEvent";
         public const string EventEnvelope = "EventEnvelope";
         public const string EventEnvelopes = "EventEnvelopes";
         public const string Event = "Event";

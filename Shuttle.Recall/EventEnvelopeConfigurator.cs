@@ -19,7 +19,6 @@ namespace Shuttle.Recall
 
             var result = new EventEnvelope
             {
-                EventType = @event.GetType().FullName,
                 AssemblyQualifiedName = @event.GetType().AssemblyQualifiedName,
                 EncryptionAlgorithm = encryptionAlgorithm,
                 CompressionAlgorithm = compressionAlgorithm,

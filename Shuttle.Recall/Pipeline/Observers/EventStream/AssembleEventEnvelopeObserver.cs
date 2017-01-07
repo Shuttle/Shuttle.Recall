@@ -16,15 +16,14 @@ namespace Shuttle.Recall
         public void Execute(OnAssembleEventEnvelope pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var @event = state.GetEvent();
+            var domainEvent = state.GetDomainEvent();
             var configurator = state.GetEventEnvelopeConfigurator();
 
-            Guard.AgainstNull(@event, "state.GetEvent()");
+            Guard.AgainstNull(domainEvent, "state.GetDomainEvent()");
 
             var eventEnvelope = new EventEnvelope
             {
-                AssemblyQualifiedName = @event.GetType().AssemblyQualifiedName,
-                EventType = @event.GetType().FullName,
+                AssemblyQualifiedName = domainEvent.GetType().AssemblyQualifiedName,
                 EncryptionAlgorithm = _configuration.EncryptionAlgorithm,
                 CompressionAlgorithm = _configuration.CompressionAlgorithm
             };

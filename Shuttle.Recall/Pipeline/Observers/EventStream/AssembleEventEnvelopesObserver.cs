@@ -20,7 +20,6 @@ namespace Shuttle.Recall
             var eventStream = state.GetEventStream();
             var configurator = state.GetEventEnvelopeConfigurator();
             var eventEnvelopes = new List<EventEnvelope>();
-            var eventEnvelopesBytes = new List<byte[]>();
 
             Guard.AgainstNull(eventStream, "state.GetEventStream()");
             Guard.AgainstNull(configurator, "state.GetEventEnvelopeConfigurator()");
@@ -31,7 +30,7 @@ namespace Shuttle.Recall
 
             try
             {
-                foreach (var appendedEvent in eventStream.AppendedEvents)
+                foreach (var appendedEvent in eventStream.GetEvents())
                 {
                     eventEnvelopes.Add(pipeline.Execute(appendedEvent));
                 }
