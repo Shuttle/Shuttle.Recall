@@ -23,7 +23,11 @@ namespace Shuttle.Recall
 
             var eventEnvelope = new EventEnvelope
             {
-                AssemblyQualifiedName = domainEvent.GetType().AssemblyQualifiedName,
+                Event = state.GetEventBytes(),
+                EventType = domainEvent.Event.GetType().FullName,
+                IsSnapshot = domainEvent.IsSnapshot,
+                Version = domainEvent.Version,
+                AssemblyQualifiedName = domainEvent.Event.GetType().AssemblyQualifiedName,
                 EncryptionAlgorithm = _configuration.EncryptionAlgorithm,
                 CompressionAlgorithm = _configuration.CompressionAlgorithm
             };

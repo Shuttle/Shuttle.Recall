@@ -28,9 +28,9 @@ namespace Shuttle.Recall
             RegisterObserver(serializeEventObserver);
         }
 
-        public EventEnvelope Execute(object @event)
+        public EventEnvelope Execute(DomainEvent domainEvent)
         {
-            State.SetEvent(@event);
+            State.SetDomainEvent(domainEvent);
 
             Execute();
 

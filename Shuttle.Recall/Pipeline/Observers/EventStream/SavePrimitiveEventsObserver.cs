@@ -19,7 +19,6 @@ namespace Shuttle.Recall
         public void Execute(OnSavePrimitiveEvents pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var domainEvent = state.GetDomainEvent();
             var eventStream = state.GetEventStream();
             var eventEnvelopes = state.GetEventEnvelopes();
 
@@ -30,11 +29,11 @@ namespace Shuttle.Recall
             {
                 _primitiveEventRepository.Save(new PrimitiveEvent
                 {
-                    Id = state.GetId(),
+                    Id = eventStream.Id,
                     EventEnvelope = _serializer.Serialize(eventEnvelope).ToBytes(),
-                    EventType = domainEvent.Event.GetType().FullName,
-                    IsSnapshot = domainEvent.IsSnapshot,
-                    Version = domainEvent.Version,
+                    EventType = eventEnvelope.EventType,
+                    IsSnapshot = eventEnvelope.IsSnapshot,
+                    Version = eventEnvelope.Version,
                     DateRegistered = eventEnvelope.EventDate
                 });
             }

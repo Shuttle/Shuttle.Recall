@@ -8,7 +8,7 @@ namespace Shuttle.Recall
     {
         public EventEnvelope()
         {
-            EventId = new Guid();
+            EventId = Guid.NewGuid();
             EventDate = DateTime.Now;
             Headers = new List<EnvelopeHeader>();
         }
@@ -21,5 +21,8 @@ namespace Shuttle.Recall
         public string EncryptionAlgorithm { get; set; }
         public string CompressionAlgorithm { get; set; }
         public List<EnvelopeHeader> Headers { get; set; }
+        public string EventType { get; set; }
+        public bool IsSnapshot { get; set; }
+        public int Version { get; set; }
     }
 }

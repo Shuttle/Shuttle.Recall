@@ -13,6 +13,7 @@ namespace Shuttle.Recall
         private int _nextVersion;
 
         public EventStream(Guid id)
+            : this(id, 0, null)
         {
             Id = id;
             Version = 0;
@@ -20,8 +21,6 @@ namespace Shuttle.Recall
 
         public EventStream(Guid id, int version, IEnumerable<object> events)
         {
-            Guard.AgainstNull(events,"events");
-
             Id = id;
             Version = version;
             _nextVersion = version + 1;
@@ -119,7 +118,7 @@ namespace Shuttle.Recall
             return _appendedEvents.Count > 0;
         }
 
-        public IEnumerable<object> GetEvents()
+        public IEnumerable<DomainEvent> GetEvents()
         {
             return new ReadOnlyCollection<DomainEvent>(_appendedEvents);
         }
