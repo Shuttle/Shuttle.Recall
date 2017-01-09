@@ -18,6 +18,14 @@ namespace Shuttle.Recall
     {
     }
 
+    public class OnCommitEventStream : PipelineEvent
+    {
+    }
+
+    public class OnAfterCommitEventStream : PipelineEvent
+    {
+    }
+
     public class OnGetStreamEvents : PipelineEvent
     {
     }

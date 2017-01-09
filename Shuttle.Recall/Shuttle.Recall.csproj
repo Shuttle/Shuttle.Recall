@@ -105,6 +105,7 @@
     <Compile Include="Pipeline\Observers\EventStream\AssembleEventEnvelopesObserver.cs" />
     <Compile Include="Pipeline\Observers\EventStream\AssembleEventStreamObserver.cs" />
     <Compile Include="Pipeline\Observers\EventStream\GetStreamEventsObserver - Copy.cs" />
+    <Compile Include="Pipeline\Observers\EventStream\SavePrimitiveEventsObserver - Copy.cs" />
     <Compile Include="Pipeline\Observers\EventStream\SavePrimitiveEventsObserver.cs" />
     <Compile Include="Pipeline\Pipelines\EventEnvelopePipeline.cs" />
     <Compile Include="Pipeline\Pipelines\GetEventPipeline.cs" />

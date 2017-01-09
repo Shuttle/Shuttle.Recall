@@ -8,7 +8,7 @@ namespace Shuttle.Recall
 {
     public class EventStream
     {
-        private readonly IEnumerable<object> _events;
+        private List<object> _events = new List<object>();
         private readonly List<DomainEvent> _appendedEvents = new List<DomainEvent>();
         private int _nextVersion;
 
@@ -25,14 +25,18 @@ namespace Shuttle.Recall
             Version = version;
             _nextVersion = version + 1;
 
-            _events = events;
+            if (events != null)
+            {
+                _events.AddRange(events);
+            }
         }
 
         public Guid Id { get; private set; }
         public int Version { get; private set; }
         public object Snapshot { get; private set; }
-        
-        public int Count {
+
+        public int Count
+        {
             get { return (_events == null ? 0 : _events.Count()) + _appendedEvents.Count; }
         }
 
@@ -45,7 +49,7 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNull(@event, "@event");
 
-            _appendedEvents.Add(new DomainEvent( @event, GetNextVersion()));
+            _appendedEvents.Add(new DomainEvent(@event, GetNextVersion()));
 
             return this;
         }
@@ -121,6 +125,15 @@ namespace Shuttle.Recall
         public IEnumerable<DomainEvent> GetEvents()
         {
             return new ReadOnlyCollection<DomainEvent>(_appendedEvents);
+        }
+
+        /// <summary>
+        /// Appended events are moved to the events collection since they have been committed but can still be applied to any other aggregate.
+        /// </summary>
+        public void Commit()
+        {
+            _events.AddRange(_appendedEvents);
+            _appendedEvents.Clear();
         }
     }
 }
