@@ -2,6 +2,34 @@
 
 namespace Shuttle.Recall
 {
+    public class OnCreateEventStoreConnection : PipelineEvent
+    {
+    }
+
+    public class OnDisposeEventStoreConnection : PipelineEvent
+    {
+    }
+
+    public class OnCreateProjectionConnection : PipelineEvent
+    {
+    }
+
+    public class OnDisposeProjectionConnection : PipelineEvent
+    {
+    }
+
+    public class OnGetProjectionEventEnvelope : PipelineEvent
+    {
+    }
+
+    public class OnAfterGetProjectionEventEnvelope : PipelineEvent
+    {
+    }
+
+    public class OnGetProjectionSequenceNumber : PipelineEvent
+    {
+    }
+
     public class OnAssembleEventEnvelopes : PipelineEvent
     {
     }
