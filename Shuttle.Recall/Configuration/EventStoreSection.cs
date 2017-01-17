@@ -23,6 +23,12 @@ namespace Shuttle.Recall
             get { return (string)this["compressionAlgorithm"]; }
         }
 
+        [ConfigurationProperty("projectionEventFetchCount", IsRequired = false, DefaultValue = 100)]
+        public int ProjectionEventFetchCount
+        {
+            get { return (int)this["projectionEventFetchCount"]; }
+        }
+
         [TypeConverter(typeof(StringDurationArrayConverter))]
         [ConfigurationProperty("durationToSleepWhenIdle", IsRequired = false, DefaultValue = null)]
         public TimeSpan[] DurationToSleepWhenIdle

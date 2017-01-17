@@ -6,7 +6,7 @@ namespace Shuttle.Recall
 {
     public class EventProcessor : IEventProcessor
     {
-        private readonly List<EventProjection> _eventProjections = new List<EventProjection>();
+        private readonly List<Projection> _projections = new List<Projection>();
         private readonly IPipelineFactory _pipelineFactory;
         private readonly List<ProcessorThread> _processorThreads = new List<ProcessorThread>();
         private readonly IEventStoreConfiguration _configuration;
@@ -34,10 +34,10 @@ namespace Shuttle.Recall
                 return this;
             }
 
-            foreach (var eventProjection in _eventProjections)
+            foreach (var eventProjection in _projections)
             {
-                var processorThread = new ProcessorThread(string.Format("EventProjection-{0}", eventProjection.Name),
-                    new EventProjectionProcessor(_configuration, _pipelineFactory, eventProjection));
+                var processorThread = new ProcessorThread(string.Format("Projection-{0}", eventProjection.Name),
+                    new ProjectionProcessor(_configuration, _pipelineFactory, eventProjection));
 
                 processorThread.Start();
 
@@ -69,26 +69,26 @@ namespace Shuttle.Recall
             get { return _started; }
         }
 
-        public void AddEventProjection(EventProjection eventProjection)
+        public void AddProjection(Projection projection)
         {
-            Guard.AgainstNull(eventProjection, "eventProjection");
+            Guard.AgainstNull(projection, "Projection");
 
             if (_started)
             {
                 throw new EventProcessingException(string.Format(RecallResources.EventProcessorStartedCannotAddQueue,
-                    eventProjection.Name));
+                    projection.Name));
             }
 
             if (
-                _eventProjections.Find(
-                    queue => queue.Name.Equals(eventProjection.Name, StringComparison.InvariantCultureIgnoreCase)) !=
+                _projections.Find(
+                    queue => queue.Name.Equals(projection.Name, StringComparison.InvariantCultureIgnoreCase)) !=
                 null)
             {
                 throw new EventProcessingException(string.Format(RecallResources.DuplicateEventQueueName,
-                    eventProjection.Name));
+                    projection.Name));
             }
 
-            _eventProjections.Add(eventProjection);
+            _projections.Add(projection);
         }
 
         public static IEventProcessor Create()

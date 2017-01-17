@@ -19,6 +19,11 @@ namespace Shuttle.Recall
 
         private TimeSpan[] _durationToSleepWhenIdle;
 
+        public EventStoreConfiguration()
+        {
+            ProjectionEventFetchCount = 100;
+        }
+
         public TimeSpan[] DurationToSleepWhenIdle
         {
             get
@@ -54,6 +59,7 @@ namespace Shuttle.Recall
 
         public string EncryptionAlgorithm { get; set; }
         public string CompressionAlgorithm { get; set; }
+        public int ProjectionEventFetchCount { get; set; }
 
         public IEncryptionAlgorithm FindEncryptionAlgorithm(string name)
         {

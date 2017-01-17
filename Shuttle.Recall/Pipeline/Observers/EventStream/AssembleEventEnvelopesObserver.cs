@@ -24,7 +24,7 @@ namespace Shuttle.Recall
             Guard.AgainstNull(eventStream, "state.GetEventStream()");
             Guard.AgainstNull(configurator, "state.GetEventEnvelopeConfigurator()");
 
-            var pipeline = _pipelineFactory.GetPipeline<EventEnvelopePipeline>();
+            var pipeline = _pipelineFactory.GetPipeline<AssembleEventEnvelopePipeline>();
 
             pipeline.State.SetEventEnvelopeConfigurator(configurator);
 

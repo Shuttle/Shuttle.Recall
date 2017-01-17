@@ -4,12 +4,12 @@ using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Recall
 {
-	public class EventProjection
+	public class Projection
 	{
 		private static readonly Type EventHandlerType = typeof (IEventHandler<>);
         private readonly Dictionary<Type, object> _eventHandlers = new Dictionary<Type, object>();
 
-		public EventProjection(string name)
+		public Projection(string name)
 		{
 			Guard.AgainstNullOrEmptyString(name, "name");
 
@@ -30,7 +30,7 @@ namespace Shuttle.Recall
 			return _eventHandlers.ContainsKey(type);
 		}
 
-		public EventProjection AddEventHandler(object handler)
+		public Projection AddEventHandler(object handler)
 		{
 			Guard.AgainstNull(handler, "handler");
 

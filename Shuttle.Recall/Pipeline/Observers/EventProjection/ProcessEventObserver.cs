@@ -17,7 +17,7 @@ namespace Shuttle.Recall
             var state = pipelineEvent.Pipeline.State;
             var primitiveEvent = state.GetPrimitiveEvent();
             var eventEnvelope = state.GetEventEnvelope();
-            var projection = state.GetEventProjection();
+            var projection = state.GetProjection();
 
             var type = Type.GetType(eventEnvelope.AssemblyQualifiedName);
 

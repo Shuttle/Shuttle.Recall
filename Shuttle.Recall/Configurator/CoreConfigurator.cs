@@ -26,6 +26,7 @@ namespace Shuttle.Recall
 
             configuration.CompressionAlgorithm = eventProcessorSection.CompressionAlgorithm;
             configuration.EncryptionAlgorithm = eventProcessorSection.EncryptionAlgorithm;
+            configuration.ProjectionEventFetchCount = eventProcessorSection.ProjectionEventFetchCount;
 
             configuration.DurationToSleepWhenIdle =
                 eventProcessorSection.DurationToSleepWhenIdle ??

@@ -4,9 +4,9 @@ namespace Shuttle.Recall
 {
     public class AcknowledgeEventObserver : IPipelineObserver<OnAcknowledgeEvent>
     {
-        private readonly IEventProjectionRepository _repository;
+        private readonly IProjectionRepository _repository;
 
-        public AcknowledgeEventObserver(IEventProjectionRepository repository)
+        public AcknowledgeEventObserver(IProjectionRepository repository)
         {
             Guard.AgainstNull(repository, "repository");
 
@@ -17,7 +17,7 @@ namespace Shuttle.Recall
         {
             var state = pipelineEvent.Pipeline.State;
             var rawEvent = state.GetPrimitiveEvent();
-            var projection = state.GetEventProjection();
+            var projection = state.GetProjection();
 
             _repository.SetSequenceNumber(projection.Name, rawEvent.SequenceNumber + 1);
         }

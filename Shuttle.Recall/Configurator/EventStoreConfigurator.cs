@@ -44,6 +44,8 @@ namespace Shuttle.Recall
             RegisterDefaultInstance(_registry, configuration);
 
             RegisterDefault<ISerializer, DefaultSerializer>(_registry);
+            RegisterDefault<IProjectionSequenceNumberTracker, ProjectionSequenceNumberTracker>(_registry);
+            RegisterDefault<IPrimitiveEventCache, PrimitiveEventCache>(_registry);
 
             var transactionScopeConfiguration = configuration.TransactionScope ?? new TransactionScopeConfiguration();
 
@@ -54,8 +56,8 @@ namespace Shuttle.Recall
 
             RegisterDefault<IPipelineFactory, DefaultPipelineFactory>(_registry);
 
-            _registry.Register(typeof(GetEventPipeline), typeof(GetEventPipeline), Lifestyle.Transient);
-            _registry.Register(typeof(EventEnvelopePipeline), typeof(EventEnvelopePipeline), Lifestyle.Transient);
+            _registry.Register(typeof(GetEventEnvelopePipeline), typeof(GetEventEnvelopePipeline), Lifestyle.Transient);
+            _registry.Register(typeof(AssembleEventEnvelopePipeline), typeof(AssembleEventEnvelopePipeline), Lifestyle.Transient);
             _registry.Register(typeof(GetEventStreamPipeline), typeof(GetEventStreamPipeline), Lifestyle.Transient);
             _registry.Register(typeof(EventProcessingPipeline), typeof(EventProcessingPipeline), Lifestyle.Transient);
             _registry.Register(typeof(SaveEventStreamPipeline), typeof(SaveEventStreamPipeline), Lifestyle.Transient);

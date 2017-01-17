@@ -11,11 +11,12 @@
         public const string Events = "Events";
         public const string EventEnvelopeConfigurator = "EventEnvelopeConfigurator";
         public const string EventEnvelopeStream = "EventEnvelopeStream";
-        public const string EventProjection = "EventProjection";
+        public const string Projection = "Projection";
         public const string EventStream = "EventStream";
         public const string Id = "Id";
         public const string EventBytes = "EventBytes";
         public const string PrimitiveEvent = "PrimitiveEvent";
+        public const string SequenceNumber = "SequenceNumber";
         public const string Version = "Version";
     }
 }

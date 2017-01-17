@@ -2,20 +2,20 @@
 
 namespace Shuttle.Recall
 {
-    public class EventProjectionProcessor : IProcessor
+    public class ProjectionProcessor : IProcessor
     {
         private readonly IPipelineFactory _pipelineFactory;
-        private readonly EventProjection _eventProjection;
+        private readonly Projection _projection;
         private readonly IThreadActivity _threadActivity;
 
-        public EventProjectionProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory, EventProjection eventProjection)
+        public ProjectionProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory, Projection projection)
         {
             Guard.AgainstNull(configuration, "configuration");
             Guard.AgainstNull(pipelineFactory, "pipelineFactory");
-            Guard.AgainstNull(eventProjection, "eventProjection");
+            Guard.AgainstNull(projection, "Projection");
 
             _pipelineFactory = pipelineFactory;
-            _eventProjection = eventProjection;
+            _projection = projection;
             _threadActivity = new ThreadActivity(configuration.DurationToSleepWhenIdle);
         }
 
@@ -25,7 +25,7 @@ namespace Shuttle.Recall
 
             while (state.Active)
             {
-                pipeline.State.SetEventProjection(_eventProjection);
+                pipeline.State.SetProjection(_projection);
                 pipeline.State.SetThreadState(state);
 
                 pipeline.Execute();

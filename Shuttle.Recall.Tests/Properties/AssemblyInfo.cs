@@ -25,7 +25,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Shuttle.Recall.Tests for .NET Framework 4.6.1")]
 #endif
 
-[assembly: AssemblyCopyright("Copyright © Eben Roux 2016")]
+[assembly: AssemblyCopyright("Copyright © Eben Roux 2017")]
 [assembly: AssemblyProduct("Shuttle.Recall.Tests")]
 [assembly: AssemblyCompany("Shuttle")]
 [assembly: ComVisible(false)]

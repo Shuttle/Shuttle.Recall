@@ -22,7 +22,7 @@ namespace Shuttle.Recall
         {
             var state = pipelineEvent.Pipeline.State;
             var events = new List<object>();
-            var pipeline = _pipelineFactory.GetPipeline<GetEventPipeline>();
+            var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
 
             try
             {

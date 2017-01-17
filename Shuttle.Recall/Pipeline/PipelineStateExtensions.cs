@@ -27,6 +27,16 @@ namespace Shuttle.Recall
             return state.Get<bool>(StateKeys.Working);
         }
 
+        public static void SetSequenceNumber(this IState state, long sequenceNumber)
+        {
+            state.Replace(StateKeys.SequenceNumber, sequenceNumber);
+        }
+
+        public static long GetSequenceNumber(this IState state)
+        {
+            return state.Get<long>(StateKeys.SequenceNumber);
+        }
+
         public static void SetEventEnvelope(this IState state, EventEnvelope value)
         {
             state.Replace(StateKeys.EventEnvelope, value);
@@ -127,14 +137,14 @@ namespace Shuttle.Recall
             return state.Get<PrimitiveEvent>(StateKeys.PrimitiveEvent);
         }
 
-        public static EventProjection GetEventProjection(this IState state)
+        public static Projection GetProjection(this IState state)
         {
-            return state.Get<EventProjection>(StateKeys.EventProjection);
+            return state.Get<Projection>(StateKeys.Projection);
         }
 
-        public static void SetEventProjection(this IState state, EventProjection eventProjection)
+        public static void SetProjection(this IState state, Projection projection)
         {
-            state.Replace(StateKeys.EventProjection, eventProjection);
+            state.Replace(StateKeys.Projection, projection);
         }
 
         public static Guid GetId(this IState state)

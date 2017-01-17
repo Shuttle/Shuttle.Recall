@@ -2,9 +2,9 @@
 
 namespace Shuttle.Recall
 {
-    public class EventEnvelopePipeline : Pipeline
+    public class AssembleEventEnvelopePipeline : Pipeline
     {
-        public EventEnvelopePipeline(AssembleEventEnvelopeObserver assembleEventEnvelopeObserver, CompressEventObserver compressEventObserver, EncryptEventObserver encryptEventObserver, SerializeEventObserver serializeEventObserver)
+        public AssembleEventEnvelopePipeline(AssembleEventEnvelopeObserver assembleEventEnvelopeObserver, CompressEventObserver compressEventObserver, EncryptEventObserver encryptEventObserver, SerializeEventObserver serializeEventObserver)
         {
             Guard.AgainstNull(compressEventObserver, "compressEventObserver");
             Guard.AgainstNull(encryptEventObserver, "encryptEventObserver");
