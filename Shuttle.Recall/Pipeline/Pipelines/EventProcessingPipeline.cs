@@ -4,8 +4,9 @@ namespace Shuttle.Recall
 {
     public class EventProcessingPipeline : Pipeline
     {
-        public EventProcessingPipeline(ProjectionPrimitiveEventObserver projectionPrimitiveEventObserver, ProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, ProcessEventObserver processEventObserver, AcknowledgeEventObserver acknowledgeEventObserver, TransactionScopeObserver transactionScopeObserver)
+        public EventProcessingPipeline(GetProjectionSequenceNumberObserver getProjectionSequenceNumberObserver, ProjectionPrimitiveEventObserver projectionPrimitiveEventObserver, ProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, ProcessEventObserver processEventObserver, AcknowledgeEventObserver acknowledgeEventObserver, TransactionScopeObserver transactionScopeObserver)
         {
+            Guard.AgainstNull(getProjectionSequenceNumberObserver, "getProjectionSequenceNumberObserver");
             Guard.AgainstNull(projectionPrimitiveEventObserver, "projectionPrimitiveEventObserver");
             Guard.AgainstNull(projectionEventEnvelopeObserver, "projectionEventEnvelopeObserver");
             Guard.AgainstNull(processEventObserver, "processEventObserver");
@@ -13,25 +14,24 @@ namespace Shuttle.Recall
             Guard.AgainstNull(transactionScopeObserver, "TransactionScopeObserver");
 
             RegisterStage("Process")
-                .WithEvent<OnCreateEventStoreConnection>()
-                .WithEvent<OnGetProjectionSequenceNumber>()
-                .WithEvent<OnGetProjectionPrimitiveEvent>()
-                .WithEvent<OnAfterGetProjectionPrimitiveEvent>()
-                .WithEvent<OnDisposeEventStoreConnection>()
-                .WithEvent<OnGetProjectionEventEnvelope>()
-                .WithEvent<OnAfterGetProjectionEventEnvelope>()
                 .WithEvent<OnStartTransactionScope>()
                 .WithEvent<OnAfterStartTransactionScope>()
-                .WithEvent<OnCreateProjectionConnection>()
+                .WithEvent<OnGetProjectionSequenceNumber>()
+                .WithEvent<OnAfterGetProjectionSequenceNumber>()
+                .WithEvent<OnGetProjectionPrimitiveEvent>()
+                .WithEvent<OnAfterGetProjectionPrimitiveEvent>()
+                .WithEvent<OnGetProjectionEventEnvelope>()
+                .WithEvent<OnAfterGetProjectionEventEnvelope>()
                 .WithEvent<OnProcessEvent>()
                 .WithEvent<OnAfterProcessEvent>()
                 .WithEvent<OnAcknowledgeEvent>()
                 .WithEvent<OnAfterAcknowledgeEvent>()
                 .WithEvent<OnCompleteTransactionScope>()
-                .WithEvent<OnDisposeTransactionScope>()
-                .WithEvent<OnDisposeProjectionConnection>();
+                .WithEvent<OnDisposeTransactionScope>();
 
+            RegisterObserver(getProjectionSequenceNumberObserver);
             RegisterObserver(projectionPrimitiveEventObserver);
+            RegisterObserver(projectionEventEnvelopeObserver);
             RegisterObserver(processEventObserver);
             RegisterObserver(acknowledgeEventObserver);
             RegisterObserver(transactionScopeObserver);

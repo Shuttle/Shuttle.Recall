@@ -25,6 +25,7 @@ namespace Shuttle.Recall
 
             while (state.Active)
             {
+                pipeline.State.Clear();
                 pipeline.State.SetProjection(_projection);
                 pipeline.State.SetThreadState(state);
 

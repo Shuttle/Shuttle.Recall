@@ -28,15 +28,13 @@ namespace Shuttle.Recall
             RegisterObserver(deserializeEventObserver);
         }
 
-        public EventEnvelope Execute(PrimitiveEvent primitiveEvent)
+        public void Execute(PrimitiveEvent primitiveEvent)
         {
             Guard.AgainstNull(primitiveEvent, "primitiveEvent");
 
             State.SetPrimitiveEvent(primitiveEvent);
 
             Execute();
-
-            return State.GetEventEnvelope();
         }
     }
 }

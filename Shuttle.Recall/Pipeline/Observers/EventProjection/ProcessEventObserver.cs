@@ -18,6 +18,12 @@ namespace Shuttle.Recall
             var primitiveEvent = state.GetPrimitiveEvent();
             var eventEnvelope = state.GetEventEnvelope();
             var projection = state.GetProjection();
+            var domainEvent = state.GetEvent();
+
+            Guard.AgainstNull(primitiveEvent, "state.GetPrimitiveEvent()");
+            Guard.AgainstNull(eventEnvelope, "state.GetEventEnvelope()");
+            Guard.AgainstNull(projection, "state.GetProjection()");
+            Guard.AgainstNull(domainEvent, "state.GetEvent()");
 
             var type = Type.GetType(eventEnvelope.AssemblyQualifiedName);
 
@@ -31,7 +37,7 @@ namespace Shuttle.Recall
                 return;
             }
 
-            projection.Process(eventEnvelope, primitiveEvent.SequenceNumber, state.GetThreadState());
+            projection.Process(eventEnvelope, domainEvent, primitiveEvent, state.GetThreadState());
         }
     }
 }

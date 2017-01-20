@@ -45,7 +45,7 @@ namespace Shuttle.Recall
 
             RegisterDefault<ISerializer, DefaultSerializer>(_registry);
             RegisterDefault<IProjectionSequenceNumberTracker, ProjectionSequenceNumberTracker>(_registry);
-            RegisterDefault<IPrimitiveEventCache, PrimitiveEventCache>(_registry);
+            RegisterDefault<IPrimitiveEventQueue, PrimitiveEventQueue>(_registry);
 
             var transactionScopeConfiguration = configuration.TransactionScope ?? new TransactionScopeConfiguration();
 

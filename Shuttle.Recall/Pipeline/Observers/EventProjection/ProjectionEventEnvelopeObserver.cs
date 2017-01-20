@@ -24,7 +24,10 @@ namespace Shuttle.Recall
 
             try
             {
-                state.SetEventEnvelope(pipeline.Execute(primitiveEvent));
+                pipeline.Execute(primitiveEvent);
+
+                state.SetEventEnvelope(pipeline.State.GetEventEnvelope());
+                state.SetEvent(pipeline.State.GetEvent());
             }
             finally
             {

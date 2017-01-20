@@ -54,9 +54,11 @@ namespace Shuttle.Recall
 			return this;
 		}
 
-		public void Process(EventEnvelope eventEnvelope, long sequenceNumber, IThreadState threadState)
+		public void Process(EventEnvelope eventEnvelope, object domainEvent, PrimitiveEvent primitiveEvent, IThreadState threadState)
 		{
-			Guard.AgainstNull(eventEnvelope, "ProjectionEvent");
+			Guard.AgainstNull(eventEnvelope, "eventEnvelope");
+			Guard.AgainstNull(domainEvent, "domainEvent");
+			Guard.AgainstNull(primitiveEvent, "primitiveEvent");
 			Guard.AgainstNull(threadState, "threadState");
 
 			var domainEventType = Type.GetType(eventEnvelope.AssemblyQualifiedName, true);
@@ -77,7 +79,7 @@ namespace Shuttle.Recall
 					domainEventType.FullName));
 			}
 
-			var handlerContext = Activator.CreateInstance(contextType, eventEnvelope, eventEnvelope.Event, sequenceNumber, threadState);
+			var handlerContext = Activator.CreateInstance(contextType, eventEnvelope, domainEvent, primitiveEvent, threadState);
 
 			method.Invoke(_eventHandlers[domainEventType], new[] {handlerContext});
 		}

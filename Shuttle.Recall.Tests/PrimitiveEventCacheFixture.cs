@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.CodeDom;
+using NUnit.Framework;
 
 namespace Shuttle.Recall.Tests
 {
@@ -8,15 +9,19 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_use_cache()
         {
-            var cache = new PrimitiveEventCache();
+            var projectionName = "test";
+            var cache = new PrimitiveEventQueue();
             var primitiveEvent = new PrimitiveEvent();
 
-            Assert.IsNull(cache.TryGet(1));
+            Assert.IsNull(cache.Dequeue(projectionName));
 
-            cache.Add(primitiveEvent);
+            cache.Enqueue(projectionName, primitiveEvent);
 
-            Assert.IsNotNull(cache.TryGet(1));
-            Assert.AreEqual(primitiveEvent.Id, cache.TryGet(1).Id);
+            var dequeued = cache.Dequeue(projectionName);
+
+            Assert.IsNotNull(dequeued);
+            Assert.AreEqual(primitiveEvent.Id, dequeued.Id);
+            Assert.IsNull(cache.Dequeue(projectionName));
         }
     }
 }

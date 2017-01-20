@@ -105,8 +105,8 @@
     <Compile Include="IEventStore.cs" />
     <Compile Include="IKeyStore.cs" />
     <Compile Include="Pipeline\Events.cs" />
-    <Compile Include="EventProcessing\IPrimitiveEventCache.cs" />
-    <Compile Include="EventProcessing\PrimitiveEventCache.cs" />
+    <Compile Include="EventProcessing\IPrimitiveEventQueue.cs" />
+    <Compile Include="EventProcessing\PrimitiveEventQueue.cs" />
     <Compile Include="Pipeline\Observers\EventProjection\GetProjectionSequenceNumberObserver.cs" />
     <Compile Include="Pipeline\Observers\EventProjection\ProjectionEventEnvelopeObserver.cs" />
     <Compile Include="Pipeline\Observers\EventStream\AssembleEventEnvelopeObserver.cs" />
