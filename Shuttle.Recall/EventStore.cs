@@ -39,7 +39,14 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNull(eventStream, "eventStream");
 
-            if (!eventStream.ShouldSave())
+	        if (eventStream.Removed)
+	        {
+				Remove(eventStream.Id);
+
+		        return;
+	        }
+
+	        if (!eventStream.ShouldSave())
             {
                 return;
             }

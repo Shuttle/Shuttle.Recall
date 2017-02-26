@@ -8,7 +8,7 @@ namespace Shuttle.Recall
 {
     public class EventStream
     {
-        private List<object> _events = new List<object>();
+        private readonly List<object> _events = new List<object>();
         private readonly List<DomainEvent> _appendedEvents = new List<DomainEvent>();
         private int _nextVersion;
 
@@ -109,7 +109,14 @@ namespace Shuttle.Recall
             get { return Snapshot != null; }
         }
 
-        public void ConcurrencyInvariant(int expectedVersion)
+	    public bool Removed { get; private set; }
+
+	    public void Remove()
+	    {
+		    Removed = true;
+	    }
+
+	    public void ConcurrencyInvariant(int expectedVersion)
         {
             if (expectedVersion != Version)
             {

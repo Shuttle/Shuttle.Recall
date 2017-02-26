@@ -17,13 +17,13 @@ namespace Shuttle.Recall
         public void Execute(OnDeserializeEventEnvelope pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var rawEvent = state.GetPrimitiveEvent();
+            var primitiveEvent = state.GetPrimitiveEvent();
 
-            Guard.AgainstNull(rawEvent, "rawEvent");
+            Guard.AgainstNull(primitiveEvent, "primitiveEvent");
 
             EventEnvelope eventEnvelope;
 
-            using (var stream = new MemoryStream(rawEvent.EventEnvelope))
+            using (var stream = new MemoryStream(primitiveEvent.EventEnvelope))
             {
                 eventEnvelope =
                     (EventEnvelope)_serializer.Deserialize(typeof(EventEnvelope), stream);

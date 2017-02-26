@@ -31,6 +31,7 @@ namespace Shuttle.Recall
                 {
                     Id = eventStream.Id,
                     EventEnvelope = _serializer.Serialize(eventEnvelope).ToBytes(),
+                    EventId = eventEnvelope.EventId,
                     EventType = eventEnvelope.EventType,
                     IsSnapshot = eventEnvelope.IsSnapshot,
                     Version = eventEnvelope.Version,

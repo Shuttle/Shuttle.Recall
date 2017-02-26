@@ -30,9 +30,9 @@ namespace Shuttle.Recall
             if (primitiveEvent == null)
             {
                 _queue.EnqueueRange(projection.Name, _repository.Get(sequenceNumber, projection.EventTypes, _configuration.ProjectionEventFetchCount));
-            }
 
-            primitiveEvent = _queue.Dequeue(projection.Name);
+                primitiveEvent = _queue.Dequeue(projection.Name);
+            }
 
             if (primitiveEvent == null)
             {

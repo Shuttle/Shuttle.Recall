@@ -19,11 +19,11 @@ namespace Shuttle.Recall
         public void Execute(OnAcknowledgeEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var rawEvent = state.GetPrimitiveEvent();
+            var primitiveEvent = state.GetPrimitiveEvent();
             var projection = state.GetProjection();
 
-            _tracker.Set(projection.Name, rawEvent.SequenceNumber + 1);
-            _repository.SetSequenceNumber(projection.Name, rawEvent.SequenceNumber + 1);
+            _tracker.Set(projection.Name, primitiveEvent.SequenceNumber);
+            _repository.SetSequenceNumber(projection.Name, primitiveEvent.SequenceNumber);
         }
     }
 }
