@@ -8,8 +8,9 @@ namespace Shuttle.Recall
     {
         private readonly List<Type> _dontRegisterTypes = new List<Type>();
         private readonly IComponentRegistry _registry;
+		private bool _registerObservers = true;
 
-        public EventStoreConfigurator(IComponentRegistry registry)
+		public EventStoreConfigurator(IComponentRegistry registry)
         {
             Guard.AgainstNull(registry, "registry");
 
@@ -26,7 +27,12 @@ namespace Shuttle.Recall
             return this;
         }
 
-        public IEventStoreConfiguration Configure()
+		public void DontRegisterObservers()
+		{
+			_registerObservers = false;
+		}
+
+		public IEventStoreConfiguration Configure()
         {
             var configuration = new EventStoreConfiguration();
 
@@ -65,17 +71,20 @@ namespace Shuttle.Recall
 
             var reflectionService = new ReflectionService();
 
-            foreach (var type in reflectionService.GetTypes<IPipelineObserver>())
-            {
-                if (type.IsInterface || _dontRegisterTypes.Contains(type))
-                {
-                    continue;
-                }
+	        if (_registerObservers)
+	        {
+		        foreach (var type in reflectionService.GetTypes<IPipelineObserver>())
+		        {
+			        if (type.IsInterface || _dontRegisterTypes.Contains(type))
+			        {
+				        continue;
+			        }
 
-                _registry.Register(type, type, Lifestyle.Singleton);
-            }
+			        _registry.Register(type, type, Lifestyle.Singleton);
+		        }
+	        }
 
-            _registry.Register<IEventStore, EventStore>();
+	        _registry.Register<IEventStore, EventStore>();
             _registry.Register<IEventProcessor, EventProcessor>();
         }
 
