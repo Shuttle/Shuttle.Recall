@@ -104,25 +104,27 @@ namespace Shuttle.Recall
 			Guard.AgainstNull(registry, "registry");
 			Guard.AgainstNull(configuration, "configuration");
 
-			RegisterComponent<IEventStoreConfiguration>(registry, configuration);
+			registry.AttemptRegister( configuration);
 
-			RegisterComponent<ISerializer, DefaultSerializer>(registry);
-			RegisterComponent<IProjectionSequenceNumberTracker, ProjectionSequenceNumberTracker>(registry);
-			RegisterComponent<IPrimitiveEventQueue, PrimitiveEventQueue>(registry);
+			registry.RegistryBoostrap();
 
-			RegisterComponent<TransactionScopeObserver, TransactionScopeObserver>(registry);
+			registry.AttemptRegister<ISerializer, DefaultSerializer>();
+			registry.AttemptRegister<IProjectionSequenceNumberTracker, ProjectionSequenceNumberTracker>();
+			registry.AttemptRegister<IPrimitiveEventQueue, PrimitiveEventQueue>();
+
+			registry.AttemptRegister<TransactionScopeObserver, TransactionScopeObserver>();
 
 			if (!registry.IsRegistered<ITransactionScopeFactory>())
 			{
 				var transactionScopeConfiguration = configuration.TransactionScope ?? new TransactionScopeConfiguration();
 
-				RegisterComponent<ITransactionScopeFactory>(registry,
+				registry.AttemptRegister<ITransactionScopeFactory>(
 					new DefaultTransactionScopeFactory(transactionScopeConfiguration.Enabled,
 						transactionScopeConfiguration.IsolationLevel,
 						TimeSpan.FromSeconds(transactionScopeConfiguration.TimeoutSeconds)));
 			}
 
-			RegisterComponent<IPipelineFactory, DefaultPipelineFactory>(registry);
+			registry.AttemptRegister<IPipelineFactory, DefaultPipelineFactory>();
 
 			var reflectionService = new ReflectionService();
 
@@ -146,38 +148,17 @@ namespace Shuttle.Recall
 				registry.Register(type, type, Lifestyle.Singleton);
 			}
 
-			registry.Register<IEventStore, EventStore>();
-			registry.Register<IEventProcessor, EventProcessor>();
-		}
-
-		private static void RegisterComponent<TDependency, TImplementation>(IComponentRegistry registry)
-			where TDependency : class
-			where TImplementation : class, TDependency
-		{
-			if (registry.IsRegistered(typeof(TDependency)))
-			{
-				return;
-			}
-
-			registry.Register<TDependency, TImplementation>();
-		}
-
-		private static void RegisterComponent<TDependency>(IComponentRegistry registry, TDependency instance)
-			where TDependency : class
-		{
-			if (registry.IsRegistered(typeof(TDependency)))
-			{
-				return;
-			}
-
-			registry.Register(instance);
+			registry.AttemptRegister<IEventStore, EventStore>();
+			registry.AttemptRegister<IEventProcessor, EventProcessor>();
 		}
 
 		public static IEventStore Create(IComponentResolver resolver)
         {
             Guard.AgainstNull(resolver, "resolver");
 
-            var configuration = resolver.Resolve<IEventStoreConfiguration>();
+			resolver.ResolverBoostrap();
+
+			var configuration = resolver.Resolve<IEventStoreConfiguration>();
 
             if (configuration == null)
             {
