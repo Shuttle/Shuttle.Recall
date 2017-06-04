@@ -2,147 +2,130 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Recall
 {
-	public class EventStream
-	{
-		private readonly List<DomainEvent> _appendedEvents = new List<DomainEvent>();
-		private readonly List<object> _events = new List<object>();
-		private int _nextVersion;
+    public class EventStream
+    {
+        private readonly IEventMethodInvoker _eventMethodInvoker;
+        private readonly List<DomainEvent> _appendedEvents = new List<DomainEvent>();
+        private readonly List<object> _events = new List<object>();
+        private int _nextVersion;
 
-		public EventStream(Guid id)
-			: this(id, 0, null)
-		{
-			Id = id;
-			Version = 0;
-		}
+        public EventStream(Guid id, IEventMethodInvoker eventMethodInvoker)
+            : this(id, 0, null, eventMethodInvoker)
+        {
+            Id = id;
+            Version = 0;
+        }
 
-		public EventStream(Guid id, int version, IEnumerable<object> events)
-		{
-			Id = id;
-			Version = version;
-			_nextVersion = version + 1;
+        public EventStream(Guid id, int version, IEnumerable<object> events, IEventMethodInvoker eventMethodInvoker)
+        {
+            Guard.AgainstNull(eventMethodInvoker, "eventMethodInvoker");
 
-			if (events != null)
-			{
-				_events.AddRange(events);
-			}
-		}
+            Id = id;
+            Version = version;
+            _nextVersion = version + 1;
+            _eventMethodInvoker = eventMethodInvoker;
 
-		public Guid Id { get; }
-		public int Version { get; }
-		public object Snapshot { get; private set; }
+            if (events != null)
+            {
+                _events.AddRange(events);
+            }
+        }
 
-		public int Count
-		{
-			get { return (_events == null ? 0 : _events.Count()) + _appendedEvents.Count; }
-		}
+        public Guid Id { get; }
+        public int Version { get; }
+        public object Snapshot { get; private set; }
 
-		public bool IsEmpty
-		{
-			get { return Count == 0; }
-		}
+        public int Count
+        {
+            get { return (_events == null ? 0 : _events.Count()) + _appendedEvents.Count; }
+        }
 
-		public bool HasSnapshot
-		{
-			get { return Snapshot != null; }
-		}
+        public bool IsEmpty
+        {
+            get { return Count == 0; }
+        }
 
-		public bool Removed { get; private set; }
+        public bool HasSnapshot
+        {
+            get { return Snapshot != null; }
+        }
 
-		public EventStream AddEvent(object @event)
-		{
-			Guard.AgainstNull(@event, "@event");
+        public bool Removed { get; private set; }
 
-			_appendedEvents.Add(new DomainEvent(@event, GetNextVersion()));
+        public EventStream AddEvent(object @event)
+        {
+            Guard.AgainstNull(@event, "@event");
 
-			return this;
-		}
+            _appendedEvents.Add(new DomainEvent(@event, GetNextVersion()));
 
-		private int GetNextVersion()
-		{
-			var result = _nextVersion;
+            return this;
+        }
 
-			_nextVersion = _nextVersion + 1;
+        private int GetNextVersion()
+        {
+            var result = _nextVersion;
 
-			return result;
-		}
+            _nextVersion = _nextVersion + 1;
 
-		public EventStream AddSnapshot(object snapshot)
-		{
-			Guard.AgainstNull(snapshot, "snapshot");
+            return result;
+        }
 
-			Snapshot = snapshot;
+        public EventStream AddSnapshot(object snapshot)
+        {
+            Guard.AgainstNull(snapshot, "snapshot");
 
-			_appendedEvents.Add(new DomainEvent(snapshot, GetNextVersion()).AsSnapshot());
+            Snapshot = snapshot;
 
-			return this;
-		}
+            _appendedEvents.Add(new DomainEvent(snapshot, GetNextVersion()).AsSnapshot());
 
-		public void Apply(object instance)
-		{
-			Apply(instance, "On");
-		}
+            return this;
+        }
 
-		public void Apply(object instance, string eventHandlingMethodName)
-		{
-			Guard.AgainstNull(instance, "instance");
+        public void Apply(object instance)
+        {
+            Guard.AgainstNull(instance, "instance");
 
-			if (_events == null)
-			{
-				return;
-			}
+            _eventMethodInvoker.Apply(instance, _events);
+        }
 
-			var instanceType = instance.GetType();
+        public void Remove()
+        {
+            Removed = true;
+        }
 
-			foreach (var @event in _events)
-			{
-				var method = instanceType.GetMethod(eventHandlingMethodName, new[] {@event.GetType()});
+        public void ConcurrencyInvariant(int expectedVersion)
+        {
+            if (expectedVersion != Version)
+            {
+                throw new EventStreamConcurrencyException(string.Format(
+                    RecallResources.EventStreamConcurrencyException, Id, Version,
+                    expectedVersion));
+            }
+        }
 
-				if (method == null)
-				{
-					throw new UnhandledEventException(string.Format(RecallResources.UnhandledEventException,
-						instanceType.AssemblyQualifiedName, eventHandlingMethodName, @event.GetType().AssemblyQualifiedName));
-				}
+        public bool ShouldSave()
+        {
+            return _appendedEvents.Count > 0;
+        }
 
-				method.Invoke(instance, new[] {@event});
-			}
-		}
+        public IEnumerable<DomainEvent> GetEvents()
+        {
+            return new ReadOnlyCollection<DomainEvent>(_appendedEvents);
+        }
 
-		public void Remove()
-		{
-			Removed = true;
-		}
-
-		public void ConcurrencyInvariant(int expectedVersion)
-		{
-			if (expectedVersion != Version)
-			{
-				throw new EventStreamConcurrencyException(string.Format(RecallResources.EventStreamConcurrencyException, Id, Version,
-					expectedVersion));
-			}
-		}
-
-		public bool ShouldSave()
-		{
-			return _appendedEvents.Count > 0;
-		}
-
-		public IEnumerable<DomainEvent> GetEvents()
-		{
-			return new ReadOnlyCollection<DomainEvent>(_appendedEvents);
-		}
-
-		/// <summary>
-		///     Appended events are moved to the events collection since they have been committed but can still be applied to any
-		///     other aggregate.
-		/// </summary>
-		public void Commit()
-		{
-			_events.AddRange(_appendedEvents);
-			_appendedEvents.Clear();
-		}
-	}
+        /// <summary>
+        ///     Appended events are moved to the events collection since they have been committed but can still be applied to any
+        ///     other aggregate.
+        /// </summary>
+        public void Commit()
+        {
+            _events.AddRange(_appendedEvents);
+            _appendedEvents.Clear();
+        }
+    }
 }

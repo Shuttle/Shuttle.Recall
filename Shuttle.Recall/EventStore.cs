@@ -6,12 +6,15 @@ namespace Shuttle.Recall
     public class EventStore : IEventStore
     {
         private readonly IPipelineFactory _pipelineFactory;
+        private readonly IEventMethodInvoker _eventMethodInvoker;
 
-        public EventStore(IPipelineFactory pipelineFactory)
+        public EventStore(IPipelineFactory pipelineFactory, IEventMethodInvoker eventMethodInvoker)
         {
             Guard.AgainstNull(pipelineFactory, "pipelineFactory");
+            Guard.AgainstNull(eventMethodInvoker, "eventMethodInvoker");
 
             _pipelineFactory = pipelineFactory;
+            _eventMethodInvoker = eventMethodInvoker;
         }
 
         public EventStream Get(Guid id)
@@ -20,7 +23,7 @@ namespace Shuttle.Recall
 
             if (Guid.Empty.Equals(id))
             {
-                return new EventStream(id);
+                return new EventStream(id, _eventMethodInvoker);
             }
 
             var pipeline = _pipelineFactory.GetPipeline<GetEventStreamPipeline>();
@@ -113,6 +116,8 @@ namespace Shuttle.Recall
 
 			registry.RegistryBoostrap();
 
+			registry.AttemptRegister<IEventMethodInvokerConfiguration, EventMethodInvokerConfiguration>();
+			registry.AttemptRegister<IEventMethodInvoker, DefaultEventMethodInvoker>();
 			registry.AttemptRegister<ISerializer, DefaultSerializer>();
 			registry.AttemptRegister<IProjectionSequenceNumberTracker, ProjectionSequenceNumberTracker>();
 			registry.AttemptRegister<IPrimitiveEventQueue, PrimitiveEventQueue>();

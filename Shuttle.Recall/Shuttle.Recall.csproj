@@ -72,6 +72,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DefaultEventMethodInvoker.cs" />
     <Compile Include="DomainEvent.cs" />
     <Compile Include="Configuration\EventStoreConfiguration.cs" />
     <Compile Include="Configuration\IEventStoreConfiguration.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="Configuration\EventStoreSection.cs" />
     <Compile Include="Configurator\CoreConfigurator.cs" />
     <Compile Include="Configurator\IConfigurator.cs" />
+    <Compile Include="EventMethodInvokerConfiguration.cs" />
     <Compile Include="EventProcessing\IProjectionRepository.cs" />
     <Compile Include="EventProcessing\IProjectionSequenceNumberTracker.cs" />
     <Compile Include="EventProcessing\ProjectionSequenceNumberTracker.cs" />
@@ -99,6 +101,8 @@
     <Compile Include="EventProcessing\IEventProcessor.cs" />
     <Compile Include="Exceptions\ProcessEventMethodMissingException.cs" />
     <Compile Include="Exceptions\EventStreamConcurrencyException.cs" />
+    <Compile Include="IEventMethodInvoker.cs" />
+    <Compile Include="IEventMethodInvokerConfiguration.cs" />
     <Compile Include="IPrimitiveEventRepository.cs" />
     <Compile Include="IEventStore.cs" />
     <Compile Include="IKeyStore.cs" />

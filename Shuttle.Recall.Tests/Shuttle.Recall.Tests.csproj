@@ -58,7 +58,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CoreConfiguratorFixture.cs" />
+    <Compile Include="DefaultEventMethodInvokerFixture.cs" />
     <Compile Include="EventStreamTests.cs" />
+    <Compile Include="Implementation\AggregateTwo.cs" />
+    <Compile Include="Implementation\AggregateOne.cs" />
+    <Compile Include="Implementation\ThatHappened.cs" />
+    <Compile Include="Implementation\ThisHappened.cs" />
     <Compile Include="PrimitiveEventCacheFixture.cs" />
     <Compile Include="ProjectionSequenceNumberTrackerFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

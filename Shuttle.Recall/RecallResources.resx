@@ -169,7 +169,7 @@
     <comment>{0} = full type name, {1} = method name</comment>
   </data>
   <data name="UnhandledEventException" xml:space="preserve">
-    <value>Instance of type '{0}' does not have a method named '{1}' that accepts event of type '{2}'.  It may be that the method is not public.</value>
+    <value>Instance of type '{0}' does not have a method named '{1}' that accepts event of type '{2}'.  Ensure that the accessibility is correct (private | public).</value>
     <comment>{0} = assembly qualified name of instance that event should be applied to, {1} = the method name that is expected, {2} = the assembly qualified name of the event</comment>
   </data>
   <data name="UnknownTypeException" xml:space="preserve">
