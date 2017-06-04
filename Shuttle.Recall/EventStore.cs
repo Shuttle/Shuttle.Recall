@@ -21,11 +21,6 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNull(id, "id");
 
-            if (Guid.Empty.Equals(id))
-            {
-                return new EventStream(id, _eventMethodInvoker);
-            }
-
             var pipeline = _pipelineFactory.GetPipeline<GetEventStreamPipeline>();
 
             try
@@ -186,6 +181,16 @@ namespace Shuttle.Recall
             }
 
             return resolver.Resolve<IEventStore>();
+        }
+
+        public EventStream CreateEventStream(Guid id)
+        {
+            return new EventStream(id, _eventMethodInvoker);
+        }
+
+        public EventStream CreateEventStream()
+        {
+            return CreateEventStream(Guid.NewGuid());
         }
     }
 }
