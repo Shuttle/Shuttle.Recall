@@ -12,7 +12,7 @@ namespace Shuttle.Recall.Tests
         {
             var invoker = new DefaultEventMethodInvoker(new EventMethodInvokerConfiguration
             {
-                AllowPublicMethod = false
+                BindingFlags = false
             });
 
             var events = new List<object>

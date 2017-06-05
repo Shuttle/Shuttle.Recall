@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace Shuttle.Recall
 {
     public class EventMethodInvokerConfiguration : IEventMethodInvokerConfiguration
@@ -5,10 +7,10 @@ namespace Shuttle.Recall
         public EventMethodInvokerConfiguration()
         {
             EventHandlingMethodName = "On";
-            AllowPublicMethod = false;
+            BindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
         }
 
         public string EventHandlingMethodName { get; set; }
-        public bool AllowPublicMethod { get; set; }
+        public BindingFlags BindingFlags { get; set; }
     }
 }

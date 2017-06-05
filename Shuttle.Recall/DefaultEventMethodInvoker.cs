@@ -7,7 +7,6 @@ namespace Shuttle.Recall
 {
     public class DefaultEventMethodInvoker : IEventMethodInvoker
     {
-        private readonly BindingFlags _bindingFlags = BindingFlags.Instance;
         private readonly Dictionary<string, MethodInfo> _cache = new Dictionary<string, MethodInfo>();
         private readonly IEventMethodInvokerConfiguration _configuration;
         private readonly object _lock = new object();
@@ -17,9 +16,6 @@ namespace Shuttle.Recall
             Guard.AgainstNull(configuration, "configuration");
 
             _configuration = configuration;
-
-            _bindingFlags = _bindingFlags |
-                            (_configuration.AllowPublicMethod ? BindingFlags.Public : BindingFlags.NonPublic);
         }
 
         public void Apply(object instance, IEnumerable<object> events)
@@ -42,7 +38,7 @@ namespace Shuttle.Recall
                 {
                     if (!_cache.ContainsKey(key))
                     {
-                        var method = instanceType.GetMethod(_configuration.EventHandlingMethodName, _bindingFlags, null,
+                        var method = instanceType.GetMethod(_configuration.EventHandlingMethodName, _configuration.BindingFlags, null,
                             new[] {eventType}, null);
 
                         if (method == null)
