@@ -10,10 +10,7 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_invoke_public_methods()
         {
-            var invoker = new DefaultEventMethodInvoker(new EventMethodInvokerConfiguration
-            {
-                BindingFlags = false
-            });
+            var invoker = new DefaultEventMethodInvoker(new EventMethodInvokerConfiguration());
 
             var events = new List<object>
             {

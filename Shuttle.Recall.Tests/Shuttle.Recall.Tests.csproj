@@ -67,6 +67,7 @@
     <Compile Include="PrimitiveEventCacheFixture.cs" />
     <Compile Include="ProjectionSequenceNumberTrackerFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SavePrimitiveEventsObserverFixture.cs" />
     <Compile Include="Section\EventStoreSectionFixture.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -130,8 +130,8 @@
     <comment>{0} = name of the event queue</comment>
   </data>
   <data name="EventStreamConcurrencyException" xml:space="preserve">
-    <value>The event stream for id '{0}' is at version {1} but the caller expected it to be at version {2}.</value>
-    <comment>{0} = event stream id, {1} = current event stream version, {2} = expected event stream version</comment>
+    <value>The event stream for id '{0}' already at version '{1}' and cannot insert the new event.  The event will be ignored and be added to the event stream again as a newer version.</value>
+    <comment>{0} = event stream id, {1} = existing version</comment>
   </data>
   <data name="InvalidEventHandlerType" xml:space="preserve">
     <value>Type '{0}' does not implement IEventHandler&lt;T&gt;.</value>

@@ -89,6 +89,7 @@
     <Compile Include="EventProcessing\ProjectionSequenceNumberTracker.cs" />
     <Compile Include="EventStore.cs" />
     <Compile Include="EventStream.cs" />
+    <Compile Include="Exceptions\DefaultConcurrenyExceptionSpecification.cs" />
     <Compile Include="Exceptions\EventStreamEmptyException.cs" />
     <Compile Include="EventStreamExtensions.cs" />
     <Compile Include="EventProcessing\EventHandlerContext.cs" />
@@ -99,6 +100,7 @@
     <Compile Include="EventProcessing\ProjectionProcessor.cs" />
     <Compile Include="EventProcessing\IEventHandler.cs" />
     <Compile Include="EventProcessing\IEventProcessor.cs" />
+    <Compile Include="Exceptions\IConcurrenyExceptionSpecification.cs" />
     <Compile Include="Exceptions\ProcessEventMethodMissingException.cs" />
     <Compile Include="Exceptions\EventStreamConcurrencyException.cs" />
     <Compile Include="IEventMethodInvoker.cs" />
