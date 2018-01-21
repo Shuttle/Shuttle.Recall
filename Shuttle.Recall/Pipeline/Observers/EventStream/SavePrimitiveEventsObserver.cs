@@ -1,5 +1,8 @@
 ﻿using System;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
+using Shuttle.Core.Serialization;
+using Shuttle.Core.Streams;
 
 namespace Shuttle.Recall
 {
@@ -12,9 +15,9 @@ namespace Shuttle.Recall
         public SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEventRepository, ISerializer serializer,
             IConcurrenyExceptionSpecification concurrenyExceptionSpecification)
         {
-            Guard.AgainstNull(primitiveEventRepository, "primitiveEventRepository");
-            Guard.AgainstNull(serializer, "serializer");
-            Guard.AgainstNull(concurrenyExceptionSpecification, "concurrenyExceptionSpecification");
+            Guard.AgainstNull(primitiveEventRepository, nameof(primitiveEventRepository));
+            Guard.AgainstNull(serializer, nameof(serializer));
+            Guard.AgainstNull(concurrenyExceptionSpecification, nameof(concurrenyExceptionSpecification));
 
             _primitiveEventRepository = primitiveEventRepository;
             _serializer = serializer;
@@ -27,8 +30,8 @@ namespace Shuttle.Recall
             var eventStream = state.GetEventStream();
             var eventEnvelopes = state.GetEventEnvelopes();
 
-            Guard.AgainstNull(eventStream, "state.GetEventStream()");
-            Guard.AgainstNull(eventEnvelopes, "state.GetEventEnvelopes()");
+            Guard.AgainstNull(eventStream, nameof(eventStream));
+            Guard.AgainstNull(eventEnvelopes, nameof(eventEnvelopes));
 
             var version = -1;
 
@@ -55,7 +58,7 @@ namespace Shuttle.Recall
                 if (_concurrenyExceptionSpecification.IsSatisfiedBy(ex))
                 {
                     throw new EventStreamConcurrencyException(
-                        string.Format(RecallResources.EventStreamConcurrencyException, eventStream.Id, version), ex);
+                        string.Format(Resources.EventStreamConcurrencyException, eventStream.Id, version), ex);
                 }
 
                 throw;

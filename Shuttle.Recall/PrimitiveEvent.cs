@@ -11,6 +11,6 @@ namespace Shuttle.Recall
         public string EventType { get; set; }
         public byte[] EventEnvelope { get; set; }
         public long SequenceNumber { get; set; }
-        public DateTime DateRegistered { get; set; } 
+        public DateTime DateRegistered { get; set; }
     }
 }

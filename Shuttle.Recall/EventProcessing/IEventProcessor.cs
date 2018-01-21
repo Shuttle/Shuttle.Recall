@@ -4,10 +4,9 @@ namespace Shuttle.Recall
 {
     public interface IEventProcessor : IDisposable
     {
-		IEventProcessor Start();
-        void Stop();
-
         bool Started { get; }
+        IEventProcessor Start();
+        void Stop();
         void AddProjection(Projection projection);
-	}
+    }
 }

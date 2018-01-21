@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
+using Enumerable = System.Linq.Enumerable;
 
 namespace Shuttle.Recall
 {
@@ -29,7 +30,7 @@ namespace Shuttle.Recall
 
         public static void Merge(this List<EnvelopeHeader> merge, IEnumerable<EnvelopeHeader> headers)
         {
-            Guard.AgainstNull(headers, "headers");
+            Guard.AgainstNull(headers, nameof(headers));
 
             foreach (var header in Enumerable.Where(headers, header => !merge.Contains(header.Key)))
             {
@@ -43,7 +44,7 @@ namespace Shuttle.Recall
 
         public static bool Contains(this IEnumerable<EnvelopeHeader> headers, string key)
         {
-            Guard.AgainstNull(headers, "headers");
+            Guard.AgainstNull(headers, nameof(headers));
 
             return headers.Any(header => header.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase));
         }

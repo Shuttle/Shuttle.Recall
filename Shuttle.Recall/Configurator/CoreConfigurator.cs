@@ -1,4 +1,4 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Transactions;
 
 namespace Shuttle.Recall
 {
@@ -16,7 +16,7 @@ namespace Shuttle.Recall
                     TimeoutSeconds = transactionScopeElement.TimeoutSeconds
                 }
                 : new TransactionScopeConfiguration();
-            
+
             var eventProcessorSection = EventStoreSection.Get();
 
             if (eventProcessorSection == null)

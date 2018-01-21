@@ -141,12 +141,23 @@
     <value>Received primitive events from the IPrimitiveEventRepository implementation that were not sequential.  Version on next primitive event is '{0}' but currently on version '{1}'.</value>
     <comment>{0} = primitivate event version, {1} = next event version</comment>
   </data>
+  <data name="MissingCompressionAlgorithmException" xml:space="preserve">
+    <value>Compression algorithm '{0}' has not been registered.</value>
+    <comment>{0} = algorithm name</comment>
+  </data>
+  <data name="MissingEncryptionAlgorithmException" xml:space="preserve">
+    <value>Encryption algorithm '{0}' has not been registered.</value>
+    <comment>{0} = algorithm name</comment>
+  </data>
   <data name="MissingProjectionServiceException" xml:space="preserve">
     <value>No 'IProjectionService implementation has been specified.</value>
   </data>
   <data name="ModuleInstantiationException" xml:space="preserve">
     <value>Module could not be instantiated: {0}</value>
     <comment>{0} = full type name of module type to be instanced</comment>
+  </data>
+  <data name="NullResolverException" xml:space="preserve">
+    <value>No `IComponentResolver` instance has been assigned to the configuration.</value>
   </data>
   <data name="OpenSectionException" xml:space="preserve">
     <value>Could not find a section named '{0}' in configuration file '{1}' that is of type '{2}'.</value>

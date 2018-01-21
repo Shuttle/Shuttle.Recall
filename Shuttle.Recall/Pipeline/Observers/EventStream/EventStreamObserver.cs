@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -9,7 +10,7 @@ namespace Shuttle.Recall
             var state = pipelineEvent.Pipeline.State;
             var eventStream = state.GetEventStream();
 
-            Guard.AgainstNull(eventStream, "state.GetEventStream()");
+            Guard.AgainstNull(eventStream, nameof(eventStream));
 
             eventStream.Commit();
         }

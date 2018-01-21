@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
 {
     public class EventStream
     {
-        private readonly IEventMethodInvoker _eventMethodInvoker;
         private readonly List<DomainEvent> _appendedEvents = new List<DomainEvent>();
+        private readonly IEventMethodInvoker _eventMethodInvoker;
         private readonly List<object> _events = new List<object>();
         private int _nextVersion;
 
@@ -23,7 +22,7 @@ namespace Shuttle.Recall
 
         public EventStream(Guid id, int version, IEnumerable<object> events, IEventMethodInvoker eventMethodInvoker)
         {
-            Guard.AgainstNull(eventMethodInvoker, "eventMethodInvoker");
+            Guard.AgainstNull(eventMethodInvoker, nameof(eventMethodInvoker));
 
             Id = id;
             Version = version;
@@ -40,26 +39,17 @@ namespace Shuttle.Recall
         public int Version { get; }
         public object Snapshot { get; private set; }
 
-        public int Count
-        {
-            get { return (_events == null ? 0 : _events.Count()) + _appendedEvents.Count; }
-        }
+        public int Count => (_events == null ? 0 : _events.Count()) + _appendedEvents.Count;
 
-        public bool IsEmpty
-        {
-            get { return Count == 0; }
-        }
+        public bool IsEmpty => Count == 0;
 
-        public bool HasSnapshot
-        {
-            get { return Snapshot != null; }
-        }
+        public bool HasSnapshot => Snapshot != null;
 
         public bool Removed { get; private set; }
 
         public EventStream AddEvent(object @event)
         {
-            Guard.AgainstNull(@event, "@event");
+            Guard.AgainstNull(@event, nameof(@event));
 
             _appendedEvents.Add(new DomainEvent(@event, GetNextVersion()));
 
@@ -77,7 +67,7 @@ namespace Shuttle.Recall
 
         public EventStream AddSnapshot(object snapshot)
         {
-            Guard.AgainstNull(snapshot, "snapshot");
+            Guard.AgainstNull(snapshot, nameof(snapshot));
 
             Snapshot = snapshot;
 
@@ -88,7 +78,7 @@ namespace Shuttle.Recall
 
         public void Apply(object instance)
         {
-            Guard.AgainstNull(instance, "instance");
+            Guard.AgainstNull(instance, nameof(instance));
 
             _eventMethodInvoker.Apply(instance, _events);
         }
@@ -103,7 +93,7 @@ namespace Shuttle.Recall
             if (expectedVersion != Version)
             {
                 throw new EventStreamConcurrencyException(string.Format(
-                    RecallResources.EventStreamConcurrencyException, Id, Version,
+                    Resources.EventStreamConcurrencyException, Id, Version,
                     expectedVersion));
             }
         }

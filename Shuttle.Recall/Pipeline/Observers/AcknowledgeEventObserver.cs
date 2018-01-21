@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -9,8 +10,8 @@ namespace Shuttle.Recall
 
         public AcknowledgeEventObserver(IProjectionRepository repository, IProjectionSequenceNumberTracker tracker)
         {
-            Guard.AgainstNull(repository, "repository");
-            Guard.AgainstNull(tracker, "tracker");
+            Guard.AgainstNull(repository, nameof(repository));
+            Guard.AgainstNull(tracker, nameof(tracker));
 
             _repository = repository;
             _tracker = tracker;

@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -8,7 +9,7 @@ namespace Shuttle.Recall
 
         public AssembleEventEnvelopeObserver(IEventStoreConfiguration configuration)
         {
-            Guard.AgainstNull(configuration, "configuration");
+            Guard.AgainstNull(configuration, nameof(configuration));
 
             _configuration = configuration;
         }
@@ -19,7 +20,7 @@ namespace Shuttle.Recall
             var domainEvent = state.GetDomainEvent();
             var configurator = state.GetEventEnvelopeConfigurator();
 
-            Guard.AgainstNull(domainEvent, "state.GetDomainEvent()");
+            Guard.AgainstNull(domainEvent, nameof(domainEvent));
 
             var eventEnvelope = new EventEnvelope
             {

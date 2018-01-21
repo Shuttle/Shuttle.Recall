@@ -1,5 +1,7 @@
 ﻿using System;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
+using Shuttle.Core.Logging;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -20,10 +22,10 @@ namespace Shuttle.Recall
             var projection = state.GetProjection();
             var domainEvent = state.GetEvent();
 
-            Guard.AgainstNull(primitiveEvent, "state.GetPrimitiveEvent()");
-            Guard.AgainstNull(eventEnvelope, "state.GetEventEnvelope()");
-            Guard.AgainstNull(projection, "state.GetProjection()");
-            Guard.AgainstNull(domainEvent, "state.GetEvent()");
+            Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
+            Guard.AgainstNull(eventEnvelope, nameof(eventEnvelope));
+            Guard.AgainstNull(projection, nameof(projection));
+            Guard.AgainstNull(domainEvent, nameof(domainEvent));
 
             var type = Type.GetType(eventEnvelope.AssemblyQualifiedName);
 
@@ -31,7 +33,8 @@ namespace Shuttle.Recall
             {
                 if (Log.IsTraceEnabled)
                 {
-                    _log.Trace(string.Format(RecallResources.TraceTypeNotHandled, projection.Name, eventEnvelope.AssemblyQualifiedName));
+                    _log.Trace(string.Format(Resources.TraceTypeNotHandled, projection.Name,
+                        eventEnvelope.AssemblyQualifiedName));
                 }
 
                 return;

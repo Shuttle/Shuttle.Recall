@@ -1,4 +1,6 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
+using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall
 {
@@ -8,11 +10,12 @@ namespace Shuttle.Recall
         private readonly Projection _projection;
         private readonly IThreadActivity _threadActivity;
 
-        public ProjectionProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory, Projection projection)
+        public ProjectionProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory,
+            Projection projection)
         {
-            Guard.AgainstNull(configuration, "configuration");
-            Guard.AgainstNull(pipelineFactory, "pipelineFactory");
-            Guard.AgainstNull(projection, "Projection");
+            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
+            Guard.AgainstNull(projection, nameof(Projection));
 
             _pipelineFactory = pipelineFactory;
             _projection = projection;

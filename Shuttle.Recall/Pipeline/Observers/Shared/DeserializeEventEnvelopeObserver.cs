@@ -1,5 +1,7 @@
 ﻿using System.IO;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
+using Shuttle.Core.Serialization;
 
 namespace Shuttle.Recall
 {
@@ -9,7 +11,7 @@ namespace Shuttle.Recall
 
         public DeserializeEventEnvelopeObserver(ISerializer serializer)
         {
-            Guard.AgainstNull(serializer, "serializer");
+            Guard.AgainstNull(serializer, nameof(serializer));
 
             _serializer = serializer;
         }
@@ -19,14 +21,14 @@ namespace Shuttle.Recall
             var state = pipelineEvent.Pipeline.State;
             var primitiveEvent = state.GetPrimitiveEvent();
 
-            Guard.AgainstNull(primitiveEvent, "primitiveEvent");
+            Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
 
             EventEnvelope eventEnvelope;
 
             using (var stream = new MemoryStream(primitiveEvent.EventEnvelope))
             {
                 eventEnvelope =
-                    (EventEnvelope)_serializer.Deserialize(typeof(EventEnvelope), stream);
+                    (EventEnvelope) _serializer.Deserialize(typeof(EventEnvelope), stream);
             }
 
             state.SetEventEnvelope(eventEnvelope);

@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Container;
+using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
+using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall
 {
     public class EventProcessor : IEventProcessor
     {
-        private readonly List<Projection> _projections = new List<Projection>();
+        private readonly IEventStoreConfiguration _configuration;
         private readonly IPipelineFactory _pipelineFactory;
         private readonly List<ProcessorThread> _processorThreads = new List<ProcessorThread>();
-        private readonly IEventStoreConfiguration _configuration;
+        private readonly List<Projection> _projections = new List<Projection>();
         private volatile bool _started;
 
         public EventProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory)
         {
-            Guard.AgainstNull(configuration, "configuration");
-            Guard.AgainstNull(pipelineFactory, "pipelineFactory");
+            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
 
             _pipelineFactory = pipelineFactory;
 
@@ -64,18 +67,15 @@ namespace Shuttle.Recall
             _started = false;
         }
 
-        public bool Started
-        {
-            get { return _started; }
-        }
+        public bool Started => _started;
 
         public void AddProjection(Projection projection)
         {
-            Guard.AgainstNull(projection, "Projection");
+            Guard.AgainstNull(projection, nameof(Projection));
 
             if (_started)
             {
-                throw new EventProcessingException(string.Format(RecallResources.EventProcessorStartedCannotAddQueue,
+                throw new EventProcessingException(string.Format(Resources.EventProcessorStartedCannotAddQueue,
                     projection.Name));
             }
 
@@ -84,7 +84,7 @@ namespace Shuttle.Recall
                     queue => queue.Name.Equals(projection.Name, StringComparison.InvariantCultureIgnoreCase)) !=
                 null)
             {
-                throw new EventProcessingException(string.Format(RecallResources.DuplicateEventQueueName,
+                throw new EventProcessingException(string.Format(Resources.DuplicateEventQueueName,
                     projection.Name));
             }
 
@@ -98,14 +98,14 @@ namespace Shuttle.Recall
 
         public static IEventProcessor Create(IComponentResolver resolver)
         {
-            Guard.AgainstNull(resolver, "resolver");
+            Guard.AgainstNull(resolver, nameof(resolver));
 
             var configuration = resolver.Resolve<IEventStoreConfiguration>();
 
             if (configuration == null)
             {
-                throw new InvalidOperationException(string.Format(InfrastructureResources.TypeNotRegisteredException,
-                    typeof (IEventStoreConfiguration).FullName));
+                throw new InvalidOperationException(string.Format(Core.Container.Resources.TypeNotRegisteredException,
+                    typeof(IEventStoreConfiguration).FullName));
             }
 
             configuration.Assign(resolver);

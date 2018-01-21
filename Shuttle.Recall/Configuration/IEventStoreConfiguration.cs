@@ -1,12 +1,14 @@
 ﻿using System;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Compression;
+using Shuttle.Core.Container;
+using Shuttle.Core.Encryption;
+using Shuttle.Core.Transactions;
 
 namespace Shuttle.Recall
 {
     public interface IEventStoreConfiguration
     {
         IComponentResolver Resolver { get; }
-        IEventStoreConfiguration Assign(IComponentResolver resolver);
 
         ITransactionScopeConfiguration TransactionScope { get; set; }
 
@@ -15,6 +17,7 @@ namespace Shuttle.Recall
         string EncryptionAlgorithm { get; set; }
         string CompressionAlgorithm { get; set; }
         int ProjectionEventFetchCount { get; set; }
+        IEventStoreConfiguration Assign(IComponentResolver resolver);
 
         IEncryptionAlgorithm FindEncryptionAlgorithm(string name);
         void AddEncryptionAlgorithm(IEncryptionAlgorithm algorithm);

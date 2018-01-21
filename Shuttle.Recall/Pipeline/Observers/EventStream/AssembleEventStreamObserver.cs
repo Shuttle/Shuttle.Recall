@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -8,7 +9,7 @@ namespace Shuttle.Recall
 
         public AssembleEventStreamObserver(IEventMethodInvoker eventMethodInvoker)
         {
-            Guard.AgainstNull(eventMethodInvoker, "eventMethodInvoker");
+            Guard.AgainstNull(eventMethodInvoker, nameof(eventMethodInvoker));
 
             _eventMethodInvoker = eventMethodInvoker;
         }
@@ -17,7 +18,8 @@ namespace Shuttle.Recall
         {
             var state = pipelineEvent.Pipeline.State;
 
-            state.SetEventStream(new EventStream(state.GetId(), state.GetVersion(), state.GetEvents(), _eventMethodInvoker));
+            state.SetEventStream(new EventStream(state.GetId(), state.GetVersion(), state.GetEvents(),
+                _eventMethodInvoker));
         }
     }
 }

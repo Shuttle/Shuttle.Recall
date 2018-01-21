@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -10,8 +11,8 @@ namespace Shuttle.Recall
         public GetProjectionSequenceNumberObserver(IProjectionRepository projectionRepository,
             IProjectionSequenceNumberTracker tracker)
         {
-            Guard.AgainstNull(projectionRepository, "projectionRepository");
-            Guard.AgainstNull(tracker, "tracker");
+            Guard.AgainstNull(projectionRepository, nameof(projectionRepository));
+            Guard.AgainstNull(tracker, nameof(tracker));
 
             _projectionRepository = projectionRepository;
             _tracker = tracker;
@@ -22,7 +23,7 @@ namespace Shuttle.Recall
             var state = pipelineEvent.Pipeline.State;
             var projection = state.GetProjection();
 
-            Guard.AgainstNull(projection, "state.GetProjection()");
+            Guard.AgainstNull(projection, nameof(projection));
 
             state.SetSequenceNumber(_tracker.TryGet(projection.Name) ??
                                     _projectionRepository.GetSequenceNumber(projection.Name));

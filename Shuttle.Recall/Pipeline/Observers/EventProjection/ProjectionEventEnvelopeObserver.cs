@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -8,7 +9,7 @@ namespace Shuttle.Recall
 
         public ProjectionEventEnvelopeObserver(IPipelineFactory pipelineFactory)
         {
-            Guard.AgainstNull(pipelineFactory, "pipelineFactory");
+            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
 
             _pipelineFactory = pipelineFactory;
         }
@@ -18,7 +19,7 @@ namespace Shuttle.Recall
             var state = pipelineEvent.Pipeline.State;
             var primitiveEvent = state.GetPrimitiveEvent();
 
-            Guard.AgainstNull(primitiveEvent, "state.GetPrimitiveEvent()");
+            Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
 
             var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
 

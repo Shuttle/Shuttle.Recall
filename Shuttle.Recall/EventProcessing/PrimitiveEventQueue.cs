@@ -1,22 +1,20 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Caching;
-using Shuttle.Core.Infrastructure;
+﻿using System.Collections.Generic;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
 {
     public class PrimitiveEventQueue : IPrimitiveEventQueue
     {
-        private static readonly object _padlock = new object();
-        private readonly Dictionary<string, Queue<PrimitiveEvent>> _queues = new Dictionary<string, Queue<PrimitiveEvent>>();
+        private static readonly object Lock = new object();
+
+        private readonly Dictionary<string, Queue<PrimitiveEvent>> _queues =
+            new Dictionary<string, Queue<PrimitiveEvent>>();
 
         public void EnqueueRange(string projectionName, IEnumerable<PrimitiveEvent> primitiveEvents)
         {
-            Guard.AgainstNull(primitiveEvents, "primitiveEvents");
+            Guard.AgainstNull(primitiveEvents, nameof(primitiveEvents));
 
-            lock (_padlock)
+            lock (Lock)
             {
                 foreach (var primitiveEvent in primitiveEvents)
                 {
@@ -29,7 +27,7 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNullOrEmptyString(projectionName, "projectionName");
 
-            lock (_padlock)
+            lock (Lock)
             {
                 if (!_queues.ContainsKey(projectionName))
                 {
@@ -50,9 +48,9 @@ namespace Shuttle.Recall
         public void Enqueue(string projectionName, PrimitiveEvent primitiveEvent)
         {
             Guard.AgainstNullOrEmptyString(projectionName, "projectionName");
-            Guard.AgainstNull(primitiveEvent, "primitiveEvent");
+            Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
 
-            lock (_padlock)
+            lock (Lock)
             {
                 if (!_queues.ContainsKey(projectionName))
                 {

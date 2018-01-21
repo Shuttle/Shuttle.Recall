@@ -1,16 +1,18 @@
-﻿using System;
-using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
     public class GetEventEnvelopePipeline : Pipeline
     {
-        public GetEventEnvelopePipeline(DeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver, DecompressEventObserver decompressEventObserver, DecryptEventObserver decryptEventObserver, DeserializeEventObserver deserializeEventObserver)
+        public GetEventEnvelopePipeline(DeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver,
+            DecompressEventObserver decompressEventObserver, DecryptEventObserver decryptEventObserver,
+            DeserializeEventObserver deserializeEventObserver)
         {
-            Guard.AgainstNull(deserializeEventEnvelopeObserver, "deserializeEventEnvelopeObserver");
-            Guard.AgainstNull(decompressEventObserver, "decompressEventObserver");
-            Guard.AgainstNull(decryptEventObserver, "decryptEventObserver");
-            Guard.AgainstNull(deserializeEventObserver, "deserializeEventObserver");
+            Guard.AgainstNull(deserializeEventEnvelopeObserver, nameof(deserializeEventEnvelopeObserver));
+            Guard.AgainstNull(decompressEventObserver, nameof(decompressEventObserver));
+            Guard.AgainstNull(decryptEventObserver, nameof(decryptEventObserver));
+            Guard.AgainstNull(deserializeEventObserver, nameof(deserializeEventObserver));
 
             RegisterStage("Get")
                 .WithEvent<OnDeserializeEventEnvelope>()
@@ -30,7 +32,7 @@ namespace Shuttle.Recall
 
         public void Execute(PrimitiveEvent primitiveEvent)
         {
-            Guard.AgainstNull(primitiveEvent, "primitiveEvent");
+            Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
 
             State.SetPrimitiveEvent(primitiveEvent);
 

@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
 {
@@ -13,7 +12,7 @@ namespace Shuttle.Recall
 
         public DefaultEventMethodInvoker(IEventMethodInvokerConfiguration configuration)
         {
-            Guard.AgainstNull(configuration, "configuration");
+            Guard.AgainstNull(configuration, nameof(configuration));
 
             _configuration = configuration;
         }
@@ -38,12 +37,13 @@ namespace Shuttle.Recall
                 {
                     if (!_cache.ContainsKey(key))
                     {
-                        var method = instanceType.GetMethod(_configuration.EventHandlingMethodName, _configuration.BindingFlags, null,
+                        var method = instanceType.GetMethod(_configuration.EventHandlingMethodName,
+                            _configuration.BindingFlags, null,
                             new[] {eventType}, null);
 
                         if (method == null)
                         {
-                            throw new UnhandledEventException(string.Format(RecallResources.UnhandledEventException,
+                            throw new UnhandledEventException(string.Format(Resources.UnhandledEventException,
                                 instanceType.AssemblyQualifiedName, _configuration.EventHandlingMethodName,
                                 eventType.AssemblyQualifiedName));
                         }

@@ -1,18 +1,20 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
     public class ProjectionPrimitiveEventObserver : IPipelineObserver<OnGetProjectionPrimitiveEvent>
     {
         private readonly IEventStoreConfiguration _configuration;
-        private readonly IPrimitiveEventRepository _repository;
         private readonly IPrimitiveEventQueue _queue;
+        private readonly IPrimitiveEventRepository _repository;
 
-        public ProjectionPrimitiveEventObserver(IEventStoreConfiguration configuration, IPrimitiveEventRepository repository, IPrimitiveEventQueue queue)
+        public ProjectionPrimitiveEventObserver(IEventStoreConfiguration configuration,
+            IPrimitiveEventRepository repository, IPrimitiveEventQueue queue)
         {
-            Guard.AgainstNull(configuration, "configuration");
-            Guard.AgainstNull(repository, "repository");
-            Guard.AgainstNull(queue, "queue");
+            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(repository, nameof(repository));
+            Guard.AgainstNull(queue, nameof(queue));
 
             _configuration = configuration;
             _repository = repository;
@@ -29,7 +31,8 @@ namespace Shuttle.Recall
 
             if (primitiveEvent == null)
             {
-                _queue.EnqueueRange(projection.Name, _repository.Get(sequenceNumber, projection.EventTypes, _configuration.ProjectionEventFetchCount));
+                _queue.EnqueueRange(projection.Name,
+                    _repository.Get(sequenceNumber, projection.EventTypes, _configuration.ProjectionEventFetchCount));
 
                 primitiveEvent = _queue.Dequeue(projection.Name);
             }

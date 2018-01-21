@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
 {
@@ -15,7 +15,7 @@ namespace Shuttle.Recall
 
         public EventEnvelope EventEnvelope(object @event, string encryptionAlgorithm, string compressionAlgorithm)
         {
-            Guard.AgainstNull(@event, "@event");
+            Guard.AgainstNull(@event, nameof(@event));
 
             var result = new EventEnvelope
             {

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -9,7 +10,7 @@ namespace Shuttle.Recall
 
         public AssembleEventEnvelopesObserver(IPipelineFactory pipelineFactory)
         {
-            Guard.AgainstNull(pipelineFactory, "pipelineFactory");
+            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
 
             _pipelineFactory = pipelineFactory;
         }
@@ -21,8 +22,8 @@ namespace Shuttle.Recall
             var configurator = state.GetEventEnvelopeConfigurator();
             var eventEnvelopes = new List<EventEnvelope>();
 
-            Guard.AgainstNull(eventStream, "state.GetEventStream()");
-            Guard.AgainstNull(configurator, "state.GetEventEnvelopeConfigurator()");
+            Guard.AgainstNull(eventStream, nameof(eventStream));
+            Guard.AgainstNull(configurator, nameof(configurator));
 
             var pipeline = _pipelineFactory.GetPipeline<AssembleEventEnvelopePipeline>();
 

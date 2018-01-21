@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Pipelines;
+using Shuttle.Core.Serialization;
 
 namespace Shuttle.Recall.Tests
 {

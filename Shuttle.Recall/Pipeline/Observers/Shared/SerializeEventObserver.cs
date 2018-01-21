@@ -1,4 +1,7 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
+using Shuttle.Core.Serialization;
+using Shuttle.Core.Streams;
 
 namespace Shuttle.Recall
 {
@@ -8,7 +11,7 @@ namespace Shuttle.Recall
 
         public SerializeEventObserver(ISerializer serializer)
         {
-            Guard.AgainstNull(serializer, "serializer");
+            Guard.AgainstNull(serializer, nameof(serializer));
 
             _serializer = serializer;
         }

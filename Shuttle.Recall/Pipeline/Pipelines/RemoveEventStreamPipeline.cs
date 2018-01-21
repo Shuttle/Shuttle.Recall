@@ -1,5 +1,6 @@
 ﻿using System;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -7,7 +8,7 @@ namespace Shuttle.Recall
     {
         public RemoveEventStreamPipeline(RemoveEventStreamObserver removeEventStreamObserver)
         {
-            Guard.AgainstNull(removeEventStreamObserver, "removeEventStreamObserver");
+            Guard.AgainstNull(removeEventStreamObserver, nameof(removeEventStreamObserver));
 
             RegisterStage("Process")
                 .WithEvent<OnRemoveEventStream>()

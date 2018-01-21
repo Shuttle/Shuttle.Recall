@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -9,10 +10,11 @@ namespace Shuttle.Recall
         private readonly IPipelineFactory _pipelineFactory;
         private readonly IPrimitiveEventRepository _primitiveEventRepository;
 
-        public GetStreamEventsObserver(IPipelineFactory pipelineFactory, IPrimitiveEventRepository primitiveEventRepository)
+        public GetStreamEventsObserver(IPipelineFactory pipelineFactory,
+            IPrimitiveEventRepository primitiveEventRepository)
         {
-            Guard.AgainstNull(pipelineFactory, "pipelineFactory");
-            Guard.AgainstNull(primitiveEventRepository, "primitiveEventRepository");
+            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
+            Guard.AgainstNull(primitiveEventRepository, nameof(primitiveEventRepository));
 
             _pipelineFactory = pipelineFactory;
             _primitiveEventRepository = primitiveEventRepository;
@@ -32,7 +34,8 @@ namespace Shuttle.Recall
                 {
                     if (primitiveEvent.Version < version)
                     {
-                        throw new InvalidOperationException(string.Format(RecallResources.InvalidEventOrderingException, primitiveEvent.Version, version));
+                        throw new InvalidOperationException(string.Format(Resources.InvalidEventOrderingException,
+                            primitiveEvent.Version, version));
                     }
 
                     pipeline.Execute(primitiveEvent);

@@ -1,14 +1,17 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
     public class AssembleEventEnvelopePipeline : Pipeline
     {
-        public AssembleEventEnvelopePipeline(AssembleEventEnvelopeObserver assembleEventEnvelopeObserver, CompressEventObserver compressEventObserver, EncryptEventObserver encryptEventObserver, SerializeEventObserver serializeEventObserver)
+        public AssembleEventEnvelopePipeline(AssembleEventEnvelopeObserver assembleEventEnvelopeObserver,
+            CompressEventObserver compressEventObserver, EncryptEventObserver encryptEventObserver,
+            SerializeEventObserver serializeEventObserver)
         {
-            Guard.AgainstNull(compressEventObserver, "compressEventObserver");
-            Guard.AgainstNull(encryptEventObserver, "encryptEventObserver");
-            Guard.AgainstNull(serializeEventObserver, "serializeEventObserver");
+            Guard.AgainstNull(compressEventObserver, nameof(compressEventObserver));
+            Guard.AgainstNull(encryptEventObserver, nameof(encryptEventObserver));
+            Guard.AgainstNull(serializeEventObserver, nameof(serializeEventObserver));
 
             RegisterStage("Get")
                 .WithEvent<OnAssembleEventEnvelope>()

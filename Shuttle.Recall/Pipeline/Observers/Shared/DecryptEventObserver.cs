@@ -1,5 +1,6 @@
 ﻿using System;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -9,7 +10,7 @@ namespace Shuttle.Recall
 
         public DecryptEventObserver(IEventStoreConfiguration configuration)
         {
-            Guard.AgainstNull(configuration, "configuration");
+            Guard.AgainstNull(configuration, nameof(configuration));
 
             _configuration = configuration;
         }
@@ -28,7 +29,8 @@ namespace Shuttle.Recall
 
             if (algorithm == null)
             {
-                throw new InvalidOperationException(string.Format(InfrastructureResources.MissingCompressionAlgorithmException, eventEnvelope.CompressionAlgorithm));
+                throw new InvalidOperationException(string.Format(
+                    Resources.MissingCompressionAlgorithmException, eventEnvelope.CompressionAlgorithm));
             }
 
             eventEnvelope.Event = algorithm.Decrypt(eventEnvelope.Event);
