@@ -21,4 +21,16 @@
         <Reference Include="System.Transactions" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Section\files\Empty.config">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Section\files\EventStore-Grouped.config">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Section\files\EventStore.config">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
