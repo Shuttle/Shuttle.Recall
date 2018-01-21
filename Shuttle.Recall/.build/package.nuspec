@@ -23,7 +23,6 @@
         <dependency id="Shuttle.Core.PipelineTransaction" version="{Shuttle.Core.PipelineTransaction-version}" />
         <dependency id="Shuttle.Core.Reflection" version="{Shuttle.Core.Reflection-version}" />
         <dependency id="Shuttle.Core.Serialization" version="{Shuttle.Core.Serialization-version}" />
-        <dependency id="Shuttle.Core.Specification" version="{Shuttle.Core.Specification-version}" />
         <dependency id="Shuttle.Core.Streams" version="{Shuttle.Core.Streams-version}" />
         <dependency id="Shuttle.Core.Threading" version="{Shuttle.Core.Threading-version}" />
         <dependency id="Shuttle.Core.TimeSpanTypeConverters" version="{Shuttle.Core.TimeSpanTypeConverters-version}" />
@@ -39,7 +38,6 @@
         <dependency id="Shuttle.Core.PipelineTransaction" version="{Shuttle.Core.PipelineTransaction-version}" />
         <dependency id="Shuttle.Core.Reflection" version="{Shuttle.Core.Reflection-version}" />
         <dependency id="Shuttle.Core.Serialization" version="{Shuttle.Core.Serialization-version}" />
-        <dependency id="Shuttle.Core.Specification" version="{Shuttle.Core.Specification-version}" />
         <dependency id="Shuttle.Core.Streams" version="{Shuttle.Core.Streams-version}" />
         <dependency id="Shuttle.Core.Threading" version="{Shuttle.Core.Threading-version}" />
         <dependency id="Shuttle.Core.TimeSpanTypeConverters" version="{Shuttle.Core.TimeSpanTypeConverters-version}" />
@@ -57,7 +55,6 @@
         <dependency id="Shuttle.Core.PipelineTransaction" version="{Shuttle.Core.PipelineTransaction-version}" />
         <dependency id="Shuttle.Core.Reflection" version="{Shuttle.Core.Reflection-version}" />
         <dependency id="Shuttle.Core.Serialization" version="{Shuttle.Core.Serialization-version}" />
-        <dependency id="Shuttle.Core.Specification" version="{Shuttle.Core.Specification-version}" />
         <dependency id="Shuttle.Core.Streams" version="{Shuttle.Core.Streams-version}" />
         <dependency id="Shuttle.Core.Threading" version="{Shuttle.Core.Threading-version}" />
         <dependency id="Shuttle.Core.TimeSpanTypeConverters" version="{Shuttle.Core.TimeSpanTypeConverters-version}" />
