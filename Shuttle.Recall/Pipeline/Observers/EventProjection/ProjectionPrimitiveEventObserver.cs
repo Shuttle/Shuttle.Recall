@@ -3,7 +3,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class ProjectionPrimitiveEventObserver : IPipelineObserver<OnGetProjectionPrimitiveEvent>
+    public interface IProjectionPrimitiveEventObserver : IPipelineObserver<OnGetProjectionPrimitiveEvent>
+    {
+    }
+
+    public class ProjectionPrimitiveEventObserver : IProjectionPrimitiveEventObserver
     {
         private readonly IEventStoreConfiguration _configuration;
         private readonly IPrimitiveEventQueue _queue;

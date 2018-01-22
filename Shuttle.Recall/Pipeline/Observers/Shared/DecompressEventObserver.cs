@@ -4,7 +4,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class DecompressEventObserver : IPipelineObserver<OnDecompressEvent>
+    public interface IDecompressEventObserver : IPipelineObserver<OnDecompressEvent>
+    {
+    }
+
+    public class DecompressEventObserver : IDecompressEventObserver
     {
         private readonly IEventStoreConfiguration _configuration;
 

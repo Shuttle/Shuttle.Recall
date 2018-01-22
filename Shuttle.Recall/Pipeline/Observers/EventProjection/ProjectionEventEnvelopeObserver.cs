@@ -3,7 +3,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class ProjectionEventEnvelopeObserver : IPipelineObserver<OnGetProjectionEventEnvelope>
+    public interface IProjectionEventEnvelopeObserver : IPipelineObserver<OnGetProjectionEventEnvelope>
+    {
+    }
+
+    public class ProjectionEventEnvelopeObserver : IProjectionEventEnvelopeObserver
     {
         private readonly IPipelineFactory _pipelineFactory;
 

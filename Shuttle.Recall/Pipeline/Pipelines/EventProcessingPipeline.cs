@@ -1,22 +1,19 @@
-﻿using Shuttle.Core.Contract;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.PipelineTransaction;
+using Shuttle.Core.Reflection;
 
 namespace Shuttle.Recall
 {
     public class EventProcessingPipeline : Pipeline
     {
-        public EventProcessingPipeline(GetProjectionSequenceNumberObserver getProjectionSequenceNumberObserver,
-            ProjectionPrimitiveEventObserver projectionPrimitiveEventObserver,
-            ProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, ProcessEventObserver processEventObserver,
-            AcknowledgeEventObserver acknowledgeEventObserver, TransactionScopeObserver transactionScopeObserver)
+        public EventProcessingPipeline(IEnumerable<IPipelineObserver> observers)
         {
-            Guard.AgainstNull(getProjectionSequenceNumberObserver, nameof(getProjectionSequenceNumberObserver));
-            Guard.AgainstNull(projectionPrimitiveEventObserver, nameof(projectionPrimitiveEventObserver));
-            Guard.AgainstNull(projectionEventEnvelopeObserver, nameof(projectionEventEnvelopeObserver));
-            Guard.AgainstNull(processEventObserver, nameof(processEventObserver));
-            Guard.AgainstNull(acknowledgeEventObserver, nameof(acknowledgeEventObserver));
-            Guard.AgainstNull(transactionScopeObserver, nameof(TransactionScopeObserver));
+            Guard.AgainstNull(observers, nameof(observers));
+
+            var list = observers.ToList();
 
             RegisterStage("Process")
                 .WithEvent<OnStartTransactionScope>()
@@ -34,12 +31,12 @@ namespace Shuttle.Recall
                 .WithEvent<OnCompleteTransactionScope>()
                 .WithEvent<OnDisposeTransactionScope>();
 
-            RegisterObserver(getProjectionSequenceNumberObserver);
-            RegisterObserver(projectionPrimitiveEventObserver);
-            RegisterObserver(projectionEventEnvelopeObserver);
-            RegisterObserver(processEventObserver);
-            RegisterObserver(acknowledgeEventObserver);
-            RegisterObserver(transactionScopeObserver);
+            RegisterObserver(list.Get<IGetProjectionSequenceNumberObserver>());
+            RegisterObserver(list.Get<IProjectionPrimitiveEventObserver>());
+            RegisterObserver(list.Get<IProjectionEventEnvelopeObserver>());
+            RegisterObserver(list.Get<IProcessEventObserver>());
+            RegisterObserver(list.Get<IAcknowledgeEventObserver>());
+            RegisterObserver(list.Get<ITransactionScopeObserver>());
         }
     }
 }

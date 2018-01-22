@@ -4,7 +4,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class AssembleEventEnvelopesObserver : IPipelineObserver<OnAssembleEventEnvelopes>
+    public interface IAssembleEventEnvelopesObserver : IPipelineObserver<OnAssembleEventEnvelopes>
+    {
+    }
+
+    public class AssembleEventEnvelopesObserver : IAssembleEventEnvelopesObserver
     {
         private readonly IPipelineFactory _pipelineFactory;
 

@@ -3,7 +3,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class GetProjectionSequenceNumberObserver : IPipelineObserver<OnGetProjectionSequenceNumber>
+    public interface IGetProjectionSequenceNumberObserver : IPipelineObserver<OnGetProjectionSequenceNumber>
+    {
+    }
+
+    public class GetProjectionSequenceNumberObserver : IGetProjectionSequenceNumberObserver
     {
         private readonly IProjectionRepository _projectionRepository;
         private readonly IProjectionSequenceNumberTracker _tracker;

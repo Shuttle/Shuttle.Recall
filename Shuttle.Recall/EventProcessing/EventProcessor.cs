@@ -39,7 +39,7 @@ namespace Shuttle.Recall
 
             foreach (var eventProjection in _projections)
             {
-                var processorThread = new ProcessorThread(string.Format("Projection-{0}", eventProjection.Name),
+                var processorThread = new ProcessorThread($"Projection-{eventProjection.Name}",
                     new ProjectionProcessor(_configuration, _pipelineFactory, eventProjection));
 
                 processorThread.Start();

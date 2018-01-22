@@ -1,17 +1,18 @@
-﻿using Shuttle.Core.Contract;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
+using Shuttle.Core.Reflection;
 
 namespace Shuttle.Recall
 {
     public class AssembleEventEnvelopePipeline : Pipeline
     {
-        public AssembleEventEnvelopePipeline(AssembleEventEnvelopeObserver assembleEventEnvelopeObserver,
-            CompressEventObserver compressEventObserver, EncryptEventObserver encryptEventObserver,
-            SerializeEventObserver serializeEventObserver)
+        public AssembleEventEnvelopePipeline(IEnumerable<IPipelineObserver> observers)
         {
-            Guard.AgainstNull(compressEventObserver, nameof(compressEventObserver));
-            Guard.AgainstNull(encryptEventObserver, nameof(encryptEventObserver));
-            Guard.AgainstNull(serializeEventObserver, nameof(serializeEventObserver));
+            Guard.AgainstNull(observers, nameof(observers));
+
+            var list = observers.ToList();
 
             RegisterStage("Get")
                 .WithEvent<OnAssembleEventEnvelope>()
@@ -25,10 +26,10 @@ namespace Shuttle.Recall
                 .WithEvent<OnAssembleEventEnvelope>()
                 .WithEvent<OnAfterAssembleEventEnvelope>();
 
-            RegisterObserver(assembleEventEnvelopeObserver);
-            RegisterObserver(compressEventObserver);
-            RegisterObserver(encryptEventObserver);
-            RegisterObserver(serializeEventObserver);
+            RegisterObserver(list.Get<IAssembleEventEnvelopeObserver>());
+            RegisterObserver(list.Get<ICompressEventObserver>());
+            RegisterObserver(list.Get<IEncryptEventObserver>());
+            RegisterObserver(list.Get<ISerializeEventObserver>());
         }
 
         public EventEnvelope Execute(DomainEvent domainEvent)

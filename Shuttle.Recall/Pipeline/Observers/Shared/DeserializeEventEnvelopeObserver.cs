@@ -5,7 +5,11 @@ using Shuttle.Core.Serialization;
 
 namespace Shuttle.Recall
 {
-    public class DeserializeEventEnvelopeObserver : IPipelineObserver<OnDeserializeEventEnvelope>
+    public interface IDeserializeEventEnvelopeObserver : IPipelineObserver<OnDeserializeEventEnvelope>
+    {
+    }
+
+    public class DeserializeEventEnvelopeObserver : IDeserializeEventEnvelopeObserver
     {
         private readonly ISerializer _serializer;
 

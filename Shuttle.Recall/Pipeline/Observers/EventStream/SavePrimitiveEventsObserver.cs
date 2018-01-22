@@ -6,7 +6,11 @@ using Shuttle.Core.Streams;
 
 namespace Shuttle.Recall
 {
-    public class SavePrimitiveEventsObserver : IPipelineObserver<OnSavePrimitiveEvents>
+    public interface ISavePrimitiveEventsObserver : IPipelineObserver<OnSavePrimitiveEvents>
+    {
+    }
+
+    public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
     {
         private readonly IConcurrenyExceptionSpecification _concurrenyExceptionSpecification;
         private readonly IPrimitiveEventRepository _primitiveEventRepository;

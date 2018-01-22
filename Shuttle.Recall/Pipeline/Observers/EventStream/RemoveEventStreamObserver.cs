@@ -3,7 +3,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class RemoveEventStreamObserver : IPipelineObserver<OnRemoveEventStream>
+    public interface IRemoveEventStreamObserver : IPipelineObserver<OnRemoveEventStream>
+    {
+    }
+
+    public class RemoveEventStreamObserver : IRemoveEventStreamObserver
     {
         private readonly IPrimitiveEventRepository _primitiveEventRepository;
 

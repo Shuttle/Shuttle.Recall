@@ -4,7 +4,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class CompressEventObserver : IPipelineObserver<OnCompressEvent>
+    public interface ICompressEventObserver : IPipelineObserver<OnCompressEvent>
+    {
+    }
+
+    public class CompressEventObserver : ICompressEventObserver
     {
         private readonly IEventStoreConfiguration _configuration;
 

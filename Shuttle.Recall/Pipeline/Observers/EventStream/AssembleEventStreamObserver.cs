@@ -3,7 +3,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class AssembleEventStreamObserver : IPipelineObserver<OnAssembleEventStream>
+    public interface IAssembleEventStreamObserver : IPipelineObserver<OnAssembleEventStream>
+    {
+    }
+
+    public class AssembleEventStreamObserver : IAssembleEventStreamObserver
     {
         private readonly IEventMethodInvoker _eventMethodInvoker;
 

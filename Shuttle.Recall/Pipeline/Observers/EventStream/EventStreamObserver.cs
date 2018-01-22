@@ -3,7 +3,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class EventStreamObserver : IPipelineObserver<OnCommitEventStream>
+    public interface IEventStreamObserver : IPipelineObserver<OnCommitEventStream>
+    {
+    }
+
+    public class EventStreamObserver : IEventStreamObserver
     {
         public void Execute(OnCommitEventStream pipelineEvent)
         {

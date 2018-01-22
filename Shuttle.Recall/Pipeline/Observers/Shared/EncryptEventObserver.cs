@@ -4,7 +4,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class EncryptEventObserver : IPipelineObserver<OnEncryptEvent>
+    public interface IEncryptEventObserver : IPipelineObserver<OnEncryptEvent>
+    {
+    }
+
+    public class EncryptEventObserver : IEncryptEventObserver
     {
         private readonly IEventStoreConfiguration _configuration;
 

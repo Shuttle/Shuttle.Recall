@@ -5,7 +5,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class GetStreamEventsObserver : IPipelineObserver<OnGetStreamEvents>
+    public interface IGetStreamEventsObserver : IPipelineObserver<OnGetStreamEvents>
+    {
+    }
+
+    public class GetStreamEventsObserver : IGetStreamEventsObserver
     {
         private readonly IPipelineFactory _pipelineFactory;
         private readonly IPrimitiveEventRepository _primitiveEventRepository;

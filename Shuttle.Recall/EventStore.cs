@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
@@ -158,15 +159,35 @@ namespace Shuttle.Recall
                 registry.Register(type, type, Lifestyle.Transient);
             }
 
+            var observers = new List<Type>();
+
             foreach (var type in reflectionService.GetTypesAssignableTo<IPipelineObserver>(typeof(EventStore).Assembly))
             {
-                if (type.IsInterface || registry.IsRegistered(type))
+                if (type.IsInterface || type.IsAbstract)
                 {
                     continue;
                 }
 
-                registry.Register(type, type, Lifestyle.Singleton);
+                var interfaceType = type.InterfaceMatching($"I{type.Name}");
+
+                if (interfaceType != null)
+                {
+                    if (registry.IsRegistered(type))
+                    {
+                        continue;
+                    }
+
+                    registry.Register(interfaceType, type, Lifestyle.Singleton);
+                }
+                else
+                {
+                    throw new ApplicationException(string.Format(Resources.ObserverInterfaceMissingException, type.Name));
+                }
+
+                observers.Add(type);
             }
+
+            registry.RegisterCollection(typeof(IPipelineObserver), observers, Lifestyle.Singleton);
 
             registry.AttemptRegister<IEventStore, EventStore>();
             registry.AttemptRegister<IEventProcessor, EventProcessor>();

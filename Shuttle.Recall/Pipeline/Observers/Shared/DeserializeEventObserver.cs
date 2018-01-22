@@ -6,7 +6,11 @@ using Shuttle.Core.Serialization;
 
 namespace Shuttle.Recall
 {
-    public class DeserializeEventObserver : IPipelineObserver<OnDeserializeEvent>
+    public interface IDeserializeEventObserver : IPipelineObserver<OnDeserializeEvent>
+    {
+    }
+
+    public class DeserializeEventObserver : IDeserializeEventObserver
     {
         private readonly ISerializer _serializer;
 

@@ -1,16 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
+using Shuttle.Core.Reflection;
 
 namespace Shuttle.Recall
 {
     public class GetEventStreamPipeline : Pipeline
     {
-        public GetEventStreamPipeline(GetStreamEventsObserver getStreamEventsObserver,
-            AssembleEventStreamObserver assembleEventStreamObserver)
+        public GetEventStreamPipeline(IEnumerable<IPipelineObserver> observers)
         {
-            Guard.AgainstNull(getStreamEventsObserver, nameof(GetStreamEventsObserver));
-            Guard.AgainstNull(assembleEventStreamObserver, nameof(assembleEventStreamObserver));
+            Guard.AgainstNull(observers, nameof(observers));
+
+            var list = observers.ToList();
 
             RegisterStage("Process")
                 .WithEvent<OnGetStreamEvents>()
@@ -18,8 +21,8 @@ namespace Shuttle.Recall
                 .WithEvent<OnAssembleEventStream>()
                 .WithEvent<OnAfterAssembleEventStream>();
 
-            RegisterObserver(getStreamEventsObserver);
-            RegisterObserver(assembleEventStreamObserver);
+            RegisterObserver(list.Get<IGetStreamEventsObserver>());
+            RegisterObserver(list.Get<IAssembleEventStreamObserver>());
         }
 
         public EventStream Execute(Guid id)

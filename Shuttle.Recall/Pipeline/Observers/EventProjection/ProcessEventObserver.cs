@@ -5,7 +5,11 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public class ProcessEventObserver : IPipelineObserver<OnProcessEvent>
+    public interface IProcessEventObserver : IPipelineObserver<OnProcessEvent>
+    {
+    }
+
+    public class ProcessEventObserver : IProcessEventObserver
     {
         private readonly ILog _log;
 

@@ -159,6 +159,10 @@
   <data name="NullResolverException" xml:space="preserve">
     <value>No `IComponentResolver` instance has been assigned to the configuration.</value>
   </data>
+  <data name="ObserverInterfaceMissingException" xml:space="preserve">
+    <value>Observer with type name '{0}' does not have an interface with name 'I{0}'.</value>
+    <comment>{0} = observer type name</comment>
+  </data>
   <data name="OpenSectionException" xml:space="preserve">
     <value>Could not find a section named '{0}' in configuration file '{1}' that is of type '{2}'.</value>
     <comment>{0} = section name, {1} = configuration file, {2} = the section type</comment>

@@ -1,18 +1,18 @@
-﻿using Shuttle.Core.Contract;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
+using Shuttle.Core.Reflection;
 
 namespace Shuttle.Recall
 {
     public class GetEventEnvelopePipeline : Pipeline
     {
-        public GetEventEnvelopePipeline(DeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver,
-            DecompressEventObserver decompressEventObserver, DecryptEventObserver decryptEventObserver,
-            DeserializeEventObserver deserializeEventObserver)
+        public GetEventEnvelopePipeline(IEnumerable<IPipelineObserver> observers)
         {
-            Guard.AgainstNull(deserializeEventEnvelopeObserver, nameof(deserializeEventEnvelopeObserver));
-            Guard.AgainstNull(decompressEventObserver, nameof(decompressEventObserver));
-            Guard.AgainstNull(decryptEventObserver, nameof(decryptEventObserver));
-            Guard.AgainstNull(deserializeEventObserver, nameof(deserializeEventObserver));
+            Guard.AgainstNull(observers, nameof(observers));
+
+            var list = observers.ToList();
 
             RegisterStage("Get")
                 .WithEvent<OnDeserializeEventEnvelope>()
@@ -24,10 +24,10 @@ namespace Shuttle.Recall
                 .WithEvent<OnDeserializeEvent>()
                 .WithEvent<OnAfterDeserializeEvent>();
 
-            RegisterObserver(deserializeEventEnvelopeObserver);
-            RegisterObserver(decompressEventObserver);
-            RegisterObserver(decryptEventObserver);
-            RegisterObserver(deserializeEventObserver);
+            RegisterObserver(list.Get<IDeserializeEventEnvelopeObserver>());
+            RegisterObserver(list.Get<IDecompressEventObserver>());
+            RegisterObserver(list.Get<IDecryptEventObserver>());
+            RegisterObserver(list.Get<IDeserializeEventObserver>());
         }
 
         public void Execute(PrimitiveEvent primitiveEvent)
