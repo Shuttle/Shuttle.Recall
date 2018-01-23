@@ -1,18 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.Reflection;
 
 namespace Shuttle.Recall
 {
     public class SaveEventStreamPipeline : Pipeline
     {
-        public SaveEventStreamPipeline(IEnumerable<IPipelineObserver> observers)
+        public SaveEventStreamPipeline(IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver,
+            ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver)
         {
-            Guard.AgainstNull(observers, nameof(observers));
-
-            var list = observers.ToList();
+            Guard.AgainstNull(assembleEventEnvelopesObserver, nameof(assembleEventEnvelopesObserver));
+            Guard.AgainstNull(savePrimitiveEventsObserver, nameof(savePrimitiveEventsObserver));
+            Guard.AgainstNull(eventStreamObserver, nameof(eventStreamObserver));
 
             RegisterStage("Process")
                 .WithEvent<OnAssembleEventEnvelopes>()
@@ -22,9 +20,9 @@ namespace Shuttle.Recall
                 .WithEvent<OnCommitEventStream>()
                 .WithEvent<OnAfterCommitEventStream>();
 
-            RegisterObserver(list.Get<IAssembleEventEnvelopesObserver>());
-            RegisterObserver(list.Get<ISavePrimitiveEventsObserver>());
-            RegisterObserver(list.Get<IEventStreamObserver>());
+            RegisterObserver(assembleEventEnvelopesObserver);
+            RegisterObserver(savePrimitiveEventsObserver);
+            RegisterObserver(eventStreamObserver);
         }
 
         public void Execute(EventStream eventStream, EventEnvelopeConfigurator configurator)

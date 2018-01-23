@@ -125,6 +125,10 @@
     <value>An event queue with name '{0}' has already been added.</value>
     <comment>{0} = name of the event queue</comment>
   </data>
+  <data name="DuplicateKeyException" xml:space="preserve">
+    <value>Event stream with id '{0}' already has a key '{1}'.</value>
+    <comment>0 = event stream id, 1 = key</comment>
+  </data>
   <data name="EventProcessorStartedCannotAddQueue" xml:space="preserve">
     <value>The event processor has already been started.  Event queue '{0}' cannot be added.</value>
     <comment>{0} = name of the event queue</comment>

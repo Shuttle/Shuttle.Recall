@@ -128,8 +128,6 @@ namespace Shuttle.Recall
             registry.AttemptRegister<IEventMethodInvokerConfiguration, EventMethodInvokerConfiguration>();
             registry.AttemptRegister<IEventMethodInvoker, DefaultEventMethodInvoker>();
             registry.AttemptRegister<ISerializer, DefaultSerializer>();
-            registry.AttemptRegister<IProjectionSequenceNumberTracker, ProjectionSequenceNumberTracker>();
-            registry.AttemptRegister<IPrimitiveEventQueue, PrimitiveEventQueue>();
             registry.AttemptRegister<IConcurrenyExceptionSpecification, DefaultConcurrenyExceptionSpecification>();
 
             registry.AttemptRegister<TransactionScopeObserver, TransactionScopeObserver>();
@@ -149,9 +147,9 @@ namespace Shuttle.Recall
 
             var reflectionService = new ReflectionService();
 
-            foreach (var type in reflectionService.GetTypesAssignableTo(typeof(EventStore).Assembly))
+            foreach (var type in reflectionService.GetTypesAssignableTo<IPipeline>(typeof(EventStore).Assembly))
             {
-                if (type.IsInterface || registry.IsRegistered(type))
+                if (type.IsInterface || type.IsAbstract || registry.IsRegistered(type))
                 {
                     continue;
                 }

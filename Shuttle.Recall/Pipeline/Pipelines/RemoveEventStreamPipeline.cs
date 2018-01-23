@@ -1,25 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.Reflection;
 
 namespace Shuttle.Recall
 {
     public class RemoveEventStreamPipeline : Pipeline
     {
-        public RemoveEventStreamPipeline(IEnumerable<IPipelineObserver> observers)
+        public RemoveEventStreamPipeline(IRemoveEventStreamObserver removeEventStreamObserver)
         {
-            Guard.AgainstNull(observers, nameof(observers));
-
-            var list = observers.ToList();
+            Guard.AgainstNull(removeEventStreamObserver, nameof(removeEventStreamObserver));
 
             RegisterStage("Process")
                 .WithEvent<OnRemoveEventStream>()
                 .WithEvent<OnAfterRemoveEventStream>();
 
-            RegisterObserver(list.Get<IRemoveEventStreamObserver>());
+            RegisterObserver(removeEventStreamObserver);
         }
 
         public void Execute(Guid id)

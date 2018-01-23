@@ -79,6 +79,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Event stream with id &apos;{0}&apos; already has a key &apos;{1}&apos;..
+        /// </summary>
+        public static string DuplicateKeyException {
+            get {
+                return ResourceManager.GetString("DuplicateKeyException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The event processor has already been started.  Event queue &apos;{0}&apos; cannot be added..
         /// </summary>
         public static string EventProcessorStartedCannotAddQueue {

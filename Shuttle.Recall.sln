@@ -1,11 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2020
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Recall", "Shuttle.Recall\Shuttle.Recall.csproj", "{2FFBDEC5-EC6E-4EE3-9046-F757C8044BBA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Recall", "Shuttle.Recall\Shuttle.Recall.csproj", "{2FFBDEC5-EC6E-4EE3-9046-F757C8044BBA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Recall.Tests", "Shuttle.Recall.Tests\Shuttle.Recall.Tests.csproj", "{4C228AFF-FF77-4AED-8E78-7A3ACEC06317}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Recall.Tests", "Shuttle.Recall.Tests\Shuttle.Recall.Tests.csproj", "{4C228AFF-FF77-4AED-8E78-7A3ACEC06317}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{75DCAA58-73EE-4108-98FD-490E7980DF8D}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
