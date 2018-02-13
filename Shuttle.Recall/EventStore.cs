@@ -128,9 +128,11 @@ namespace Shuttle.Recall
             registry.AttemptRegister<IEventMethodInvokerConfiguration, EventMethodInvokerConfiguration>();
             registry.AttemptRegister<IEventMethodInvoker, DefaultEventMethodInvoker>();
             registry.AttemptRegister<ISerializer, DefaultSerializer>();
+            registry.AttemptRegister<IProjectionSequenceNumberTracker, ProjectionSequenceNumberTracker>();
+            registry.AttemptRegister<IPrimitiveEventQueue, PrimitiveEventQueue>();
             registry.AttemptRegister<IConcurrenyExceptionSpecification, DefaultConcurrenyExceptionSpecification>();
 
-            registry.AttemptRegister<TransactionScopeObserver, TransactionScopeObserver>();
+            registry.AttemptRegister<ITransactionScopeObserver, TransactionScopeObserver>();
 
             if (!registry.IsRegistered<ITransactionScopeFactory>())
             {
@@ -184,8 +186,6 @@ namespace Shuttle.Recall
 
                 observers.Add(type);
             }
-
-            registry.RegisterCollection(typeof(IPipelineObserver), observers, Lifestyle.Singleton);
 
             registry.AttemptRegister<IEventStore, EventStore>();
             registry.AttemptRegister<IEventProcessor, EventProcessor>();
