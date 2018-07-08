@@ -159,8 +159,6 @@ namespace Shuttle.Recall
                 registry.Register(type, type, Lifestyle.Transient);
             }
 
-            var observers = new List<Type>();
-
             foreach (var type in reflectionService.GetTypesAssignableTo<IPipelineObserver>(typeof(EventStore).Assembly))
             {
                 if (type.IsInterface || type.IsAbstract)
@@ -183,8 +181,6 @@ namespace Shuttle.Recall
                 {
                     throw new ApplicationException(string.Format(Resources.ObserverInterfaceMissingException, type.Name));
                 }
-
-                observers.Add(type);
             }
 
             registry.AttemptRegister<IEventStore, EventStore>();
