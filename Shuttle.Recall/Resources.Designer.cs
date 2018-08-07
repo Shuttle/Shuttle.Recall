@@ -61,6 +61,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not create an aggregate of type &apos;{0}&apos;.  Ensure that there is a constructor that takes only the `Guid` identifier as a parameter..
+        /// </summary>
+        public static string AggregateConstructorException {
+            get {
+                return ResourceManager.GetString("AggregateConstructorException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} &apos;{1}&apos; has no default constructor..
         /// </summary>
         public static string DefaultConstructorRequired {
