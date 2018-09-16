@@ -27,6 +27,11 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNull(id, nameof(id));
 
+            if (id.Equals(Guid.Empty))
+            {
+                return CreateEventStream();
+            }
+
             var pipeline = _pipelineFactory.GetPipeline<GetEventStreamPipeline>();
 
             try
