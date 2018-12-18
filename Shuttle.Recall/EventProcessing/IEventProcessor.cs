@@ -8,5 +8,6 @@ namespace Shuttle.Recall
         IEventProcessor Start();
         void Stop();
         void AddProjection(Projection projection);
+        Projection GetProjection();
     }
 }

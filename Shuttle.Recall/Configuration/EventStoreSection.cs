@@ -21,6 +21,9 @@ namespace Shuttle.Recall
         [ConfigurationProperty("projectionEventFetchCount", IsRequired = false, DefaultValue = 100)]
         public int ProjectionEventFetchCount => (int) this["projectionEventFetchCount"];
 
+        [ConfigurationProperty("projectionThreadCount", IsRequired = false, DefaultValue = 5)]
+        public int ProjectionThreadCount => (int) this["projectionThreadCount"];
+
         [TypeConverter(typeof(StringDurationArrayConverter))]
         [ConfigurationProperty("durationToSleepWhenIdle", IsRequired = false, DefaultValue = null)]
         public TimeSpan[] DurationToSleepWhenIdle => (TimeSpan[]) this["durationToSleepWhenIdle"];

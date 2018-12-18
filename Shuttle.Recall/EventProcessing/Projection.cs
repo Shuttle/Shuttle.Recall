@@ -11,14 +11,16 @@ namespace Shuttle.Recall
         private static readonly Type EventHandlerType = typeof(IEventHandler<>);
         private readonly Dictionary<Type, object> _eventHandlers = new Dictionary<Type, object>();
 
-        public Projection(string name)
+        public Projection(string name, long sequenceNumber)
         {
             Guard.AgainstNullOrEmptyString(name, "name");
 
             Name = name;
+            SequenceNumber = sequenceNumber;
         }
 
         public string Name { get; }
+        public long SequenceNumber { get; private set; }
 
         public IEnumerable<Type> EventTypes => _eventHandlers.Keys;
 
@@ -38,6 +40,12 @@ namespace Shuttle.Recall
             foreach (var interfaceType in handler.GetType().InterfacesAssignableTo(EventHandlerType))
             {
                 var type = interfaceType.GetGenericArguments()[0];
+
+                if (_eventHandlers.ContainsKey(type))
+                {
+                    throw new InvalidOperationException(string.Format(Resources.DuplicateHandlerEventTypeException,
+                        handler.GetType().FullName, type.FullName));
+                }
 
                 _eventHandlers.Add(type, handler);
 
@@ -83,6 +91,8 @@ namespace Shuttle.Recall
                 Activator.CreateInstance(contextType, eventEnvelope, domainEvent, primitiveEvent, threadState);
 
             method.Invoke(_eventHandlers[domainEventType], new[] {handlerContext});
+
+            SequenceNumber = primitiveEvent.SequenceNumber + 1;
         }
     }
 }

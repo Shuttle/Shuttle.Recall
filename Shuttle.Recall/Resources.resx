@@ -129,6 +129,10 @@
     <value>An event queue with name '{0}' has already been added.</value>
     <comment>{0} = name of the event queue</comment>
   </data>
+  <data name="DuplicateHandlerEventTypeException" xml:space="preserve">
+    <value>Event handler '{0}' is already registered for event type '{1}'.</value>
+    <comment>{0} = handler type full name, {1} = event type full name</comment>
+  </data>
   <data name="DuplicateKeyException" xml:space="preserve">
     <value>Event stream with id '{0}' already has a key '{1}'.</value>
     <comment>0 = event stream id, 1 = key</comment>

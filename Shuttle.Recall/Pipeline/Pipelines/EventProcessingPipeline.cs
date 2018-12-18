@@ -6,13 +6,12 @@ namespace Shuttle.Recall
 {
     public class EventProcessingPipeline : Pipeline
     {
-        public EventProcessingPipeline(IGetProjectionSequenceNumberObserver getProjectionSequenceNumberObserver,
+        public EventProcessingPipeline(
             IProjectionPrimitiveEventObserver projectionPrimitiveEventObserver,
             IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver,
             IProcessEventObserver processEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver,
             ITransactionScopeObserver transactionScopeObserver)
         {
-            Guard.AgainstNull(getProjectionSequenceNumberObserver, nameof(getProjectionSequenceNumberObserver));
             Guard.AgainstNull(projectionPrimitiveEventObserver, nameof(projectionPrimitiveEventObserver));
             Guard.AgainstNull(projectionEventEnvelopeObserver, nameof(projectionEventEnvelopeObserver));
             Guard.AgainstNull(processEventObserver, nameof(processEventObserver));
@@ -22,8 +21,6 @@ namespace Shuttle.Recall
             RegisterStage("Process")
                 .WithEvent<OnStartTransactionScope>()
                 .WithEvent<OnAfterStartTransactionScope>()
-                .WithEvent<OnGetProjectionSequenceNumber>()
-                .WithEvent<OnAfterGetProjectionSequenceNumber>()
                 .WithEvent<OnGetProjectionPrimitiveEvent>()
                 .WithEvent<OnAfterGetProjectionPrimitiveEvent>()
                 .WithEvent<OnGetProjectionEventEnvelope>()
@@ -35,7 +32,6 @@ namespace Shuttle.Recall
                 .WithEvent<OnCompleteTransactionScope>()
                 .WithEvent<OnDisposeTransactionScope>();
 
-            RegisterObserver(getProjectionSequenceNumberObserver);
             RegisterObserver(projectionPrimitiveEventObserver);
             RegisterObserver(projectionEventEnvelopeObserver);
             RegisterObserver(processEventObserver);

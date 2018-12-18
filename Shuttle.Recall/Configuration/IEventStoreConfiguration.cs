@@ -17,6 +17,8 @@ namespace Shuttle.Recall
         string EncryptionAlgorithm { get; set; }
         string CompressionAlgorithm { get; set; }
         int ProjectionEventFetchCount { get; set; }
+        int ProjectionThreadCount { get; set; }
+
         IEventStoreConfiguration Assign(IComponentResolver resolver);
 
         IEncryptionAlgorithm FindEncryptionAlgorithm(string name);

@@ -88,6 +88,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Event handler &apos;{0}&apos; is already registered for event type &apos;{1}&apos;..
+        /// </summary>
+        public static string DuplicateHandlerEventTypeException {
+            get {
+                return ResourceManager.GetString("DuplicateHandlerEventTypeException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Event stream with id &apos;{0}&apos; already has a key &apos;{1}&apos;..
         /// </summary>
         public static string DuplicateKeyException {

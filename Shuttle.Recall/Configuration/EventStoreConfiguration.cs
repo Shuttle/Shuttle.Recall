@@ -23,10 +23,12 @@ namespace Shuttle.Recall
         private TimeSpan[] _durationToSleepWhenIdle;
         private IComponentResolver _resolver;
         private ITransactionScopeConfiguration _transactionScope;
+        private int _projectionThreadCount;
 
         public EventStoreConfiguration()
         {
             ProjectionEventFetchCount = 100;
+            ProjectionThreadCount = 5;
         }
 
         public IComponentResolver Resolver
@@ -64,6 +66,20 @@ namespace Shuttle.Recall
         public string EncryptionAlgorithm { get; set; }
         public string CompressionAlgorithm { get; set; }
         public int ProjectionEventFetchCount { get; set; }
+
+        public int ProjectionThreadCount
+        {
+            get => _projectionThreadCount;
+            set
+            {
+                _projectionThreadCount = value;
+
+                if (_projectionThreadCount < 1)
+                {
+                    _projectionThreadCount = 1;
+                }
+            }
+        }
 
         public IEventStoreConfiguration Assign(IComponentResolver resolver)
         {

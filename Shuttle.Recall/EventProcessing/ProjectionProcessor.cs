@@ -7,18 +7,18 @@ namespace Shuttle.Recall
     public class ProjectionProcessor : IProcessor
     {
         private readonly IPipelineFactory _pipelineFactory;
-        private readonly Projection _projection;
+        private readonly IEventProcessor _eventProcessor;
         private readonly IThreadActivity _threadActivity;
 
         public ProjectionProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory,
-            Projection projection)
+            IEventProcessor eventProcessor)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
             Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-            Guard.AgainstNull(projection, nameof(Projection));
+            Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
 
             _pipelineFactory = pipelineFactory;
-            _projection = projection;
+            _eventProcessor = eventProcessor;
             _threadActivity = new ThreadActivity(configuration.DurationToSleepWhenIdle);
         }
 
@@ -28,17 +28,25 @@ namespace Shuttle.Recall
 
             while (state.Active)
             {
-                pipeline.State.Clear();
-                pipeline.State.SetProjection(_projection);
-                pipeline.State.SetThreadState(state);
+                var projection = _eventProcessor.GetProjection();
+                var waiting = true;
 
-                pipeline.Execute();
-
-                if (pipeline.State.GetWorking())
+                if (projection != null)
                 {
-                    _threadActivity.Working();
+                    pipeline.State.Clear();
+                    pipeline.State.SetProjection(projection);
+                    pipeline.State.SetThreadState(state);
+
+                    pipeline.Execute();
+
+                    if (pipeline.State.GetWorking())
+                    {
+                        _threadActivity.Working();
+                        waiting = false;
+                    }
                 }
-                else
+
+                if (!waiting)
                 {
                     _threadActivity.Waiting(state);
                 }

@@ -10,14 +10,6 @@ namespace Shuttle.Recall
     {
     }
 
-    public class OnGetProjectionSequenceNumber : PipelineEvent
-    {
-    }
-
-    public class OnAfterGetProjectionSequenceNumber : PipelineEvent
-    {
-    }
-
     public class OnAssembleEventEnvelopes : PipelineEvent
     {
     }

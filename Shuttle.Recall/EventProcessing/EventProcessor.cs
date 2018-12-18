@@ -9,11 +9,14 @@ namespace Shuttle.Recall
 {
     public class EventProcessor : IEventProcessor
     {
+        private readonly object Lock = new object();
         private readonly IEventStoreConfiguration _configuration;
         private readonly IPipelineFactory _pipelineFactory;
-        private readonly List<ProcessorThread> _processorThreads = new List<ProcessorThread>();
         private readonly List<Projection> _projections = new List<Projection>();
+        private int _roundRobinIndex;
         private volatile bool _started;
+        private IProcessorThreadPool _processorThreadPool;
+        private long _tailSequenceNumber = long.MaxValue;
 
         public EventProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory)
         {
@@ -37,15 +40,11 @@ namespace Shuttle.Recall
                 return this;
             }
 
-            foreach (var eventProjection in _projections)
-            {
-                var processorThread = new ProcessorThread($"Projection-{eventProjection.Name}",
-                    new ProjectionProcessor(_configuration, _pipelineFactory, eventProjection));
-
-                processorThread.Start();
-
-                _processorThreads.Add(processorThread);
-            }
+            _processorThreadPool =
+                new ProcessorThreadPool(
+                    "ControlInboxProcessor",
+                    _configuration.ProjectionThreadCount,
+                    new ProjectionProcessorFactory(_configuration, _pipelineFactory, this)).Start();
 
             _started = true;
 
@@ -59,10 +58,7 @@ namespace Shuttle.Recall
                 return;
             }
 
-            foreach (var processorThread in _processorThreads)
-            {
-                processorThread.Stop();
-            }
+            _processorThreadPool?.Dispose();
 
             _started = false;
         }
@@ -88,7 +84,29 @@ namespace Shuttle.Recall
                     projection.Name));
             }
 
+            if (projection.SequenceNumber < _tailSequenceNumber)
+            {
+                _tailSequenceNumber = projection.SequenceNumber;
+            }
+
             _projections.Add(projection);
+        }
+
+        public Projection GetProjection()
+        {
+            var result = _projections[_roundRobinIndex];
+
+            lock (Lock)
+            {
+                _roundRobinIndex++;
+
+                if (_roundRobinIndex >= _projections.Count)
+                {
+                    _roundRobinIndex = 0;
+                }
+            }
+
+            return result;
         }
 
         public static IEventProcessor Create()
@@ -112,10 +130,7 @@ namespace Shuttle.Recall
 
             var defaultPipelineFactory = resolver.Resolve<IPipelineFactory>() as DefaultPipelineFactory;
 
-            if (defaultPipelineFactory != null)
-            {
-                defaultPipelineFactory.Assign(resolver);
-            }
+            defaultPipelineFactory?.Assign(resolver);
 
             return resolver.Resolve<IEventProcessor>();
         }

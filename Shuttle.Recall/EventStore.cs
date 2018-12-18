@@ -133,7 +133,7 @@ namespace Shuttle.Recall
             registry.AttemptRegister<IEventMethodInvoker, DefaultEventMethodInvoker>();
             registry.AttemptRegister<ISerializer, DefaultSerializer>();
             registry.AttemptRegister<IProjectionSequenceNumberTracker, ProjectionSequenceNumberTracker>();
-            registry.AttemptRegister<IPrimitiveEventQueue, PrimitiveEventQueue>();
+            registry.AttemptRegister<IPrimitiveEventProvider, PrimitiveEventProvider>();
             registry.AttemptRegister<IConcurrenyExceptionSpecification, DefaultConcurrenyExceptionSpecification>();
 
             registry.AttemptRegister<ITransactionScopeObserver, TransactionScopeObserver>();
