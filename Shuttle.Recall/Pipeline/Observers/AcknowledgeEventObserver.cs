@@ -10,25 +10,20 @@ namespace Shuttle.Recall
     public class AcknowledgeEventObserver : IAcknowledgeEventObserver
     {
         private readonly IProjectionRepository _repository;
-        private readonly IProjectionSequenceNumberTracker _tracker;
 
-        public AcknowledgeEventObserver(IProjectionRepository repository, IProjectionSequenceNumberTracker tracker)
+        public AcknowledgeEventObserver(IProjectionRepository repository)
         {
             Guard.AgainstNull(repository, nameof(repository));
-            Guard.AgainstNull(tracker, nameof(tracker));
 
             _repository = repository;
-            _tracker = tracker;
         }
 
         public void Execute(OnAcknowledgeEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var primitiveEvent = state.GetPrimitiveEvent();
             var projection = state.GetProjection();
 
-            _tracker.Set(projection.Name, primitiveEvent.SequenceNumber);
-            _repository.SetSequenceNumber(projection.Name, primitiveEvent.SequenceNumber);
+            _repository.SetSequenceNumber(projection.Name, projection.SequenceNumber);
         }
     }
 }

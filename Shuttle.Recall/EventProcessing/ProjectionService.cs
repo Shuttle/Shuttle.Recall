@@ -17,7 +17,16 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNullOrEmptyString(name, nameof(name));
 
-            return _repository.Find(name) ?? new Projection(name, 1);
+            var projection = _repository.Find(name);
+
+            if (projection == null)
+            {
+                projection = new Projection(name, 1);
+
+                _repository.Save(projection);
+            }
+
+            return projection;
         }
     }
 }

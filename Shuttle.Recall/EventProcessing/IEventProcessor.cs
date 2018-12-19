@@ -9,5 +9,6 @@ namespace Shuttle.Recall
         void Stop();
         void AddProjection(Projection projection);
         Projection GetProjection();
+        void ReleaseProjection(string name);
     }
 }

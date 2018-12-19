@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
@@ -9,14 +10,34 @@ namespace Shuttle.Recall
 {
     public class EventProcessor : IEventProcessor
     {
+        private class ProjectionAssignment
+        {
+            public int Count { get; private set; }
+            public bool Assigned { get; private set; }
+
+            public void Assign()
+            {
+                Assigned = true;
+            }
+
+            public void Release()
+            {
+                Count++;
+                Assigned = false;
+            }
+        }
+
         private readonly object Lock = new object();
         private readonly IEventStoreConfiguration _configuration;
         private readonly IPipelineFactory _pipelineFactory;
-        private readonly List<Projection> _projections = new List<Projection>();
-        private int _roundRobinIndex;
+        private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
+        private readonly Dictionary<string, ProjectionAssignment> _projectionsRoundRobin = new Dictionary<string, ProjectionAssignment>();
         private volatile bool _started;
         private IProcessorThreadPool _processorThreadPool;
         private long _tailSequenceNumber = long.MaxValue;
+
+        private readonly KeyValuePair<string, ProjectionAssignment> _defaultRoundRobin =
+            default(KeyValuePair<string, ProjectionAssignment>);
 
         public EventProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory)
         {
@@ -75,10 +96,7 @@ namespace Shuttle.Recall
                     projection.Name));
             }
 
-            if (
-                _projections.Find(
-                    queue => queue.Name.Equals(projection.Name, StringComparison.InvariantCultureIgnoreCase)) !=
-                null)
+            if (_projections.ContainsKey(projection.Name))
             {
                 throw new EventProcessingException(string.Format(Resources.DuplicateEventQueueName,
                     projection.Name));
@@ -89,24 +107,46 @@ namespace Shuttle.Recall
                 _tailSequenceNumber = projection.SequenceNumber;
             }
 
-            _projections.Add(projection);
+            lock (Lock)
+            {
+                _projections.Add(projection.Name, projection);
+                _projectionsRoundRobin.Add(projection.Name, new ProjectionAssignment());
+            }
         }
 
         public Projection GetProjection()
         {
-            var result = _projections[_roundRobinIndex];
+            lock (Lock)
+            {
+                var result = _projectionsRoundRobin
+                    .Where(item => !item.Value.Assigned)
+                    .OrderBy(item=>item.Value.Count)
+                    .FirstOrDefault();
+
+                if (result.Equals(_defaultRoundRobin))
+                {
+                    return null;
+                }
+
+                result.Value.Assign();
+
+                return _projections[result.Key];
+            }
+        }
+
+        public void ReleaseProjection(string name)
+        {
+            Guard.AgainstNullOrEmptyString(name, nameof(name));
+
+            if (!_projections.ContainsKey(name))
+            {
+                return;
+            }
 
             lock (Lock)
             {
-                _roundRobinIndex++;
-
-                if (_roundRobinIndex >= _projections.Count)
-                {
-                    _roundRobinIndex = 0;
-                }
+                _projectionsRoundRobin[name].Release();
             }
-
-            return result;
         }
 
         public static IEventProcessor Create()
