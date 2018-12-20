@@ -28,6 +28,9 @@ namespace Shuttle.Recall
         [ConfigurationProperty("durationToSleepWhenIdle", IsRequired = false, DefaultValue = null)]
         public TimeSpan[] DurationToSleepWhenIdle => (TimeSpan[]) this["durationToSleepWhenIdle"];
 
+        [ConfigurationProperty("activeProjections", IsRequired = false, DefaultValue = null)]
+        public ActiveProjectionElementCollection ActiveProjections => (ActiveProjectionElementCollection)this["activeProjections"];
+
         public static EventStoreSection Get()
         {
             lock (Padlock)

@@ -11,7 +11,7 @@ namespace Shuttle.Recall.Tests
         private EventStoreSection Open(string file)
         {
             return ConfigurationSectionProvider.OpenFile<EventStoreSection>("shuttle", "eventStore",
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, string.Format(@".\Section\files\{0}", file)));
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $@".\Section\files\{file}"));
         }
 
         [Test]
@@ -23,6 +23,9 @@ namespace Shuttle.Recall.Tests
 
             Assert.IsNotNull(section);
             Assert.AreEqual(TimeSpan.FromSeconds(1), section.DurationToSleepWhenIdle[0]);
+
+            Assert.That(section.ActiveProjections, Is.Not.Null);
+            Assert.That(section.ActiveProjections.Count, Is.EqualTo(3));
         }
 
         [Test]
@@ -31,6 +34,8 @@ namespace Shuttle.Recall.Tests
             var section = Open("Empty.config");
 
             Assert.IsNull(section.DurationToSleepWhenIdle);
+            Assert.That(section.ActiveProjections, Is.Empty);
+            Assert.That(section.ActiveProjections.Count, Is.Zero);
         }
     }
 }
