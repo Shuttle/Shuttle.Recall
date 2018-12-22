@@ -21,15 +21,20 @@ namespace Shuttle.Recall
         public void Execute(OnGetProjectionEventEnvelope pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var primitiveEvent = state.GetPrimitiveEvent();
+            var projectionEvent = state.GetProjectionEvent();
 
-            Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
+            Guard.AgainstNull(projectionEvent, nameof(projectionEvent));
+
+            if (!projectionEvent.HasPrimitiveEvent)
+            {
+                return;
+            }
 
             var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
 
             try
             {
-                pipeline.Execute(primitiveEvent);
+                pipeline.Execute(projectionEvent.PrimitiveEvent);
 
                 state.SetEventEnvelope(pipeline.State.GetEventEnvelope());
                 state.SetEvent(pipeline.State.GetEvent());

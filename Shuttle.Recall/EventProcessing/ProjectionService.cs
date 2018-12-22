@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Contract;
+﻿using System;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
 {
@@ -21,7 +22,7 @@ namespace Shuttle.Recall
 
             if (projection == null)
             {
-                projection = new Projection(name, 1);
+                projection = new Projection(name, 1, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
 
                 _repository.Save(projection);
             }

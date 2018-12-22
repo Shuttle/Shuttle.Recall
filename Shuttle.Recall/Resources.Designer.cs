@@ -79,15 +79,6 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An event queue with name &apos;{0}&apos; has already been added..
-        /// </summary>
-        public static string DuplicateEventQueueName {
-            get {
-                return ResourceManager.GetString("DuplicateEventQueueName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Event handler &apos;{0}&apos; is already registered for event type &apos;{1}&apos;..
         /// </summary>
         public static string DuplicateHandlerEventTypeException {
@@ -106,6 +97,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A projection with name &apos;{0}&apos; has already been added..
+        /// </summary>
+        public static string DuplicateProjectionName {
+            get {
+                return ResourceManager.GetString("DuplicateProjectionName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The event processor has already been started.  Event queue &apos;{0}&apos; cannot be added..
         /// </summary>
         public static string EventProcessorStartedCannotAddQueue {
@@ -120,6 +120,24 @@ namespace Shuttle.Recall {
         public static string EventStreamConcurrencyException {
             get {
                 return ResourceManager.GetString("EventStreamConcurrencyException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Projection &apos;{0}&apos; is active and will be processed by this endpoint..
+        /// </summary>
+        public static string InformationProjectionActive {
+            get {
+                return ResourceManager.GetString("InformationProjectionActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Projection &apos;{0}&apos; is either not active or does not belong to this endpoint and will not be processed..
+        /// </summary>
+        public static string InformationProjectionIgnored {
+            get {
+                return ResourceManager.GetString("InformationProjectionIgnored", resourceCulture);
             }
         }
         

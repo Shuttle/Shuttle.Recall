@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Shuttle.Recall
 {
@@ -10,5 +11,7 @@ namespace Shuttle.Recall
         void AddProjection(Projection projection);
         Projection GetProjection();
         void ReleaseProjection(string name);
+
+        IEnumerable<Type> EventTypes { get; }
     }
 }

@@ -6,6 +6,6 @@
 
         void Completed(long sequenceNumber);
 
-        PrimitiveEvent Get(Projection projection);
+        ProjectionEvent Get(Projection projection);
     }
 }

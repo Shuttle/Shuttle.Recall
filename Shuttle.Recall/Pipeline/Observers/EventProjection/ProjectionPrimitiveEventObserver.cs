@@ -3,7 +3,7 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public interface IProjectionPrimitiveEventObserver : IPipelineObserver<OnGetProjectionPrimitiveEvent>
+    public interface IProjectionPrimitiveEventObserver : IPipelineObserver<OnGetProjectionEvent>
     {
     }
 
@@ -18,22 +18,13 @@ namespace Shuttle.Recall
             _provider = provider;
         }
 
-        public void Execute(OnGetProjectionPrimitiveEvent pipelineEvent)
+        public void Execute(OnGetProjectionEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
             var projection = state.GetProjection();
+            var projectionEvent = _provider.Get(projection);
 
-            var primitiveEvent = _provider.Get(projection);
-
-            if (primitiveEvent == null)
-            {
-                pipelineEvent.Pipeline.Abort();
-            }
-            else
-            {
-                state.SetWorking();
-                state.SetPrimitiveEvent(primitiveEvent);
-            }
+            state.SetProjectionEvent(projectionEvent);
         }
     }
 }

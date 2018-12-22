@@ -21,12 +21,18 @@ namespace Shuttle.Recall
         public void Execute(OnProcessEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var primitiveEvent = state.GetPrimitiveEvent();
+            var projectionEvent = state.GetProjectionEvent();
             var eventEnvelope = state.GetEventEnvelope();
             var projection = state.GetProjection();
             var domainEvent = state.GetEvent();
 
-            Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
+            Guard.AgainstNull(projectionEvent, nameof(projectionEvent));
+
+            if (!projectionEvent.HasPrimitiveEvent)
+            {
+                return;
+            }
+
             Guard.AgainstNull(eventEnvelope, nameof(eventEnvelope));
             Guard.AgainstNull(projection, nameof(projection));
             Guard.AgainstNull(domainEvent, nameof(domainEvent));
@@ -44,7 +50,7 @@ namespace Shuttle.Recall
                 return;
             }
 
-            projection.Process(eventEnvelope, domainEvent, primitiveEvent, state.GetThreadState());
+            projection.Process(eventEnvelope, domainEvent, projectionEvent.PrimitiveEvent, state.GetThreadState());
         }
     }
 }

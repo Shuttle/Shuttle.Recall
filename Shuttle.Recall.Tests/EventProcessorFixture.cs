@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using System;
+using Moq;
 using NUnit.Framework;
 using Shuttle.Core.Pipelines;
 
@@ -10,10 +11,11 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_get_round_robin_projections()
         {
-            var processor = new EventProcessor(new Mock<IEventStoreConfiguration>().Object, new Mock<IPipelineFactory>().Object);
+            var processor = new EventProcessor(new Mock<IEventStoreConfiguration>().Object,
+                new Mock<IPipelineFactory>().Object);
 
-            processor.AddProjection(new Projection("projection-1", 1));
-            processor.AddProjection(new Projection("projection-2", 1));
+            processor.AddProjection(new Projection("projection-1", 1, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory));
+            processor.AddProjection(new Projection("projection-2", 1, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory));
 
             var projection1 = processor.GetProjection();
 

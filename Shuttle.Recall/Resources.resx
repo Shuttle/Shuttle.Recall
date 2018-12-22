@@ -125,10 +125,6 @@
     <value>{0} '{1}' has no default constructor.</value>
     <comment>{0} = name of required instance, {1} = full type name</comment>
   </data>
-  <data name="DuplicateEventQueueName" xml:space="preserve">
-    <value>An event queue with name '{0}' has already been added.</value>
-    <comment>{0} = name of the event queue</comment>
-  </data>
   <data name="DuplicateHandlerEventTypeException" xml:space="preserve">
     <value>Event handler '{0}' is already registered for event type '{1}'.</value>
     <comment>{0} = handler type full name, {1} = event type full name</comment>
@@ -137,6 +133,10 @@
     <value>Event stream with id '{0}' already has a key '{1}'.</value>
     <comment>0 = event stream id, 1 = key</comment>
   </data>
+  <data name="DuplicateProjectionName" xml:space="preserve">
+    <value>A projection with name '{0}' has already been added.</value>
+    <comment>{0} = name of the projection</comment>
+  </data>
   <data name="EventProcessorStartedCannotAddQueue" xml:space="preserve">
     <value>The event processor has already been started.  Event queue '{0}' cannot be added.</value>
     <comment>{0} = name of the event queue</comment>
@@ -144,6 +144,14 @@
   <data name="EventStreamConcurrencyException" xml:space="preserve">
     <value>The event stream for id '{0}' already at version '{1}' and cannot insert the new event.  The event will be ignored and be added to the event stream again as a newer version.</value>
     <comment>{0} = event stream id, {1} = existing version</comment>
+  </data>
+  <data name="InformationProjectionActive" xml:space="preserve">
+    <value>Projection '{0}' is active and will be processed by this endpoint.</value>
+    <comment>{0} = projection name</comment>
+  </data>
+  <data name="InformationProjectionIgnored" xml:space="preserve">
+    <value>Projection '{0}' is either not active or does not belong to this endpoint and will not be processed.</value>
+    <comment>{0} = projection name</comment>
   </data>
   <data name="InvalidEventHandlerType" xml:space="preserve">
     <value>Type '{0}' does not implement IEventHandler&lt;T&gt;.</value>

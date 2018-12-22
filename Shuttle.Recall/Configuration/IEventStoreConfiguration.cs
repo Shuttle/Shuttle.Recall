@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Shuttle.Core.Compression;
 using Shuttle.Core.Container;
 using Shuttle.Core.Encryption;
@@ -9,6 +10,7 @@ namespace Shuttle.Recall
     public interface IEventStoreConfiguration
     {
         IComponentResolver Resolver { get; }
+        IEventStoreConfiguration Assign(IComponentResolver resolver);
 
         ITransactionScopeConfiguration TransactionScope { get; set; }
 
@@ -19,7 +21,8 @@ namespace Shuttle.Recall
         int ProjectionEventFetchCount { get; set; }
         int ProjectionThreadCount { get; set; }
 
-        IEventStoreConfiguration Assign(IComponentResolver resolver);
+        IEnumerable<string> ActiveProjectionNames { get; }
+        IEventStoreConfiguration AddActiveProjectionName(string name);
 
         IEncryptionAlgorithm FindEncryptionAlgorithm(string name);
         void AddEncryptionAlgorithm(IEncryptionAlgorithm algorithm);

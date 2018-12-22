@@ -137,6 +137,16 @@ namespace Shuttle.Recall
             return state.Get<PrimitiveEvent>(StateKeys.PrimitiveEvent);
         }
 
+        public static void SetProjectionEvent(this IState state, ProjectionEvent projectionEvent)
+        {
+            state.Replace(StateKeys.ProjectionEvent, projectionEvent);
+        }
+
+        public static ProjectionEvent GetProjectionEvent(this IState state)
+        {
+            return state.Get<ProjectionEvent>(StateKeys.ProjectionEvent);
+        }
+
         public static Projection GetProjection(this IState state)
         {
             return state.Get<Projection>(StateKeys.Projection);

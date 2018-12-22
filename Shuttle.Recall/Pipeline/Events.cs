@@ -58,11 +58,11 @@ namespace Shuttle.Recall
     {
     }
 
-    public class OnGetProjectionPrimitiveEvent : PipelineEvent
+    public class OnGetProjectionEvent : PipelineEvent
     {
     }
 
-    public class OnAfterGetProjectionPrimitiveEvent : PipelineEvent
+    public class OnAfterGetProjectionEvent : PipelineEvent
     {
     }
 

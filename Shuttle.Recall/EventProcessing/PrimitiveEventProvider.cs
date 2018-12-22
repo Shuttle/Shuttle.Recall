@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
@@ -7,18 +8,27 @@ namespace Shuttle.Recall
     public class PrimitiveEventProvider : IPrimitiveEventProvider
     {
         private readonly IEventStoreConfiguration _configuration;
-        private readonly IPrimitiveEventRepository _repository;
-        private readonly object Lock = new object();
+
+        private readonly KeyValuePair<long, PrimitiveEvent> _default = default(KeyValuePair<long, PrimitiveEvent>);
+        private readonly IEventProcessor _eventProcessor;
+        private readonly object _lock = new object();
 
         private readonly IDictionary<long, PrimitiveEvent> _primitiveEvents =
             new ConcurrentDictionary<long, PrimitiveEvent>();
 
-        public PrimitiveEventProvider(IEventStoreConfiguration configuration, IPrimitiveEventRepository repository)
+        private readonly IPrimitiveEventRepository _repository;
+
+        private long _sequenceNumberHead;
+
+        public PrimitiveEventProvider(IEventStoreConfiguration configuration, IEventProcessor eventProcessor,
+            IPrimitiveEventRepository repository)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
             Guard.AgainstNull(repository, nameof(repository));
 
             _configuration = configuration;
+            _eventProcessor = eventProcessor;
             _repository = repository;
         }
 
@@ -26,34 +36,40 @@ namespace Shuttle.Recall
 
         public void Completed(long sequenceNumber)
         {
-            lock (Lock)
+            lock (_lock)
             {
                 _primitiveEvents.Remove(sequenceNumber);
             }
         }
 
-        public PrimitiveEvent Get(Projection projection)
+        public ProjectionEvent Get(Projection projection)
         {
             Guard.AgainstNull(projection, nameof(projection));
 
-            lock (Lock)
+            lock (_lock)
             {
                 if (!_primitiveEvents.ContainsKey(projection.SequenceNumber))
                 {
-                    foreach (var primitiveEvent in _repository.Get(projection.SequenceNumber, projection.EventTypes,
+                    foreach (var primitiveEvent in _repository.Get(projection.SequenceNumber,
+                        _eventProcessor.EventTypes,
                         _configuration.ProjectionEventFetchCount))
                     {
                         _primitiveEvents.Add(primitiveEvent.SequenceNumber, primitiveEvent);
+
+                        if (primitiveEvent.SequenceNumber > _sequenceNumberHead)
+                        {
+                            _sequenceNumberHead = primitiveEvent.SequenceNumber;
+                        }
                     }
                 }
 
-                if (_primitiveEvents.ContainsKey(projection.SequenceNumber))
-                {
-                    return _primitiveEvents[projection.SequenceNumber];
-                }
-            }
+                var result =
+                    _primitiveEvents.FirstOrDefault(entry => entry.Value.SequenceNumber > projection.SequenceNumber);
 
-            return null;
+                return result.Equals(_default)
+                    ? new ProjectionEvent(_sequenceNumberHead)
+                    : new ProjectionEvent(result.Value);
+            }
         }
     }
 }

@@ -16,6 +16,7 @@
         public const string Id = "Id";
         public const string EventBytes = "EventBytes";
         public const string PrimitiveEvent = "PrimitiveEvent";
+        public const string ProjectionEvent = "ProjectionEvent";
         public const string SequenceNumber = "SequenceNumber";
         public const string Version = "Version";
     }

@@ -11,14 +11,20 @@ namespace Shuttle.Recall
         private static readonly Type EventHandlerType = typeof(IEventHandler<>);
         private readonly Dictionary<Type, object> _eventHandlers = new Dictionary<Type, object>();
 
-        public Projection(string name, long sequenceNumber)
+        public Projection(string name, long sequenceNumber, string machineName, string baseDirectory)
         {
-            Guard.AgainstNullOrEmptyString(name, "name");
+            Guard.AgainstNullOrEmptyString(machineName, nameof(machineName));
+            Guard.AgainstNullOrEmptyString(baseDirectory, nameof(baseDirectory));
+            Guard.AgainstNullOrEmptyString(name, nameof(name));
 
+            MachineName = machineName;
+            BaseDirectory = baseDirectory;
             Name = name;
             SequenceNumber = sequenceNumber;
         }
 
+        public string MachineName { get; }
+        public string BaseDirectory { get; }
         public string Name { get; }
         public long SequenceNumber { get; private set; }
 
@@ -92,7 +98,7 @@ namespace Shuttle.Recall
 
             method.Invoke(_eventHandlers[domainEventType], new[] {handlerContext});
 
-            SequenceNumber = primitiveEvent.SequenceNumber + 1;
+            SequenceNumber = primitiveEvent.SequenceNumber;
         }
     }
 }

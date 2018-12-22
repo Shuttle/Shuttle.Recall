@@ -24,6 +24,7 @@ namespace Shuttle.Recall
         private IComponentResolver _resolver;
         private ITransactionScopeConfiguration _transactionScope;
         private int _projectionThreadCount;
+        private readonly List<string> _activeProjectionNames = new List<string>();
 
         public EventStoreConfiguration()
         {
@@ -69,23 +70,32 @@ namespace Shuttle.Recall
 
         public int ProjectionThreadCount
         {
-            get => _projectionThreadCount;
-            set
-            {
-                _projectionThreadCount = value;
-
-                if (_projectionThreadCount < 1)
-                {
-                    _projectionThreadCount = 1;
-                }
-            }
+            get => _projectionThreadCount < 1
+                ? 1
+                : (_activeProjectionNames.Count > 0 &&
+                   _activeProjectionNames.Count < _projectionThreadCount
+                    ? _activeProjectionNames.Count
+                    : _projectionThreadCount);
+            set => _projectionThreadCount = value;
         }
+
+        public IEnumerable<string> ActiveProjectionNames => _activeProjectionNames.AsReadOnly();
 
         public IEventStoreConfiguration Assign(IComponentResolver resolver)
         {
             Guard.AgainstNull(resolver, nameof(resolver));
 
             _resolver = resolver;
+
+            return this;
+        }
+
+        public IEventStoreConfiguration AddActiveProjectionName(string name)
+        {
+            if (!string.IsNullOrEmpty(name))
+            {
+                _activeProjectionNames.Add(name);
+            }
 
             return this;
         }

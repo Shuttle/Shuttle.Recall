@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
+using Shuttle.Core.Logging;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
 
@@ -27,14 +28,16 @@ namespace Shuttle.Recall
             }
         }
 
-        private readonly object Lock = new object();
+        private readonly ILog _log;
+        private readonly object _lock = new object();
         private readonly IEventStoreConfiguration _configuration;
         private readonly IPipelineFactory _pipelineFactory;
+        private IReadOnlyCollection<Type> _eventTypes = new List<Type>();
         private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
         private readonly Dictionary<string, ProjectionAssignment> _projectionsRoundRobin = new Dictionary<string, ProjectionAssignment>();
         private volatile bool _started;
         private IProcessorThreadPool _processorThreadPool;
-        private long _tailSequenceNumber = long.MaxValue;
+        private long _sequenceNumberTail = long.MaxValue;
 
         private readonly KeyValuePair<string, ProjectionAssignment> _defaultRoundRobin =
             default(KeyValuePair<string, ProjectionAssignment>);
@@ -45,8 +48,9 @@ namespace Shuttle.Recall
             Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
 
             _pipelineFactory = pipelineFactory;
-
             _configuration = configuration;
+
+            _log = Log.For(this);
         }
 
         public void Dispose()
@@ -98,25 +102,49 @@ namespace Shuttle.Recall
 
             if (_projections.ContainsKey(projection.Name))
             {
-                throw new EventProcessingException(string.Format(Resources.DuplicateEventQueueName,
+                throw new EventProcessingException(string.Format(Resources.DuplicateProjectionName,
                     projection.Name));
             }
 
-            if (projection.SequenceNumber < _tailSequenceNumber)
+            if (!ShouldAddProjection(projection))
             {
-                _tailSequenceNumber = projection.SequenceNumber;
+                return;
             }
 
-            lock (Lock)
+            if (projection.SequenceNumber < _sequenceNumberTail)
+            {
+                _sequenceNumberTail = projection.SequenceNumber;
+            }
+
+            lock (_lock)
             {
                 _projections.Add(projection.Name, projection);
                 _projectionsRoundRobin.Add(projection.Name, new ProjectionAssignment());
+
+                var eventTypes = new List<Type>(_eventTypes);
+
+                eventTypes.AddRange(projection.EventTypes);
+
+                _eventTypes = eventTypes.AsReadOnly();
             }
+        }
+
+        private bool ShouldAddProjection(Projection projection)
+        {
+            var result = _configuration.HasActiveProjection(projection.Name) &&
+                         (string.IsNullOrEmpty(projection.MachineName) || Environment.MachineName.Equals(projection.MachineName)) &&
+                         (string.IsNullOrEmpty(projection.BaseDirectory) || AppDomain.CurrentDomain.BaseDirectory.Equals(projection.BaseDirectory));
+
+            _log.Information(result
+                ? string.Format(Resources.InformationProjectionActive, projection.Name)
+                : string.Format(Resources.InformationProjectionIgnored, projection.Name));
+
+            return result;
         }
 
         public Projection GetProjection()
         {
-            lock (Lock)
+            lock (_lock)
             {
                 var result = _projectionsRoundRobin
                     .Where(item => !item.Value.Assigned)
@@ -143,11 +171,13 @@ namespace Shuttle.Recall
                 return;
             }
 
-            lock (Lock)
+            lock (_lock)
             {
                 _projectionsRoundRobin[name].Release();
             }
         }
+
+        public IEnumerable<Type> EventTypes => _eventTypes;
 
         public static IEventProcessor Create()
         {

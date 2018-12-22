@@ -14,19 +14,19 @@ namespace Shuttle.Recall.Tests
     public class PrimitiveEventProviderFixture : IEventHandler<TestEvent>, IThreadState
     {
         [Test]
-        public void Should_be_able_to_use_cache()
+        public void Should_be_able_to_use_provider()
         {
-            var projection = new Projection("test", 15);
+            var projection = new Projection("projection", 15, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
 
             projection.AddEventHandler(this);
 
             var configuration = new Mock<IEventStoreConfiguration>();
 
-            var provider = new PrimitiveEventProvider(configuration.Object, GetRepository());
+            var provider = new PrimitiveEventProvider(configuration.Object, new Mock<IEventProcessor>().Object, GetRepository());
 
             Assert.That(provider.IsEmpty, Is.True);
 
-            PrimitiveEvent primitiveEvent;
+            ProjectionEvent projectionEvent;
 
             var eventEnvelope = new EventEnvelope
             {
@@ -35,19 +35,19 @@ namespace Shuttle.Recall.Tests
 
             for (var i = 0; i < 10; i++)
             {
-                primitiveEvent = provider.Get(projection);
+                projectionEvent = provider.Get(projection);
 
-                Assert.That(primitiveEvent, Is.Not.Null);
+                Assert.That(projectionEvent, Is.Not.Null);
                 Assert.That(provider.IsEmpty, Is.False);
 
-                projection.Process(eventEnvelope, new TestEvent(), primitiveEvent, this);
+                projection.Process(eventEnvelope, new TestEvent(), projectionEvent.PrimitiveEvent, this);
 
-                provider.Completed(i + 15);
+                provider.Completed(projectionEvent.SequenceNumber);
             }
 
-            primitiveEvent = provider.Get(projection);
+            projectionEvent = provider.Get(projection);
 
-            Assert.That(primitiveEvent, Is.Null);
+            Assert.That(projectionEvent, Is.Null);
             Assert.That(provider.IsEmpty, Is.True);
         }
 
@@ -60,7 +60,7 @@ namespace Shuttle.Recall.Tests
             {
                 events.Add(new PrimitiveEvent
                 {
-                    SequenceNumber = i + 15
+                    SequenceNumber = i + 16
                 });
             }
 

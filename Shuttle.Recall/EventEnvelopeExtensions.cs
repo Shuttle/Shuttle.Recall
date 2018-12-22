@@ -24,8 +24,8 @@ namespace Shuttle.Recall
 
         public static void AcceptInvariants(this EventEnvelope eventEnvelope)
         {
-            Guard.AgainstNull(eventEnvelope.EventId, "EventId");
-            Guard.AgainstNullOrEmptyString(eventEnvelope.AssemblyQualifiedName, "AssemblyQualifiedName");
+            Guard.AgainstNull(eventEnvelope.EventId, nameof(eventEnvelope.EventId));
+            Guard.AgainstNullOrEmptyString(eventEnvelope.AssemblyQualifiedName, nameof(eventEnvelope.AssemblyQualifiedName));
         }
 
         public static void Merge(this List<EnvelopeHeader> merge, IEnumerable<EnvelopeHeader> headers)
