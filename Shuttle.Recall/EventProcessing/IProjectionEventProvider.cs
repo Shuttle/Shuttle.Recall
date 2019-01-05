@@ -1,6 +1,6 @@
 ﻿namespace Shuttle.Recall
 {
-    public interface IPrimitiveEventProvider
+    public interface IProjectionEventProvider
     {
         bool IsEmpty { get; }
 

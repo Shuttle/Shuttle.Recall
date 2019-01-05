@@ -3,15 +3,15 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
-    public interface IProjectionPrimitiveEventObserver : IPipelineObserver<OnGetProjectionEvent>
+    public interface IProjectionEventObserver : IPipelineObserver<OnGetProjectionEvent>
     {
     }
 
-    public class ProjectionPrimitiveEventObserver : IProjectionPrimitiveEventObserver
+    public class ProjectionEventObserver : IProjectionEventObserver
     {
-        private readonly IPrimitiveEventProvider _provider;
+        private readonly IProjectionEventProvider _provider;
 
-        public ProjectionPrimitiveEventObserver(IPrimitiveEventProvider provider)
+        public ProjectionEventObserver(IProjectionEventProvider provider)
         {
             Guard.AgainstNull(provider, nameof(provider));
 

@@ -22,7 +22,7 @@ namespace Shuttle.Recall.Tests
 
             var configuration = new Mock<IEventStoreConfiguration>();
 
-            var provider = new PrimitiveEventProvider(configuration.Object, new Mock<IEventProcessor>().Object, GetRepository());
+            var provider = new ProjectionEventProvider(configuration.Object, new Mock<IEventProcessor>().Object, GetRepository());
 
             Assert.That(provider.IsEmpty, Is.True);
 

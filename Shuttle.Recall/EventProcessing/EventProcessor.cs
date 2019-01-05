@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Logging;
@@ -33,11 +34,14 @@ namespace Shuttle.Recall
         private readonly IEventStoreConfiguration _configuration;
         private readonly IPipelineFactory _pipelineFactory;
         private IReadOnlyCollection<Type> _eventTypes = new List<Type>();
+        private readonly Dictionary<Guid, ProjectionAggregation> _projectionAggregations = new Dictionary<Guid, ProjectionAggregation>();
+        private readonly Dictionary<string, Guid> _projectionAggregationAssignment = new Dictionary<string, Guid>();
         private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
         private readonly Dictionary<string, ProjectionAssignment> _projectionsRoundRobin = new Dictionary<string, ProjectionAssignment>();
         private volatile bool _started;
         private IProcessorThreadPool _processorThreadPool;
-        private long _sequenceNumberTail = long.MaxValue;
+
+        private readonly Thread _sequenceNumberTailThread;
 
         private readonly KeyValuePair<string, ProjectionAssignment> _defaultRoundRobin =
             default(KeyValuePair<string, ProjectionAssignment>);
@@ -50,7 +54,16 @@ namespace Shuttle.Recall
             _pipelineFactory = pipelineFactory;
             _configuration = configuration;
 
+            _sequenceNumberTailThread = new Thread(SequenceNumberTailThreadWorker);
+
             _log = Log.For(this);
+        }
+
+        private void SequenceNumberTailThreadWorker()
+        {
+            while (_started)
+            {
+            }
         }
 
         public void Dispose()
@@ -73,6 +86,8 @@ namespace Shuttle.Recall
 
             _started = true;
 
+            _sequenceNumberTailThread.Start();
+
             return this;
         }
 
@@ -86,6 +101,8 @@ namespace Shuttle.Recall
             _processorThreadPool?.Dispose();
 
             _started = false;
+
+            _sequenceNumberTailThread?.Join();
         }
 
         public bool Started => _started;
@@ -111,13 +128,10 @@ namespace Shuttle.Recall
                 return;
             }
 
-            if (projection.SequenceNumber < _sequenceNumberTail)
-            {
-                _sequenceNumberTail = projection.SequenceNumber;
-            }
-
             lock (_lock)
             {
+                AssignToAggregation(projection);
+
                 _projections.Add(projection.Name, projection);
                 _projectionsRoundRobin.Add(projection.Name, new ProjectionAssignment());
 
@@ -127,6 +141,33 @@ namespace Shuttle.Recall
 
                 _eventTypes = eventTypes.AsReadOnly();
             }
+        }
+
+        private void AssignToAggregation(Projection projection)
+        {
+            ProjectionAggregation aggregation = null;
+
+            foreach (var projectionAggregation in _projectionAggregations.Values)
+            {
+                if (!projectionAggregation.IsSatisfiedBy(projection))
+                {
+                    continue;
+                }
+
+                aggregation = projectionAggregation;
+
+                break;
+            }
+
+            if (aggregation == null)
+            {
+                aggregation = new ProjectionAggregation(_configuration.ProjectionAggregationTolerance);
+
+                aggregation.Add(projection);
+            }
+
+            _projectionAggregations.Add(aggregation.Id, aggregation);
+            _projectionAggregationAssignment.Add(projection.Name, aggregation.Id);
         }
 
         private bool ShouldAddProjection(Projection projection)

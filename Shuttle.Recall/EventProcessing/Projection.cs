@@ -21,12 +21,14 @@ namespace Shuttle.Recall
             BaseDirectory = baseDirectory;
             Name = name;
             SequenceNumber = sequenceNumber;
+            AggregationId = Guid.Empty;
         }
 
         public string MachineName { get; }
         public string BaseDirectory { get; }
         public string Name { get; }
         public long SequenceNumber { get; private set; }
+        public Guid AggregationId { get; private set; }
 
         public IEnumerable<Type> EventTypes => _eventHandlers.Keys;
 
@@ -99,6 +101,18 @@ namespace Shuttle.Recall
             method.Invoke(_eventHandlers[domainEventType], new[] {handlerContext});
 
             SequenceNumber = primitiveEvent.SequenceNumber;
+        }
+
+        public Projection Aggregate(Guid id)
+        {
+            if (!AggregationId.Equals(Guid.Empty))
+            {
+                throw new InvalidOperationException(string.Format(Resources.ProjectionAggregationAlreadyAssignedException, Name));
+            }
+
+            AggregationId = id;
+
+            return this;
         }
     }
 }

@@ -20,6 +20,7 @@ namespace Shuttle.Recall
         string CompressionAlgorithm { get; set; }
         int ProjectionEventFetchCount { get; set; }
         int ProjectionThreadCount { get; set; }
+        int ProjectionAggregationTolerance { get; set; }
 
         IEnumerable<string> ActiveProjectionNames { get; }
         IEventStoreConfiguration AddActiveProjectionName(string name);

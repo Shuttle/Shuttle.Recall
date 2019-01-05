@@ -232,6 +232,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Projection &apos;{0}&apos; has already been assigned to an aggregation..
+        /// </summary>
+        public static string ProjectionAggregationAlreadyAssignedException {
+            get {
+                return ResourceManager.GetString("ProjectionAggregationAlreadyAssignedException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; is not registered with the serializer so it cannot be serialized.  Please use [SerialierInstance].EnqueueKnownType to add the type before attempting to serialize or deserialize a EventEnvelope containing this type in the object graph of the message property..
         /// </summary>
         public static string SerializerUnknownTypeExcption {

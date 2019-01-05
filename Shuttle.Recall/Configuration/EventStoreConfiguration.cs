@@ -24,12 +24,18 @@ namespace Shuttle.Recall
         private IComponentResolver _resolver;
         private ITransactionScopeConfiguration _transactionScope;
         private int _projectionThreadCount;
+        private int _projectionThreadCountValue;
+        private int _projectionAggregationTolerance;
+        private int _projectionAggregationToleranceValue;
         private readonly List<string> _activeProjectionNames = new List<string>();
+        private int _projectionEventFetchCount;
+        private int _projectionEventFetchCountValue;
 
         public EventStoreConfiguration()
         {
             ProjectionEventFetchCount = 100;
             ProjectionThreadCount = 5;
+            ProjectionAggregationTolerance = 1000;
         }
 
         public IComponentResolver Resolver
@@ -66,17 +72,56 @@ namespace Shuttle.Recall
 
         public string EncryptionAlgorithm { get; set; }
         public string CompressionAlgorithm { get; set; }
-        public int ProjectionEventFetchCount { get; set; }
+
+        public int ProjectionEventFetchCount
+        {
+            get => _projectionEventFetchCount;
+            set
+            {
+                _projectionEventFetchCountValue = value; 
+
+                NormalizeValues();
+            }
+        }
 
         public int ProjectionThreadCount
         {
-            get => _projectionThreadCount < 1
+            get => _projectionThreadCount;
+            set
+            {
+                _projectionThreadCountValue = value;
+
+                NormalizeValues();
+            }
+        }
+
+        private void NormalizeValues()
+        {
+            _projectionEventFetchCount = _projectionEventFetchCountValue < 25
+                ? 25
+                : _projectionEventFetchCountValue;
+
+            _projectionThreadCount = _projectionThreadCountValue < 1
                 ? 1
                 : (_activeProjectionNames.Count > 0 &&
                    _activeProjectionNames.Count < _projectionThreadCount
                     ? _activeProjectionNames.Count
                     : _projectionThreadCount);
-            set => _projectionThreadCount = value;
+
+            _projectionAggregationTolerance = _projectionAggregationToleranceValue < ProjectionThreadCount * 3
+                ? ProjectionThreadCount * 3
+                : _projectionAggregationTolerance;
+        }
+
+        public int ProjectionAggregationTolerance
+        {
+            get => _projectionAggregationTolerance ;
+            set
+            {
+                _projectionAggregationToleranceValue = value;
+
+                NormalizeValues();
+            }
         }
 
         public IEnumerable<string> ActiveProjectionNames => _activeProjectionNames.AsReadOnly();
@@ -95,6 +140,8 @@ namespace Shuttle.Recall
             if (!string.IsNullOrEmpty(name))
             {
                 _activeProjectionNames.Add(name);
+
+                NormalizeValues();
             }
 
             return this;

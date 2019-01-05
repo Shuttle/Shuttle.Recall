@@ -21,6 +21,7 @@
         <PackageReference Include="Shuttle.Core.Reflection" Version="10.0.10" />
         <PackageReference Include="Shuttle.Core.Serialization" Version="10.0.4" />
         <PackageReference Include="Shuttle.Core.Contract" Version="10.0.1" />
+        <PackageReference Include="Shuttle.Core.Specification" Version="10.0.1" />
         <PackageReference Include="Shuttle.Core.Streams" Version="10.0.2" />
         <PackageReference Include="Shuttle.Core.Threading" Version="10.0.2" />
         <PackageReference Include="Shuttle.Core.TimeSpanTypeConverters" Version="10.0.1" />

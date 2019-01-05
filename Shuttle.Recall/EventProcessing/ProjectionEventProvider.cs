@@ -5,7 +5,7 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
 {
-    public class PrimitiveEventProvider : IPrimitiveEventProvider
+    public class ProjectionEventProvider : IProjectionEventProvider
     {
         private readonly IEventStoreConfiguration _configuration;
 
@@ -20,7 +20,7 @@ namespace Shuttle.Recall
 
         private long _sequenceNumberHead;
 
-        public PrimitiveEventProvider(IEventStoreConfiguration configuration, IEventProcessor eventProcessor,
+        public ProjectionEventProvider(IEventStoreConfiguration configuration, IEventProcessor eventProcessor,
             IPrimitiveEventRepository repository)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
