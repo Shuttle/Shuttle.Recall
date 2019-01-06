@@ -36,6 +36,12 @@ namespace Shuttle.Recall.Tests
             Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(10));
             Assert.That(aggregation.TrimSequenceNumberTail(), Is.EqualTo(12));
             Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(12));
+
+            projection1.Process(new EventEnvelope {AssemblyQualifiedName = typeof(object).AssemblyQualifiedName}, new object(), new PrimitiveEvent {SequenceNumber = 18}, this);
+
+            Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(12));
+            Assert.That(aggregation.TrimSequenceNumberTail(), Is.EqualTo(15));
+            Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(15));
         }
     }
 }
