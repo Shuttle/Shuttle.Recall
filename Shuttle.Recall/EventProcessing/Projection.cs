@@ -103,14 +103,14 @@ namespace Shuttle.Recall
             SequenceNumber = primitiveEvent.SequenceNumber;
         }
 
-        public Projection Aggregate(Guid id)
+        public Projection Aggregate(Guid aggregationId)
         {
             if (!AggregationId.Equals(Guid.Empty))
             {
                 throw new InvalidOperationException(string.Format(Resources.ProjectionAggregationAlreadyAssignedException, Name));
             }
 
-            AggregationId = id;
+            AggregationId = aggregationId;
 
             return this;
         }

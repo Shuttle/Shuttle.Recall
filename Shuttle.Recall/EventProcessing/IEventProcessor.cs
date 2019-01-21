@@ -13,5 +13,6 @@ namespace Shuttle.Recall
         void ReleaseProjection(string name);
 
         IEnumerable<Type> EventTypes { get; }
+        ProjectionAggregation GetProjectionAggregation(Guid id);
     }
 }

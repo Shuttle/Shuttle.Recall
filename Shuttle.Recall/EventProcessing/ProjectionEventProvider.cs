@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
@@ -9,12 +7,7 @@ namespace Shuttle.Recall
     {
         private readonly IEventStoreConfiguration _configuration;
 
-        private readonly KeyValuePair<long, PrimitiveEvent> _default = default(KeyValuePair<long, PrimitiveEvent>);
         private readonly IEventProcessor _eventProcessor;
-        private readonly object _lock = new object();
-
-        private readonly IDictionary<long, PrimitiveEvent> _primitiveEvents =
-            new ConcurrentDictionary<long, PrimitiveEvent>();
 
         private readonly IPrimitiveEventRepository _repository;
 
@@ -32,29 +25,29 @@ namespace Shuttle.Recall
             _repository = repository;
         }
 
-        public bool IsEmpty => _primitiveEvents.Count == 0;
-
-        public void Completed(long sequenceNumber)
-        {
-            lock (_lock)
-            {
-                _primitiveEvents.Remove(sequenceNumber);
-            }
-        }
-
         public ProjectionEvent Get(Projection projection)
         {
             Guard.AgainstNull(projection, nameof(projection));
 
-            lock (_lock)
+            var projectionAggregation = _eventProcessor.GetProjectionAggregation(projection.AggregationId);
+
+            Guard.AgainstNull(projectionAggregation, nameof(projectionAggregation));
+
+            if (!projectionAggregation.ContainsProjection(projection.Name))
             {
-                if (!_primitiveEvents.ContainsKey(projection.SequenceNumber))
+                throw new InvalidOperationException(string.Format(Resources.ProjectionNotInAggregationException, projection.Name, projectionAggregation.Id));
+            }
+
+            lock (projectionAggregation)
+            {
+                var sequenceNumber = projection.SequenceNumber + 1;
+
+                if (!projectionAggregation.ContainsPrimitiveEvent(sequenceNumber))
                 {
-                    foreach (var primitiveEvent in _repository.Get(projection.SequenceNumber,
-                        _eventProcessor.EventTypes,
-                        _configuration.ProjectionEventFetchCount))
+                    foreach (var primitiveEvent in _repository.Get(sequenceNumber, sequenceNumber + _configuration.ProjectionEventFetchCount,
+                        _eventProcessor.EventTypes))
                     {
-                        _primitiveEvents.Add(primitiveEvent.SequenceNumber, primitiveEvent);
+                        projectionAggregation.AddPrimitiveEvent(primitiveEvent);
 
                         if (primitiveEvent.SequenceNumber > _sequenceNumberHead)
                         {
@@ -63,12 +56,11 @@ namespace Shuttle.Recall
                     }
                 }
 
-                var result =
-                    _primitiveEvents.FirstOrDefault(entry => entry.Value.SequenceNumber > projection.SequenceNumber);
+                var result = projectionAggregation.GetNextPrimitiveEvent(sequenceNumber);
 
-                return result.Equals(_default)
+                return result == null
                     ? new ProjectionEvent(_sequenceNumberHead)
-                    : new ProjectionEvent(result.Value);
+                    : new ProjectionEvent(result);
             }
         }
     }

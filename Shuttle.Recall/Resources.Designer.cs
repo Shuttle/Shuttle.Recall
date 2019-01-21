@@ -178,6 +178,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There is no projection aggregation registered with id &apos;{0}&apos;..
+        /// </summary>
+        public static string MissingProjectionAggregationException {
+            get {
+                return ResourceManager.GetString("MissingProjectionAggregationException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No &apos;IProjectionService implementation has been specified..
         /// </summary>
         public static string MissingProjectionServiceException {
@@ -232,11 +241,20 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Projection &apos;{0}&apos; has already been assigned to an aggregation..
+        ///   Looks up a localized string similar to Projection &apos;{0}&apos; has already been assigned to an projectionAggregation..
         /// </summary>
         public static string ProjectionAggregationAlreadyAssignedException {
             get {
                 return ResourceManager.GetString("ProjectionAggregationAlreadyAssignedException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Projection &apos;{0}&apos; is not contained in projectionAggregation with id &apos;{1}&apos;..
+        /// </summary>
+        public static string ProjectionNotInAggregationException {
+            get {
+                return ResourceManager.GetString("ProjectionNotInAggregationException", resourceCulture);
             }
         }
         

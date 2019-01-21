@@ -35,7 +35,6 @@ namespace Shuttle.Recall
         private readonly IPipelineFactory _pipelineFactory;
         private IReadOnlyCollection<Type> _eventTypes = new List<Type>();
         private readonly Dictionary<Guid, ProjectionAggregation> _projectionAggregations = new Dictionary<Guid, ProjectionAggregation>();
-        private readonly Dictionary<string, Guid> _projectionAggregationAssignment = new Dictionary<string, Guid>();
         private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
         private readonly Dictionary<string, ProjectionAssignment> _projectionsRoundRobin = new Dictionary<string, ProjectionAssignment>();
         private volatile bool _started;
@@ -167,7 +166,6 @@ namespace Shuttle.Recall
             }
 
             _projectionAggregations.Add(aggregation.Id, aggregation);
-            _projectionAggregationAssignment.Add(projection.Name, aggregation.Id);
         }
 
         private bool ShouldAddProjection(Projection projection)
@@ -201,6 +199,20 @@ namespace Shuttle.Recall
 
                 return _projections[result.Key];
             }
+        }
+
+        public ProjectionAggregation GetProjectionAggregation(Guid id)
+        {
+            var result = _projectionAggregations.ContainsKey(id)
+                ? _projectionAggregations[id]
+                : null;
+
+            if (result == null)
+            {
+                throw new InvalidOperationException(string.Format(Resources.MissingProjectionAggregationException, id));
+            }
+
+            return result;
         }
 
         public void ReleaseProjection(string name)
