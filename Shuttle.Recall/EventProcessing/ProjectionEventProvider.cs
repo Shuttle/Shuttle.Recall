@@ -56,7 +56,7 @@ namespace Shuttle.Recall
                     }
                 }
 
-                var result = projectionAggregation.GetNextPrimitiveEvent(sequenceNumber);
+                var result = projectionAggregation.GetNextPrimitiveEvent(projection.SequenceNumber);
 
                 return result == null
                     ? new ProjectionEvent(_sequenceNumberHead)
