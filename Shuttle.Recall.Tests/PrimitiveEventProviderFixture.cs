@@ -23,6 +23,8 @@ namespace Shuttle.Recall.Tests
             var eventProcessor = new Mock<IEventProcessor>();
             var projectionAggregation = new ProjectionAggregation(100);
 
+            projectionAggregation.Add(projection);
+
             eventProcessor.Setup(m => m.GetProjectionAggregation(It.IsAny<Guid>())).Returns(projectionAggregation);
 
             var configuration = new Mock<IEventStoreConfiguration>();
@@ -51,7 +53,7 @@ namespace Shuttle.Recall.Tests
 
             projectionEvent = provider.Get(projection);
 
-            Assert.That(projectionEvent, Is.Null);
+            Assert.That(projectionEvent.HasPrimitiveEvent, Is.False);
             Assert.That(projectionAggregation.IsEmpty, Is.True);
         }
 
