@@ -10,7 +10,7 @@ using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall
 {
-    public class EventProcessor : IEventProcessor
+    public class EventProcessor : IEventProcessor, IThreadState
     {
         private class ProjectionAssignment
         {
@@ -62,6 +62,15 @@ namespace Shuttle.Recall
         {
             while (_started)
             {
+                lock (_lock)
+                {
+                    foreach (var projectionAggregation in _projectionAggregations)
+                    {
+                        projectionAggregation.Value.ProcessSequenceNumberTail();
+                    }
+                }
+
+                ThreadSleep.While(5000, this);
             }
         }
 
@@ -144,7 +153,7 @@ namespace Shuttle.Recall
 
         private void AssignToAggregation(Projection projection)
         {
-            ProjectionAggregation aggregation = null;
+            ProjectionAggregation result = null;
 
             foreach (var projectionAggregation in _projectionAggregations.Values)
             {
@@ -153,19 +162,19 @@ namespace Shuttle.Recall
                     continue;
                 }
 
-                aggregation = projectionAggregation;
+                result = projectionAggregation;
 
                 break;
             }
 
-            if (aggregation == null)
+            if (result == null)
             {
-                aggregation = new ProjectionAggregation(_configuration.ProjectionAggregationTolerance);
+                result = new ProjectionAggregation(_configuration.ProjectionEventFetchCount * 3);
 
-                aggregation.Add(projection);
+                _projectionAggregations.Add(result.Id, result);
             }
 
-            _projectionAggregations.Add(aggregation.Id, aggregation);
+            result.Add(projection);
         }
 
         private bool ShouldAddProjection(Projection projection)
@@ -230,8 +239,6 @@ namespace Shuttle.Recall
             }
         }
 
-        public IEnumerable<Type> EventTypes => _eventTypes;
-
         public static IEventProcessor Create()
         {
             return Create(null);
@@ -257,5 +264,7 @@ namespace Shuttle.Recall
 
             return resolver.Resolve<IEventProcessor>();
         }
+
+        public bool Active => _started;
     }
 }

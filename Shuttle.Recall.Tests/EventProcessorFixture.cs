@@ -41,5 +41,31 @@ namespace Shuttle.Recall.Tests
 
             Assert.That(processor.GetProjection(), Is.Null);
         }
+
+        [Test]
+        public void Should_be_able_to_place_projection_into_clustered_aggregation()
+        {
+            var configuration = new Mock<IEventStoreConfiguration>();
+
+            configuration.Setup(m => m.ProjectionEventFetchCount).Returns(100);
+
+            var processor = new EventProcessor(configuration.Object,
+                new Mock<IPipelineFactory>().Object);
+
+            var projection1 = new Projection("projection-1", 1, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
+            var projection2 = new Projection("projection-2", 300, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
+
+            var projection3 = new Projection("projection-3", 301, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
+            var projection4 = new Projection("projection-4", 600, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
+
+            processor.AddProjection(projection1);
+            processor.AddProjection(projection2);
+            processor.AddProjection(projection3);
+            processor.AddProjection(projection4);
+
+            Assert.That(projection1.AggregationId, Is.EqualTo(projection2.AggregationId));
+            Assert.That(projection3.AggregationId, Is.EqualTo(projection4.AggregationId));
+            Assert.That(projection1.AggregationId, Is.Not.EqualTo(projection3.AggregationId));
+        }
     }
 }

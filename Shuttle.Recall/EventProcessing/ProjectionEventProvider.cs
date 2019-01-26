@@ -45,7 +45,7 @@ namespace Shuttle.Recall
                 if (!projectionAggregation.ContainsPrimitiveEvent(sequenceNumber))
                 {
                     foreach (var primitiveEvent in _repository.Get(sequenceNumber, sequenceNumber + _configuration.ProjectionEventFetchCount,
-                        _eventProcessor.EventTypes))
+                        projectionAggregation.EventTypes))
                     {
                         projectionAggregation.AddPrimitiveEvent(primitiveEvent);
 

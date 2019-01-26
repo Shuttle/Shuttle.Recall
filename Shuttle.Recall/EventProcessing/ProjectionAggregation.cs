@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Shuttle.Core.Contract;
@@ -9,13 +8,11 @@ namespace Shuttle.Recall
 {
     public class ProjectionAggregation : ISpecification<Projection>
     {
-        private readonly int _projectionAggregationTolerance;
-
-        private readonly IDictionary<long, PrimitiveEvent> _primitiveEvents = new Dictionary<long, PrimitiveEvent>();
-        private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
         private readonly object _lock = new object();
 
-        public long SequenceNumberTail { get; private set; } = long.MaxValue;
+        private readonly IDictionary<long, PrimitiveEvent> _primitiveEvents = new Dictionary<long, PrimitiveEvent>();
+        private readonly int _projectionAggregationTolerance;
+        private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
         private long _sequenceNumberTolerance = long.MinValue;
 
         public ProjectionAggregation(int projectionAggregationTolerance)
@@ -23,7 +20,12 @@ namespace Shuttle.Recall
             _projectionAggregationTolerance = projectionAggregationTolerance;
         }
 
+        public long SequenceNumberTail { get; private set; } = long.MaxValue;
+        public IEnumerable<Type> EventTypes { get; private set; } = new List<Type>();
+
         public Guid Id { get; } = Guid.NewGuid();
+
+        public bool IsEmpty => _primitiveEvents.Count == 0;
 
         public bool IsSatisfiedBy(Projection candidate)
         {
@@ -55,6 +57,20 @@ namespace Shuttle.Recall
             }
 
             projection.Aggregate(Id);
+
+            var eventTypes = new List<Type>(EventTypes);
+
+            foreach (var type in projection.EventTypes)
+            {
+                if (eventTypes.Contains(type))
+                {
+                    continue;
+                }
+
+                eventTypes.Add(type);
+            }
+
+            EventTypes = eventTypes.AsReadOnly();
         }
 
         public long TrimSequenceNumberTail()
@@ -64,13 +80,21 @@ namespace Shuttle.Recall
             return SequenceNumberTail;
         }
 
-        public bool IsEmpty => _primitiveEvents.Count == 0;
-
-        public void Completed(long sequenceNumber)
+        public void ProcessSequenceNumberTail()
         {
             lock (_lock)
             {
-                _primitiveEvents.Remove(sequenceNumber);
+                var sequenceNumberTail = _projections
+                    .Min(pair => pair.Value.SequenceNumber);
+                var keys = _primitiveEvents
+                    .Where(pair => pair.Value.SequenceNumber <= sequenceNumberTail)
+                    .Select(pair => pair.Key)
+                    .ToList();
+
+                foreach (var key in keys)
+                {
+                    _primitiveEvents.Remove(key);
+                }
             }
         }
 

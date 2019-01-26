@@ -25,8 +25,6 @@ namespace Shuttle.Recall
         private ITransactionScopeConfiguration _transactionScope;
         private int _projectionThreadCount;
         private int _projectionThreadCountValue;
-        private int _projectionAggregationTolerance;
-        private int _projectionAggregationToleranceValue;
         private readonly List<string> _activeProjectionNames = new List<string>();
         private int _projectionEventFetchCount;
         private int _projectionEventFetchCountValue;
@@ -35,7 +33,6 @@ namespace Shuttle.Recall
         {
             ProjectionEventFetchCount = 100;
             ProjectionThreadCount = 5;
-            ProjectionAggregationTolerance = 1000;
         }
 
         public IComponentResolver Resolver
@@ -107,21 +104,6 @@ namespace Shuttle.Recall
                    _activeProjectionNames.Count < _projectionThreadCount
                     ? _activeProjectionNames.Count
                     : _projectionThreadCount);
-
-            _projectionAggregationTolerance = _projectionAggregationToleranceValue < ProjectionThreadCount * 3
-                ? ProjectionThreadCount * 3
-                : _projectionAggregationTolerance;
-        }
-
-        public int ProjectionAggregationTolerance
-        {
-            get => _projectionAggregationTolerance ;
-            set
-            {
-                _projectionAggregationToleranceValue = value;
-
-                NormalizeValues();
-            }
         }
 
         public IEnumerable<string> ActiveProjectionNames => _activeProjectionNames.AsReadOnly();

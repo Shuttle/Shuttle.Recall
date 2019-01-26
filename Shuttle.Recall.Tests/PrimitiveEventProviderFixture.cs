@@ -48,7 +48,7 @@ namespace Shuttle.Recall.Tests
 
                 projection.Process(eventEnvelope, new TestEvent(), projectionEvent.PrimitiveEvent, this);
 
-                projectionAggregation.Completed(projectionEvent.SequenceNumber);
+                projectionAggregation.ProcessSequenceNumberTail();
             }
 
             projectionEvent = provider.Get(projection);
