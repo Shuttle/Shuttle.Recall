@@ -28,6 +28,7 @@ namespace Shuttle.Recall
             configuration.EncryptionAlgorithm = eventProcessorSection.EncryptionAlgorithm;
             configuration.ProjectionEventFetchCount = eventProcessorSection.ProjectionEventFetchCount;
             configuration.ProjectionThreadCount = eventProcessorSection.ProjectionThreadCount;
+            configuration.SequenceNumberTailThreadWorkerInterval = eventProcessorSection.SequenceNumberTailThreadWorkerInterval;
 
             configuration.DurationToSleepWhenIdle =
                 eventProcessorSection.DurationToSleepWhenIdle ??

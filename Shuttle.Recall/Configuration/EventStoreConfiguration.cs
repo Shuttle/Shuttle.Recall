@@ -17,22 +17,24 @@ namespace Shuttle.Recall
                 .ConvertFrom("250ms*4,500ms*2,1s");
 
         private static readonly object Padlock = new object();
+        private readonly List<string> _activeProjectionNames = new List<string>();
         private readonly List<ICompressionAlgorithm> _compressionAlgorithms = new List<ICompressionAlgorithm>();
         private readonly List<IEncryptionAlgorithm> _encryptionAlgorithms = new List<IEncryptionAlgorithm>();
 
         private TimeSpan[] _durationToSleepWhenIdle;
-        private IComponentResolver _resolver;
-        private ITransactionScopeConfiguration _transactionScope;
-        private int _projectionThreadCount;
-        private int _projectionThreadCountValue;
-        private readonly List<string> _activeProjectionNames = new List<string>();
         private int _projectionEventFetchCount;
         private int _projectionEventFetchCountValue;
+        private int _projectionThreadCount;
+        private int _projectionThreadCountValue;
+        private IComponentResolver _resolver;
+        private int _sequenceNumberTailThreadWorkerInterval;
+        private ITransactionScopeConfiguration _transactionScope;
 
         public EventStoreConfiguration()
         {
             ProjectionEventFetchCount = 100;
             ProjectionThreadCount = 5;
+            SequenceNumberTailThreadWorkerInterval = 5000;
         }
 
         public IComponentResolver Resolver
@@ -75,9 +77,9 @@ namespace Shuttle.Recall
             get => _projectionEventFetchCount;
             set
             {
-                _projectionEventFetchCountValue = value; 
+                _projectionEventFetchCountValue = value;
 
-                NormalizeValues();
+                Normalize();
             }
         }
 
@@ -86,27 +88,19 @@ namespace Shuttle.Recall
             get => _projectionThreadCount;
             set
             {
-                _projectionThreadCountValue = value;
+                _projectionThreadCountValue = value < 1 ? 1 : value;
 
-                NormalizeValues();
+                Normalize();
             }
         }
 
-        private void NormalizeValues()
-        {
-            _projectionEventFetchCount = _projectionEventFetchCountValue < 25
-                ? 25
-                : _projectionEventFetchCountValue;
-
-            _projectionThreadCount = _projectionThreadCountValue < 1
-                ? 1
-                : (_activeProjectionNames.Count > 0 &&
-                   _activeProjectionNames.Count < _projectionThreadCount
-                    ? _activeProjectionNames.Count
-                    : _projectionThreadCount);
-        }
-
         public IEnumerable<string> ActiveProjectionNames => _activeProjectionNames.AsReadOnly();
+
+        public int SequenceNumberTailThreadWorkerInterval
+        {
+            get => _sequenceNumberTailThreadWorkerInterval;
+            set => _sequenceNumberTailThreadWorkerInterval = value < 100 ? 100 : value;
+        }
 
         public IEventStoreConfiguration Assign(IComponentResolver resolver)
         {
@@ -123,7 +117,7 @@ namespace Shuttle.Recall
             {
                 _activeProjectionNames.Add(name);
 
-                NormalizeValues();
+                Normalize();
             }
 
             return this;
@@ -155,6 +149,20 @@ namespace Shuttle.Recall
             Guard.AgainstNull(algorithm, nameof(algorithm));
 
             _compressionAlgorithms.Add(algorithm);
+        }
+
+        private void Normalize()
+        {
+            _projectionEventFetchCount = _projectionEventFetchCountValue < 25
+                ? 25
+                : _projectionEventFetchCountValue;
+
+            _projectionThreadCount = _projectionThreadCountValue < 1
+                ? 1
+                : _activeProjectionNames.Count > 0 &&
+                  _activeProjectionNames.Count < _projectionThreadCount
+                    ? _activeProjectionNames.Count
+                    : _projectionThreadCount;
         }
 
         private static T Synchronised<T>(Func<T> f)

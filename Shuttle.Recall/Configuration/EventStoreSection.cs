@@ -31,6 +31,9 @@ namespace Shuttle.Recall
         [ConfigurationProperty("activeProjections", IsRequired = false, DefaultValue = null)]
         public ActiveProjectionElementCollection ActiveProjections => (ActiveProjectionElementCollection)this["activeProjections"];
 
+        [ConfigurationProperty("sequenceNumberTailThreadWorkerInterval", IsRequired = false, DefaultValue = 5000)]
+        public int SequenceNumberTailThreadWorkerInterval { get; set; }
+
         public static EventStoreSection Get()
         {
             lock (Padlock)

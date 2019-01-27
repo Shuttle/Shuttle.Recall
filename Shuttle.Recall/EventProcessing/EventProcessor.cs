@@ -70,7 +70,7 @@ namespace Shuttle.Recall
                     }
                 }
 
-                ThreadSleep.While(5000, this);
+                ThreadSleep.While(_configuration.SequenceNumberTailThreadWorkerInterval, this);
             }
         }
 

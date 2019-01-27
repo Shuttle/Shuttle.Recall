@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Core.Pipelines;
@@ -66,6 +67,46 @@ namespace Shuttle.Recall.Tests
             Assert.That(projection1.AggregationId, Is.EqualTo(projection2.AggregationId));
             Assert.That(projection3.AggregationId, Is.EqualTo(projection4.AggregationId));
             Assert.That(projection1.AggregationId, Is.Not.EqualTo(projection3.AggregationId));
+        }
+
+        [Test]
+        public void Should_be_able_process_sequence_number_tail()
+        {
+            var configuration = new Mock<IEventStoreConfiguration>();
+
+            configuration.Setup(m => m.ProjectionEventFetchCount).Returns(100);
+            configuration.Setup(m => m.SequenceNumberTailThreadWorkerInterval).Returns(100);
+            configuration.Setup(m => m.ProjectionThreadCount).Returns(1);
+
+            var processor = new EventProcessor(configuration.Object, new Mock<IPipelineFactory>().Object);
+            var projection = new Projection("projection-1", 200, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
+
+            processor.AddProjection(projection);
+
+            var projectionAggregation = processor.GetProjectionAggregation(projection.AggregationId);
+
+            for (int i = 50; i < 101; i++)
+            {
+                projectionAggregation.AddPrimitiveEvent(new PrimitiveEvent
+                {
+                    SequenceNumber = i
+                });
+            }
+
+            Assert.That(projectionAggregation.IsEmpty, Is.False);
+            Assert.That(projectionAggregation.SequenceNumberTail, Is.EqualTo(200));
+
+            var timeout = DateTime.Now.AddSeconds(1);
+
+            processor.Start();
+
+            while (!projectionAggregation.IsEmpty && DateTime.Now< timeout)
+            {
+                Thread.Sleep(100);
+            }
+
+            Assert.That(projectionAggregation.IsEmpty, Is.True);
+            Assert.That(projectionAggregation.SequenceNumberTail, Is.EqualTo(200));
         }
     }
 }
