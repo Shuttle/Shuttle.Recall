@@ -44,6 +44,8 @@ namespace Shuttle.Recall
                         _threadActivity.Working();
                         waiting = false;
                     }
+
+                    _eventProcessor.ReleaseProjection(projection.Name);
                 }
 
                 if (!waiting)

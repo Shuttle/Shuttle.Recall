@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Shuttle.Core.Contract;
+using Shuttle.Core.Logging;
 using Shuttle.Core.Reflection;
 using Shuttle.Core.Threading;
 
@@ -10,6 +12,8 @@ namespace Shuttle.Recall
     {
         private static readonly Type EventHandlerType = typeof(IEventHandler<>);
         private readonly Dictionary<Type, object> _eventHandlers = new Dictionary<Type, object>();
+
+        private readonly ILog _log;
 
         public Projection(string name, long sequenceNumber, string machineName, string baseDirectory)
         {
@@ -22,6 +26,8 @@ namespace Shuttle.Recall
             Name = name;
             SequenceNumber = sequenceNumber;
             AggregationId = Guid.Empty;
+
+            _log = Log.For(this);
         }
 
         public string MachineName { get; }
@@ -77,30 +83,46 @@ namespace Shuttle.Recall
             Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
             Guard.AgainstNull(threadState, nameof(threadState));
 
-            var domainEventType = Type.GetType(eventEnvelope.AssemblyQualifiedName, true);
-
-            if (!HandlesType(domainEventType))
+            if (primitiveEvent.SequenceNumber <= SequenceNumber)
             {
                 return;
             }
 
-            var contextType = typeof(EventHandlerContext<>).MakeGenericType(domainEventType);
-            var method = _eventHandlers[domainEventType].GetType().GetMethod("ProcessEvent", new[] {contextType});
+            var domainEventType = Type.GetType(eventEnvelope.AssemblyQualifiedName, true);
 
-            if (method == null)
+            try
             {
-                throw new ProcessEventMethodMissingException(string.Format(
-                    Resources.ProcessEventMethodMissingException,
-                    _eventHandlers[domainEventType].GetType().FullName,
-                    domainEventType.FullName));
+                if (!HandlesType(domainEventType))
+                {
+                    if (Log.IsTraceEnabled)
+                    {
+                        _log.Trace(string.Format(Resources.TraceTypeNotHandled, Name,
+                            eventEnvelope.AssemblyQualifiedName));
+                    }
+
+                    return;
+                }
+
+                var contextType = typeof(EventHandlerContext<>).MakeGenericType(domainEventType);
+                var method = _eventHandlers[domainEventType].GetType().GetMethod("ProcessEvent", new[] {contextType});
+
+                if (method == null)
+                {
+                    throw new ProcessEventMethodMissingException(string.Format(
+                        Resources.ProcessEventMethodMissingException,
+                        _eventHandlers[domainEventType].GetType().FullName,
+                        domainEventType.FullName));
+                }
+
+                var handlerContext =
+                    Activator.CreateInstance(contextType, eventEnvelope, domainEvent, primitiveEvent, threadState);
+
+                method.Invoke(_eventHandlers[domainEventType], new[] {handlerContext});
             }
-
-            var handlerContext =
-                Activator.CreateInstance(contextType, eventEnvelope, domainEvent, primitiveEvent, threadState);
-
-            method.Invoke(_eventHandlers[domainEventType], new[] {handlerContext});
-
-            SequenceNumber = primitiveEvent.SequenceNumber;
+            finally
+            {
+                SequenceNumber = primitiveEvent.SequenceNumber;
+            }
         }
 
         public Projection Aggregate(Guid aggregationId)

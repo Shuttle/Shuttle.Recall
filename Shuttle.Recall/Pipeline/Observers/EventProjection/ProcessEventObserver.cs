@@ -37,19 +37,6 @@ namespace Shuttle.Recall
             Guard.AgainstNull(projection, nameof(projection));
             Guard.AgainstNull(domainEvent, nameof(domainEvent));
 
-            var type = Type.GetType(eventEnvelope.AssemblyQualifiedName);
-
-            if (!projection.HandlesType(type))
-            {
-                if (Log.IsTraceEnabled)
-                {
-                    _log.Trace(string.Format(Resources.TraceTypeNotHandled, projection.Name,
-                        eventEnvelope.AssemblyQualifiedName));
-                }
-
-                return;
-            }
-
             projection.Process(eventEnvelope, domainEvent, projectionEvent.PrimitiveEvent, state.GetThreadState());
         }
     }
