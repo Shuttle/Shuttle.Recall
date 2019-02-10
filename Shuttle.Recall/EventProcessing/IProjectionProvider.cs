@@ -1,6 +1,6 @@
 ﻿namespace Shuttle.Recall
 {
-    public interface IProjectionService
+    public interface IProjectionProvider
     {
         Projection Get(string name);
     }

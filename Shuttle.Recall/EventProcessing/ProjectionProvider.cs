@@ -3,11 +3,11 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
 {
-    public class ProjectionService : IProjectionService
+    public class ProjectionProvider : IProjectionProvider
     {
         private readonly IProjectionRepository _repository;
 
-        public ProjectionService(IProjectionRepository repository)
+        public ProjectionProvider(IProjectionRepository repository)
         {
             Guard.AgainstNull(repository, nameof(repository));
 

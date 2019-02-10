@@ -173,9 +173,6 @@
     <value>There is no projection aggregation registered with id '{0}'.</value>
     <comment>{0} = projection aggregation id</comment>
   </data>
-  <data name="MissingProjectionServiceException" xml:space="preserve">
-    <value>No 'IProjectionService implementation has been specified.</value>
-  </data>
   <data name="ModuleInstantiationException" xml:space="preserve">
     <value>Module could not be instantiated: {0}</value>
     <comment>{0} = full type name of module type to be instanced</comment>

@@ -187,15 +187,6 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No &apos;IProjectionService implementation has been specified..
-        /// </summary>
-        public static string MissingProjectionServiceException {
-            get {
-                return ResourceManager.GetString("MissingProjectionServiceException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Module could not be instantiated: {0}.
         /// </summary>
         public static string ModuleInstantiationException {
