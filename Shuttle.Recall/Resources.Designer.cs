@@ -106,20 +106,29 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The event processor has already been started.  Event queue &apos;{0}&apos; cannot be added..
-        /// </summary>
-        public static string EventProcessorStartedCannotAddQueue {
-            get {
-                return ResourceManager.GetString("EventProcessorStartedCannotAddQueue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The event stream for id &apos;{0}&apos; already at version &apos;{1}&apos; and cannot insert the new event.  The event will be ignored and be added to the event stream again as a newer version..
         /// </summary>
         public static string EventStreamConcurrencyException {
             get {
                 return ResourceManager.GetString("EventStreamConcurrencyException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event processor has already been started..
+        /// </summary>
+        public static string ExceptionEventProcessorStarted {
+            get {
+                return ResourceManager.GetString("ExceptionEventProcessorStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot release the projection since it either has not been assigned for processing or it has been assigned using another queue identifier..
+        /// </summary>
+        public static string ExceptionInvalidProjectionRelease {
+            get {
+                return ResourceManager.GetString("ExceptionInvalidProjectionRelease", resourceCulture);
             }
         }
         

@@ -3,6 +3,7 @@ using System.Threading;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Core.Pipelines;
+using Shuttle.Core.PipelineTransaction;
 
 namespace Shuttle.Recall.Tests
 {
@@ -10,13 +11,73 @@ namespace Shuttle.Recall.Tests
     public class EventProcessorFixture
     {
         [Test]
+        public void Should_be_able_process_sequence_number_tail()
+        {
+            var configuration = new Mock<IEventStoreConfiguration>();
+
+            configuration.Setup(m => m.ProjectionEventFetchCount).Returns(100);
+            configuration.Setup(m => m.SequenceNumberTailThreadWorkerInterval).Returns(100);
+            configuration.Setup(m => m.ProjectionThreadCount).Returns(1);
+
+            var pipelineFactory = new Mock<IPipelineFactory>();
+
+            pipelineFactory.Setup(m => m.GetPipeline<EventProcessingPipeline>()).Returns(
+                new EventProcessingPipeline(
+                    new Mock<IProjectionEventObserver>().Object,
+                    new Mock<IProjectionEventEnvelopeObserver>().Object,
+                    new Mock<IProcessEventObserver>().Object,
+                    new Mock<IAcknowledgeEventObserver>().Object,
+                    new Mock<ITransactionScopeObserver>().Object));
+
+            var processor = new EventProcessor(configuration.Object, pipelineFactory.Object, new Mock<IProjectionRepository>().Object);
+            var projection = new Projection("projection-1", 200, Environment.MachineName,
+                AppDomain.CurrentDomain.BaseDirectory);
+
+            processor.AddProjection(projection);
+
+            var projectionAggregation = processor.GetProjectionAggregation(projection.AggregationId);
+
+            for (var i = 50; i < 101; i++)
+            {
+                projectionAggregation.AddPrimitiveEvent(new PrimitiveEvent
+                {
+                    SequenceNumber = i
+                });
+            }
+
+            Assert.That(projectionAggregation.IsEmpty, Is.False);
+            Assert.That(projectionAggregation.SequenceNumberTail, Is.EqualTo(200));
+
+            try
+            {
+                processor.Start();
+
+                var timeout = DateTime.Now.AddSeconds(60);
+
+                while (!projectionAggregation.IsEmpty && DateTime.Now < timeout)
+                {
+                    Thread.Sleep(100);
+                }
+
+                Assert.That(projectionAggregation.IsEmpty, Is.True);
+                Assert.That(projectionAggregation.SequenceNumberTail, Is.EqualTo(200));
+            }
+            finally
+            {
+                processor.Stop();
+            }
+        }
+
+        [Test]
         public void Should_be_able_to_get_round_robin_projections()
         {
             var processor = new EventProcessor(new Mock<IEventStoreConfiguration>().Object,
-                new Mock<IPipelineFactory>().Object);
+                new Mock<IPipelineFactory>().Object, new Mock<IProjectionRepository>().Object);
 
-            processor.AddProjection(new Projection("projection-1", 1, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory));
-            processor.AddProjection(new Projection("projection-2", 1, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory));
+            processor.AddProjection(new Projection("projection-1", 1, Environment.MachineName,
+                AppDomain.CurrentDomain.BaseDirectory));
+            processor.AddProjection(new Projection("projection-2", 1, Environment.MachineName,
+                AppDomain.CurrentDomain.BaseDirectory));
 
             var projection1 = processor.GetProjection();
 
@@ -28,19 +89,17 @@ namespace Shuttle.Recall.Tests
 
             Assert.That(processor.GetProjection(), Is.Null);
 
-            processor.ReleaseProjection(projection1.Name);
+            processor.ReleaseProjection(projection1);
 
             Assert.That(processor.GetProjection(), Is.Not.Null);
             Assert.That(processor.GetProjection(), Is.Null);
 
-            processor.ReleaseProjection(projection2.Name);
+            processor.ReleaseProjection(projection2);
 
             Assert.That(processor.GetProjection(), Is.Not.Null);
             Assert.That(processor.GetProjection(), Is.Null);
 
-            processor.ReleaseProjection("does-not-exist");
-
-            Assert.That(processor.GetProjection(), Is.Null);
+            Assert.That(() => processor.ReleaseProjection(new Projection("fail", 1, "machine", "folder")), Throws.TypeOf<InvalidOperationException>());
         }
 
         [Test]
@@ -51,13 +110,17 @@ namespace Shuttle.Recall.Tests
             configuration.Setup(m => m.ProjectionEventFetchCount).Returns(100);
 
             var processor = new EventProcessor(configuration.Object,
-                new Mock<IPipelineFactory>().Object);
+                new Mock<IPipelineFactory>().Object, new Mock<IProjectionRepository>().Object);
 
-            var projection1 = new Projection("projection-1", 1, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
-            var projection2 = new Projection("projection-2", 300, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
+            var projection1 = new Projection("projection-1", 1, Environment.MachineName,
+                AppDomain.CurrentDomain.BaseDirectory);
+            var projection2 = new Projection("projection-2", 300, Environment.MachineName,
+                AppDomain.CurrentDomain.BaseDirectory);
 
-            var projection3 = new Projection("projection-3", 301, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
-            var projection4 = new Projection("projection-4", 600, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
+            var projection3 = new Projection("projection-3", 301, Environment.MachineName,
+                AppDomain.CurrentDomain.BaseDirectory);
+            var projection4 = new Projection("projection-4", 600, Environment.MachineName,
+                AppDomain.CurrentDomain.BaseDirectory);
 
             processor.AddProjection(projection1);
             processor.AddProjection(projection2);
@@ -67,46 +130,6 @@ namespace Shuttle.Recall.Tests
             Assert.That(projection1.AggregationId, Is.EqualTo(projection2.AggregationId));
             Assert.That(projection3.AggregationId, Is.EqualTo(projection4.AggregationId));
             Assert.That(projection1.AggregationId, Is.Not.EqualTo(projection3.AggregationId));
-        }
-
-        [Test]
-        public void Should_be_able_process_sequence_number_tail()
-        {
-            var configuration = new Mock<IEventStoreConfiguration>();
-
-            configuration.Setup(m => m.ProjectionEventFetchCount).Returns(100);
-            configuration.Setup(m => m.SequenceNumberTailThreadWorkerInterval).Returns(100);
-            configuration.Setup(m => m.ProjectionThreadCount).Returns(1);
-
-            var processor = new EventProcessor(configuration.Object, new Mock<IPipelineFactory>().Object);
-            var projection = new Projection("projection-1", 200, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
-
-            processor.AddProjection(projection);
-
-            var projectionAggregation = processor.GetProjectionAggregation(projection.AggregationId);
-
-            for (int i = 50; i < 101; i++)
-            {
-                projectionAggregation.AddPrimitiveEvent(new PrimitiveEvent
-                {
-                    SequenceNumber = i
-                });
-            }
-
-            Assert.That(projectionAggregation.IsEmpty, Is.False);
-            Assert.That(projectionAggregation.SequenceNumberTail, Is.EqualTo(200));
-
-            var timeout = DateTime.Now.AddSeconds(1);
-
-            processor.Start();
-
-            while (!projectionAggregation.IsEmpty && DateTime.Now< timeout)
-            {
-                Thread.Sleep(100);
-            }
-
-            Assert.That(projectionAggregation.IsEmpty, Is.True);
-            Assert.That(projectionAggregation.SequenceNumberTail, Is.EqualTo(200));
         }
     }
 }

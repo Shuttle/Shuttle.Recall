@@ -45,7 +45,7 @@ namespace Shuttle.Recall
                         waiting = false;
                     }
 
-                    _eventProcessor.ReleaseProjection(projection.Name);
+                    _eventProcessor.ReleaseProjection(projection);
                 }
 
                 if (!waiting)

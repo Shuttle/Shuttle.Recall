@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
@@ -12,66 +12,37 @@ namespace Shuttle.Recall
 {
     public class EventProcessor : IEventProcessor, IThreadState
     {
-        private class ProjectionAssignment
-        {
-            public int Count { get; private set; }
-            public bool Assigned { get; private set; }
-
-            public void Assign()
-            {
-                Assigned = true;
-            }
-
-            public void Release()
-            {
-                Count++;
-                Assigned = false;
-            }
-        }
-
-        private readonly ILog _log;
-        private readonly object _lock = new object();
         private readonly IEventStoreConfiguration _configuration;
+        private readonly object _lock = new object();
+        private readonly ILog _log;
         private readonly IPipelineFactory _pipelineFactory;
-        private IReadOnlyCollection<Type> _eventTypes = new List<Type>();
-        private readonly Dictionary<Guid, ProjectionAggregation> _projectionAggregations = new Dictionary<Guid, ProjectionAggregation>();
+
+        private readonly Dictionary<Guid, ProjectionAggregation> _projectionAggregations =
+            new Dictionary<Guid, ProjectionAggregation>();
+
         private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
-        private readonly Dictionary<string, ProjectionAssignment> _projectionsRoundRobin = new Dictionary<string, ProjectionAssignment>();
-        private volatile bool _started;
-        private IProcessorThreadPool _processorThreadPool;
+        private readonly ConcurrentQueue<Projection> _projectionsQueue = new ConcurrentQueue<Projection>();
+        private readonly Guid _projectionsQueueId = Guid.NewGuid();
+        private readonly IProjectionRepository _repository;
 
         private readonly Thread _sequenceNumberTailThread;
+        private IProcessorThreadPool _processorThreadPool;
+        private volatile bool _started;
 
-        private readonly KeyValuePair<string, ProjectionAssignment> _defaultRoundRobin =
-            default(KeyValuePair<string, ProjectionAssignment>);
-
-        public EventProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory)
+        public EventProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory,
+            IProjectionRepository repository)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
             Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
+            Guard.AgainstNull(repository, nameof(repository));
 
             _pipelineFactory = pipelineFactory;
+            _repository = repository;
             _configuration = configuration;
 
             _sequenceNumberTailThread = new Thread(SequenceNumberTailThreadWorker);
 
             _log = Log.For(this);
-        }
-
-        private void SequenceNumberTailThreadWorker()
-        {
-            while (_started)
-            {
-                lock (_lock)
-                {
-                    foreach (var projectionAggregation in _projectionAggregations)
-                    {
-                        projectionAggregation.Value.ProcessSequenceNumberTail();
-                    }
-                }
-
-                ThreadSleep.While(_configuration.SequenceNumberTailThreadWorkerInterval, this);
-            }
         }
 
         public void Dispose()
@@ -92,9 +63,9 @@ namespace Shuttle.Recall
                     _configuration.ProjectionThreadCount,
                     new ProjectionProcessorFactory(_configuration, _pipelineFactory, this)).Start();
 
-            _started = true;
-
             _sequenceNumberTailThread.Start();
+
+            _started = true;
 
             return this;
         }
@@ -121,8 +92,7 @@ namespace Shuttle.Recall
 
             if (_started)
             {
-                throw new EventProcessingException(string.Format(Resources.EventProcessorStartedCannotAddQueue,
-                    projection.Name));
+                throw new EventProcessingException(Resources.ExceptionEventProcessorStarted);
             }
 
             if (_projections.ContainsKey(projection.Name))
@@ -141,13 +111,85 @@ namespace Shuttle.Recall
                 AssignToAggregation(projection);
 
                 _projections.Add(projection.Name, projection);
-                _projectionsRoundRobin.Add(projection.Name, new ProjectionAssignment());
+                _projectionsQueue.Enqueue(projection);
+            }
+        }
 
-                var eventTypes = new List<Type>(_eventTypes);
+        public Projection GetProjection(string name)
+        {
+            Guard.AgainstNullOrEmptyString(name, nameof(name));
 
-                eventTypes.AddRange(projection.EventTypes);
+            var key = name.ToLower();
 
-                _eventTypes = eventTypes.AsReadOnly();
+            if (_projections.ContainsKey(key))
+            {
+                return _projections[key];
+            }
+
+            var projection = _repository.Find(name);
+
+            if (projection == null)
+            {
+                projection = new Projection(name, 0, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
+
+                _repository.Save(projection);
+            }
+
+            AddProjection(projection);
+
+            return projection;
+        }
+
+        public Projection GetProjection()
+        {
+            if (!_projectionsQueue.TryDequeue(out var result))
+            {
+                return null;
+            }
+
+            result.Assigned(_projectionsQueueId);
+
+            return result;
+        }
+
+        public ProjectionAggregation GetProjectionAggregation(Guid id)
+        {
+            var result = _projectionAggregations.ContainsKey(id)
+                ? _projectionAggregations[id]
+                : null;
+
+            if (result == null)
+            {
+                throw new InvalidOperationException(string.Format(Resources.MissingProjectionAggregationException, id));
+            }
+
+            return result;
+        }
+
+        public void ReleaseProjection(Projection projection)
+        {
+            Guard.AgainstNull(projection, nameof(projection));
+
+            projection.Release(_projectionsQueueId);
+
+            _projectionsQueue.Enqueue(projection);
+        }
+
+        public bool Active => _started;
+
+        private void SequenceNumberTailThreadWorker()
+        {
+            while (_started)
+            {
+                lock (_lock)
+                {
+                    foreach (var projectionAggregation in _projectionAggregations)
+                    {
+                        projectionAggregation.Value.ProcessSequenceNumberTail();
+                    }
+                }
+
+                ThreadSleep.While(_configuration.SequenceNumberTailThreadWorkerInterval, this);
             }
         }
 
@@ -180,8 +222,10 @@ namespace Shuttle.Recall
         private bool ShouldAddProjection(Projection projection)
         {
             var result = _configuration.HasActiveProjection(projection.Name) &&
-                         (string.IsNullOrEmpty(projection.MachineName) || Environment.MachineName.Equals(projection.MachineName)) &&
-                         (string.IsNullOrEmpty(projection.BaseDirectory) || AppDomain.CurrentDomain.BaseDirectory.Equals(projection.BaseDirectory));
+                         (string.IsNullOrEmpty(projection.MachineName) ||
+                          Environment.MachineName.Equals(projection.MachineName)) &&
+                         (string.IsNullOrEmpty(projection.BaseDirectory) ||
+                          AppDomain.CurrentDomain.BaseDirectory.Equals(projection.BaseDirectory));
 
             _log.Information(result
                 ? string.Format(Resources.InformationProjectionActive, projection.Name)
@@ -190,53 +234,20 @@ namespace Shuttle.Recall
             return result;
         }
 
-        public Projection GetProjection()
-        {
-            lock (_lock)
-            {
-                var result = _projectionsRoundRobin
-                    .Where(item => !item.Value.Assigned)
-                    .OrderBy(item=>item.Value.Count)
-                    .FirstOrDefault();
-
-                if (result.Equals(_defaultRoundRobin))
-                {
-                    return null;
-                }
-
-                result.Value.Assign();
-
-                return _projections[result.Key];
-            }
-        }
-
-        public ProjectionAggregation GetProjectionAggregation(Guid id)
-        {
-            var result = _projectionAggregations.ContainsKey(id)
-                ? _projectionAggregations[id]
-                : null;
-
-            if (result == null)
-            {
-                throw new InvalidOperationException(string.Format(Resources.MissingProjectionAggregationException, id));
-            }
-
-            return result;
-        }
-
-        public void ReleaseProjection(string name)
+        public Projection Get(string name)
         {
             Guard.AgainstNullOrEmptyString(name, nameof(name));
 
-            if (!_projections.ContainsKey(name))
+            var projection = _repository.Find(name);
+
+            if (projection == null)
             {
-                return;
+                projection = new Projection(name, 1, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
+
+                _repository.Save(projection);
             }
 
-            lock (_lock)
-            {
-                _projectionsRoundRobin[name].Release();
-            }
+            return projection;
         }
 
         public static IEventProcessor Create()
@@ -264,7 +275,5 @@ namespace Shuttle.Recall
 
             return resolver.Resolve<IEventProcessor>();
         }
-
-        public bool Active => _started;
     }
 }

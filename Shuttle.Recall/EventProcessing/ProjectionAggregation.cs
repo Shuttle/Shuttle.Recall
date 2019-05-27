@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Shuttle.Core.Contract;
@@ -10,7 +11,9 @@ namespace Shuttle.Recall
     {
         private readonly object _lock = new object();
 
-        private readonly IDictionary<long, PrimitiveEvent> _primitiveEvents = new Dictionary<long, PrimitiveEvent>();
+        private readonly ConcurrentDictionary<long, PrimitiveEvent> _primitiveEvents =
+            new ConcurrentDictionary<long, PrimitiveEvent>();
+
         private readonly int _projectionAggregationTolerance;
         private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
         private long _sequenceNumberTolerance = long.MinValue;
@@ -25,7 +28,16 @@ namespace Shuttle.Recall
 
         public Guid Id { get; } = Guid.NewGuid();
 
-        public bool IsEmpty => _primitiveEvents.Count == 0;
+        public bool IsEmpty
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return _primitiveEvents.Count == 0;
+                }
+            }
+        }
 
         public bool IsSatisfiedBy(Projection candidate)
         {
@@ -93,7 +105,7 @@ namespace Shuttle.Recall
 
                 foreach (var key in keys)
                 {
-                    _primitiveEvents.Remove(key);
+                    _primitiveEvents.TryRemove(key, out _);
                 }
             }
         }
@@ -112,7 +124,7 @@ namespace Shuttle.Recall
                 return;
             }
 
-            _primitiveEvents.Add(primitiveEvent.SequenceNumber, primitiveEvent);
+            _primitiveEvents.TryAdd(primitiveEvent.SequenceNumber, primitiveEvent);
         }
 
         public PrimitiveEvent GetNextPrimitiveEvent(long sequenceNumber)

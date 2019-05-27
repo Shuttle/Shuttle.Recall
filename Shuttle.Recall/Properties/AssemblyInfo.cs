@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Resources;
 using System.Runtime.InteropServices;
 
 #if NET461
@@ -30,7 +31,7 @@ using System.Runtime.InteropServices;
 #endif
 
 [assembly: AssemblyVersion("10.2.1.0")]
-[assembly: AssemblyCopyright("Copyright © Eben Roux 2018")]
+[assembly: AssemblyCopyright("Copyright © Eben Roux 2019")]
 [assembly: AssemblyProduct("Shuttle.Recall")]
 [assembly: AssemblyCompany("Shuttle")]
 [assembly: AssemblyConfiguration("Release")]

@@ -137,13 +137,15 @@
     <value>A projection with name '{0}' has already been added.</value>
     <comment>{0} = name of the projection</comment>
   </data>
-  <data name="EventProcessorStartedCannotAddQueue" xml:space="preserve">
-    <value>The event processor has already been started.  Event queue '{0}' cannot be added.</value>
-    <comment>{0} = name of the event queue</comment>
-  </data>
   <data name="EventStreamConcurrencyException" xml:space="preserve">
     <value>The event stream for id '{0}' already at version '{1}' and cannot insert the new event.  The event will be ignored and be added to the event stream again as a newer version.</value>
     <comment>{0} = event stream id, {1} = existing version</comment>
+  </data>
+  <data name="ExceptionEventProcessorStarted" xml:space="preserve">
+    <value>The event processor has already been started.</value>
+  </data>
+  <data name="ExceptionInvalidProjectionRelease" xml:space="preserve">
+    <value>Cannot release the projection since it either has not been assigned for processing or it has been assigned using another queue identifier.</value>
   </data>
   <data name="InformationProjectionActive" xml:space="preserve">
     <value>Projection '{0}' is active and will be processed by this endpoint.</value>

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Logging;
 using Shuttle.Core.Reflection;
@@ -14,6 +13,7 @@ namespace Shuttle.Recall
         private readonly Dictionary<Type, object> _eventHandlers = new Dictionary<Type, object>();
 
         private readonly ILog _log;
+        private Guid? _projectionsQueueId;
 
         public Projection(string name, long sequenceNumber, string machineName, string baseDirectory)
         {
@@ -129,12 +129,30 @@ namespace Shuttle.Recall
         {
             if (!AggregationId.Equals(Guid.Empty))
             {
-                throw new InvalidOperationException(string.Format(Resources.ProjectionAggregationAlreadyAssignedException, Name));
+                throw new InvalidOperationException(
+                    string.Format(Resources.ProjectionAggregationAlreadyAssignedException, Name));
             }
 
             AggregationId = aggregationId;
 
             return this;
+        }
+
+        public void Assigned(Guid projectionsQueueId)
+        {
+            _projectionsQueueId = projectionsQueueId;
+        }
+
+        public void Release(Guid projectionsQueueId)
+        {
+            if (_projectionsQueueId.HasValue && _projectionsQueueId.Equals(projectionsQueueId))
+            {
+                _projectionsQueueId = null;
+
+                return;
+            }
+
+            throw new InvalidOperationException(Resources.ExceptionInvalidProjectionRelease);
         }
     }
 }
