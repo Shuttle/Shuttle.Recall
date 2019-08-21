@@ -2,7 +2,7 @@
 {
     public class StateKeys
     {
-        public const string ThreadState = "ThreadState";
+        public const string CancellationToken = "CancellationToken";
         public const string Working = "Working";
         public const string DomainEvent = "DomainEvent";
         public const string EventEnvelope = "EventEnvelope";

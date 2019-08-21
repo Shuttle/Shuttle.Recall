@@ -1,4 +1,4 @@
-﻿using Shuttle.Core.Threading;
+﻿using System.Threading;
 
 namespace Shuttle.Recall
 {
@@ -7,6 +7,6 @@ namespace Shuttle.Recall
         EventEnvelope EventEnvelope { get; }
         PrimitiveEvent PrimitiveEvent { get; }
         T Event { get; }
-        IThreadState ActiveState { get; }
+        CancellationToken CancellationToken { get; }
     }
 }

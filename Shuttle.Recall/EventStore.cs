@@ -127,7 +127,7 @@ namespace Shuttle.Recall
 
             registry.AttemptRegisterInstance(configuration);
 
-            registry.RegistryBoostrap();
+            registry.RegistryBootstrap();
 
             registry.AttemptRegister<IEventMethodInvokerConfiguration, EventMethodInvokerConfiguration>();
             registry.AttemptRegister<IEventMethodInvoker, DefaultEventMethodInvoker>();
@@ -195,7 +195,7 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNull(resolver, nameof(resolver));
 
-            resolver.ResolverBoostrap();
+            resolver.ResolverBootstrap();
 
             var configuration = resolver.Resolve<IEventStoreConfiguration>();
 

@@ -10,7 +10,7 @@ using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall
 {
-    public class EventProcessor : IEventProcessor, IThreadState
+    public class EventProcessor : IEventProcessor
     {
         private readonly IEventStoreConfiguration _configuration;
         private readonly object _lock = new object();
@@ -27,6 +27,8 @@ namespace Shuttle.Recall
 
         private readonly Thread _sequenceNumberTailThread;
         private IProcessorThreadPool _processorThreadPool;
+        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationToken _cancellationToken;
         private volatile bool _started;
 
         public EventProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory,
@@ -57,6 +59,9 @@ namespace Shuttle.Recall
                 return this;
             }
 
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
+
             _processorThreadPool =
                 new ProcessorThreadPool(
                     "ControlInboxProcessor",
@@ -76,6 +81,8 @@ namespace Shuttle.Recall
             {
                 return;
             }
+
+            _cancellationTokenSource.Cancel();
 
             _processorThreadPool?.Dispose();
 
@@ -175,8 +182,6 @@ namespace Shuttle.Recall
             _projectionsQueue.Enqueue(projection);
         }
 
-        public bool Active => _started;
-
         private void SequenceNumberTailThreadWorker()
         {
             while (_started)
@@ -189,7 +194,7 @@ namespace Shuttle.Recall
                     }
                 }
 
-                ThreadSleep.While(_configuration.SequenceNumberTailThreadWorkerInterval, this);
+                ThreadSleep.While(_configuration.SequenceNumberTailThreadWorkerInterval, _cancellationToken);
             }
         }
 

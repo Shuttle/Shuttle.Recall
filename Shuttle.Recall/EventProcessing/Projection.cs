@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Logging;
 using Shuttle.Core.Reflection;
-using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall
 {
@@ -76,12 +76,11 @@ namespace Shuttle.Recall
         }
 
         public void Process(EventEnvelope eventEnvelope, object domainEvent, PrimitiveEvent primitiveEvent,
-            IThreadState threadState)
+            CancellationToken cancellationToken)
         {
             Guard.AgainstNull(eventEnvelope, nameof(eventEnvelope));
             Guard.AgainstNull(domainEvent, nameof(domainEvent));
             Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
-            Guard.AgainstNull(threadState, nameof(threadState));
 
             if (primitiveEvent.SequenceNumber <= SequenceNumber)
             {
@@ -115,7 +114,7 @@ namespace Shuttle.Recall
                 }
 
                 var handlerContext =
-                    Activator.CreateInstance(contextType, eventEnvelope, domainEvent, primitiveEvent, threadState);
+                    Activator.CreateInstance(contextType, eventEnvelope, domainEvent, primitiveEvent, cancellationToken);
 
                 method.Invoke(_eventHandlers[domainEventType], new[] {handlerContext});
             }

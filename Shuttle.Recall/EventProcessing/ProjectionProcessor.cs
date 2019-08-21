@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Contract;
+﻿using System.Threading;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
 
@@ -22,11 +23,11 @@ namespace Shuttle.Recall
             _threadActivity = new ThreadActivity(configuration.DurationToSleepWhenIdle);
         }
 
-        public void Execute(IThreadState state)
+        public void Execute(CancellationToken cancellationToken)
         {
             var pipeline = _pipelineFactory.GetPipeline<EventProcessingPipeline>();
 
-            while (state.Active)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 var projection = _eventProcessor.GetProjection();
                 var waiting = true;
@@ -35,7 +36,7 @@ namespace Shuttle.Recall
                 {
                     pipeline.State.Clear();
                     pipeline.State.SetProjection(projection);
-                    pipeline.State.SetThreadState(state);
+                    pipeline.State.SetCancellationToken(cancellationToken);
 
                     pipeline.Execute();
 
@@ -50,7 +51,7 @@ namespace Shuttle.Recall
 
                 if (!waiting)
                 {
-                    _threadActivity.Waiting(state);
+                    _threadActivity.Waiting(cancellationToken);
                 }
             }
 

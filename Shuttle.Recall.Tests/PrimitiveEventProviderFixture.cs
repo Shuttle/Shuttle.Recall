@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall.Tests
 {
@@ -11,7 +11,7 @@ namespace Shuttle.Recall.Tests
     }
 
     [TestFixture]
-    public class PrimitiveEventProviderFixture : IEventHandler<TestEvent>, IThreadState
+    public class PrimitiveEventProviderFixture : IEventHandler<TestEvent>
     {
         [Test]
         public void Should_be_able_to_use_provider()
@@ -46,7 +46,7 @@ namespace Shuttle.Recall.Tests
                 Assert.That(projectionEvent, Is.Not.Null);
                 Assert.That(projectionAggregation.IsEmpty, Is.False);
 
-                projection.Process(eventEnvelope, new TestEvent(), projectionEvent.PrimitiveEvent, this);
+                projection.Process(eventEnvelope, new TestEvent(), projectionEvent.PrimitiveEvent, new CancellationToken(false));
 
                 projectionAggregation.ProcessSequenceNumberTail();
             }
@@ -80,7 +80,5 @@ namespace Shuttle.Recall.Tests
         public void ProcessEvent(IEventHandlerContext<TestEvent> context)
         {
         }
-
-        public bool Active => true;
     }
 }

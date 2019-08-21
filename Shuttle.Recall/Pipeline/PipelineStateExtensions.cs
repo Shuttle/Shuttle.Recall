@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall
 {
     public static class PipelineStateExtensions
     {
-        public static IThreadState GetThreadState(this IState state)
+        public static CancellationToken GetCancellationToken(this IState state)
         {
-            return state.Get<IThreadState>(StateKeys.ThreadState);
+            return state.Get<CancellationToken>(StateKeys.CancellationToken);
         }
 
-        public static void SetThreadState(this IState state, IThreadState activeState)
+        public static void SetCancellationToken(this IState state, CancellationToken cancellationToken)
         {
-            state.Replace(StateKeys.ThreadState, activeState);
+            state.Replace(StateKeys.CancellationToken, cancellationToken);
         }
 
         public static void SetWorking(this IState state)
