@@ -12,20 +12,20 @@ namespace Shuttle.Recall
 
     public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
     {
-        private readonly IConcurrenyExceptionSpecification _concurrenyExceptionSpecification;
+        private readonly IConcurrencyExceptionSpecification _concurrencyExceptionSpecification;
         private readonly IPrimitiveEventRepository _primitiveEventRepository;
         private readonly ISerializer _serializer;
 
         public SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEventRepository, ISerializer serializer,
-            IConcurrenyExceptionSpecification concurrenyExceptionSpecification)
+            IConcurrencyExceptionSpecification concurrencyExceptionSpecification)
         {
             Guard.AgainstNull(primitiveEventRepository, nameof(primitiveEventRepository));
             Guard.AgainstNull(serializer, nameof(serializer));
-            Guard.AgainstNull(concurrenyExceptionSpecification, nameof(concurrenyExceptionSpecification));
+            Guard.AgainstNull(concurrencyExceptionSpecification, nameof(concurrencyExceptionSpecification));
 
             _primitiveEventRepository = primitiveEventRepository;
             _serializer = serializer;
-            _concurrenyExceptionSpecification = concurrenyExceptionSpecification;
+            _concurrencyExceptionSpecification = concurrencyExceptionSpecification;
         }
 
         public void Execute(OnSavePrimitiveEvents pipelineEvent)
@@ -59,7 +59,7 @@ namespace Shuttle.Recall
             }
             catch (Exception ex)
             {
-                if (_concurrenyExceptionSpecification.IsSatisfiedBy(ex))
+                if (_concurrencyExceptionSpecification.IsSatisfiedBy(ex))
                 {
                     throw new EventStreamConcurrencyException(
                         string.Format(Resources.EventStreamConcurrencyException, eventStream.Id, version), ex);

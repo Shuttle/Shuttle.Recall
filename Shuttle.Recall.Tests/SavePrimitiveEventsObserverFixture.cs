@@ -13,7 +13,7 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_raise_concurrency_exception_if_satisfied_by_specification()
         {
-            var specification = new Mock<IConcurrenyExceptionSpecification>();
+            var specification = new Mock<IConcurrencyExceptionSpecification>();
             var repository = new Mock<IPrimitiveEventRepository>();
 
             repository.Setup(m => m.Save(It.IsAny<PrimitiveEvent>())).Throws<Exception>();
