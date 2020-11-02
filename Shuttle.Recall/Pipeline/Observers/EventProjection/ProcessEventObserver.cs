@@ -30,6 +30,7 @@ namespace Shuttle.Recall
 
             if (!projectionEvent.HasPrimitiveEvent)
             {
+                projection.Skip(projectionEvent.SequenceNumber);
                 return;
             }
 

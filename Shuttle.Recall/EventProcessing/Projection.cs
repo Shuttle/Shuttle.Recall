@@ -15,14 +15,10 @@ namespace Shuttle.Recall
         private readonly ILog _log;
         private Guid? _projectionsQueueId;
 
-        public Projection(string name, long sequenceNumber, string machineName, string baseDirectory)
+        public Projection(string name, long sequenceNumber)
         {
-            Guard.AgainstNullOrEmptyString(machineName, nameof(machineName));
-            Guard.AgainstNullOrEmptyString(baseDirectory, nameof(baseDirectory));
             Guard.AgainstNullOrEmptyString(name, nameof(name));
 
-            MachineName = machineName;
-            BaseDirectory = baseDirectory;
             Name = name;
             SequenceNumber = sequenceNumber;
             AggregationId = Guid.Empty;
@@ -30,8 +26,6 @@ namespace Shuttle.Recall
             _log = Log.For(this);
         }
 
-        public string MachineName { get; }
-        public string BaseDirectory { get; }
         public string Name { get; }
         public long SequenceNumber { get; private set; }
         public Guid AggregationId { get; private set; }
@@ -152,6 +146,11 @@ namespace Shuttle.Recall
             }
 
             throw new InvalidOperationException(Resources.ExceptionInvalidProjectionRelease);
+        }
+
+        public void Skip(long sequenceNumber)
+        {
+            SequenceNumber = sequenceNumber;
         }
     }
 }

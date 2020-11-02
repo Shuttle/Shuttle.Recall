@@ -16,7 +16,7 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_use_provider()
         {
-            var projection = new Projection("projection", 15, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
+            var projection = new Projection("projection", 15);
 
             projection.AddEventHandler(this);
 

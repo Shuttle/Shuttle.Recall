@@ -29,12 +29,12 @@ namespace Shuttle.Recall.Tests
                     new Mock<IAcknowledgeEventObserver>().Object,
                     new Mock<ITransactionScopeObserver>().Object));
 
-            var processor = new EventProcessor(configuration.Object, pipelineFactory.Object, new Mock<IProjectionRepository>().Object);
-            var projection = new Projection("projection-1", 200, Environment.MachineName,
-                AppDomain.CurrentDomain.BaseDirectory);
+            var projectionRepository = new Mock<IProjectionRepository>();
 
-            processor.AddProjection(projection);
+            projectionRepository.Setup(m => m.Find("projection-1")).Returns(new Projection("projection-1", 200));
 
+            var processor = new EventProcessor(configuration.Object, pipelineFactory.Object, projectionRepository.Object);
+            var projection = processor.AddProjection("projection-1");
             var projectionAggregation = processor.GetProjectionAggregation(projection.AggregationId);
 
             for (var i = 50; i < 101; i++)
@@ -74,10 +74,8 @@ namespace Shuttle.Recall.Tests
             var processor = new EventProcessor(new Mock<IEventStoreConfiguration>().Object,
                 new Mock<IPipelineFactory>().Object, new Mock<IProjectionRepository>().Object);
 
-            processor.AddProjection(new Projection("projection-1", 1, Environment.MachineName,
-                AppDomain.CurrentDomain.BaseDirectory));
-            processor.AddProjection(new Projection("projection-2", 1, Environment.MachineName,
-                AppDomain.CurrentDomain.BaseDirectory));
+            processor.AddProjection("projection-1");
+            processor.AddProjection("projection-2");
 
             var projection1 = processor.GetProjection();
 
@@ -99,7 +97,7 @@ namespace Shuttle.Recall.Tests
             Assert.That(processor.GetProjection(), Is.Not.Null);
             Assert.That(processor.GetProjection(), Is.Null);
 
-            Assert.That(() => processor.ReleaseProjection(new Projection("fail", 1, "machine", "folder")), Throws.TypeOf<InvalidOperationException>());
+            Assert.That(() => processor.ReleaseProjection(new Projection("fail", 1)), Throws.TypeOf<InvalidOperationException>());
         }
 
         [Test]
@@ -109,23 +107,20 @@ namespace Shuttle.Recall.Tests
 
             configuration.Setup(m => m.ProjectionEventFetchCount).Returns(100);
 
+            var projectionRepository = new Mock<IProjectionRepository>();
+
+            projectionRepository.Setup(m => m.Find("projection-1")).Returns(new Projection("projection-1", 1));
+            projectionRepository.Setup(m => m.Find("projection-2")).Returns(new Projection("projection-2", 300));
+            projectionRepository.Setup(m => m.Find("projection-3")).Returns(new Projection("projection-3", 301));
+            projectionRepository.Setup(m => m.Find("projection-4")).Returns(new Projection("projection-4", 600));
+
             var processor = new EventProcessor(configuration.Object,
-                new Mock<IPipelineFactory>().Object, new Mock<IProjectionRepository>().Object);
+                new Mock<IPipelineFactory>().Object, projectionRepository.Object);
 
-            var projection1 = new Projection("projection-1", 1, Environment.MachineName,
-                AppDomain.CurrentDomain.BaseDirectory);
-            var projection2 = new Projection("projection-2", 300, Environment.MachineName,
-                AppDomain.CurrentDomain.BaseDirectory);
-
-            var projection3 = new Projection("projection-3", 301, Environment.MachineName,
-                AppDomain.CurrentDomain.BaseDirectory);
-            var projection4 = new Projection("projection-4", 600, Environment.MachineName,
-                AppDomain.CurrentDomain.BaseDirectory);
-
-            processor.AddProjection(projection1);
-            processor.AddProjection(projection2);
-            processor.AddProjection(projection3);
-            processor.AddProjection(projection4);
+            var projection1 = processor.AddProjection("projection-1");
+            var projection2 = processor.AddProjection("projection-2");
+            var projection3 = processor.AddProjection("projection-3");
+            var projection4 = processor.AddProjection("projection-4");
 
             Assert.That(projection1.AggregationId, Is.EqualTo(projection2.AggregationId));
             Assert.That(projection3.AggregationId, Is.EqualTo(projection4.AggregationId));

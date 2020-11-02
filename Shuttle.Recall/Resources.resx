@@ -202,6 +202,10 @@
     <value>Projection '{0}' is not contained in projectionAggregation with id '{1}'.</value>
     <comment>{0} = projection name, {1} = projectionAggregation id</comment>
   </data>
+  <data name="ProjectionNotRegisteredException" xml:space="preserve">
+    <value>Projection with name '{0}' has not been registered.  Call `IEventProcessor.AddProjection` before trying to get the projection.</value>
+    <comment>{0} = projection name</comment>
+  </data>
   <data name="SerializerUnknownTypeExcption" xml:space="preserve">
     <value>Type '{0}' is not registered with the serializer so it cannot be serialized.  Please use [SerialierInstance].EnqueueKnownType to add the type before attempting to serialize or deserialize a EventEnvelope containing this type in the object graph of the message property.</value>
     <comment>{0} = type name that is unknown.</comment>

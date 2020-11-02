@@ -59,6 +59,11 @@ namespace Shuttle.Recall
                 return this;
             }
 
+            foreach (var projectionAggregation in _projectionAggregations.Values)
+            {
+                projectionAggregation.AddEventTypes();
+            }
+
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
 
@@ -93,24 +98,32 @@ namespace Shuttle.Recall
 
         public bool Started => _started;
 
-        public void AddProjection(Projection projection)
+        public Projection AddProjection(string name)
         {
-            Guard.AgainstNull(projection, nameof(Projection));
+            Guard.AgainstNullOrEmptyString(name, nameof(name));
 
             if (_started)
             {
                 throw new EventProcessingException(Resources.ExceptionEventProcessorStarted);
             }
 
-            if (_projections.ContainsKey(projection.Name))
+            if (_projections.ContainsKey(name))
             {
-                throw new EventProcessingException(string.Format(Resources.DuplicateProjectionName,
-                    projection.Name));
+                throw new EventProcessingException(string.Format(Resources.DuplicateProjectionName, name));
             }
 
-            if (!ShouldAddProjection(projection))
+            if (!ShouldAddProjection(name))
             {
-                return;
+                return null;
+            }
+
+            var projection = _repository.Find(name);
+
+            if (projection == null)
+            {
+                projection = new Projection(name, 0);
+
+                _repository.Save(projection);
             }
 
             lock (_lock)
@@ -120,31 +133,22 @@ namespace Shuttle.Recall
                 _projections.Add(projection.Name, projection);
                 _projectionsQueue.Enqueue(projection);
             }
-        }
 
+            return projection;
+        }
+        
         public Projection GetProjection(string name)
         {
             Guard.AgainstNullOrEmptyString(name, nameof(name));
 
             var key = name.ToLower();
 
-            if (_projections.ContainsKey(key))
+            if (!_projections.ContainsKey(key))
             {
-                return _projections[key];
+                throw new EventProcessingException(string.Format(Resources.ProjectionNotRegisteredException, name));
             }
 
-            var projection = _repository.Find(name);
-
-            if (projection == null)
-            {
-                projection = new Projection(name, 0, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
-
-                _repository.Save(projection);
-            }
-
-            AddProjection(projection);
-
-            return projection;
+            return _projections[key];
         }
 
         public Projection GetProjection()
@@ -224,40 +228,15 @@ namespace Shuttle.Recall
             result.Add(projection);
         }
 
-        private bool ShouldAddProjection(Projection projection)
+        private bool ShouldAddProjection(string name)
         {
-            var result = _configuration.HasActiveProjection(projection.Name) &&
-                         (string.IsNullOrEmpty(projection.MachineName) ||
-                          Environment.MachineName.Equals(projection.MachineName)) &&
-                         (string.IsNullOrEmpty(projection.BaseDirectory) ||
-                          AppDomain.CurrentDomain.BaseDirectory.Equals(projection.BaseDirectory));
+            var result = _configuration.HasActiveProjection(name);
 
             _log.Information(result
-                ? string.Format(Resources.InformationProjectionActive, projection.Name)
-                : string.Format(Resources.InformationProjectionIgnored, projection.Name));
+                ? string.Format(Resources.InformationProjectionActive, name)
+                : string.Format(Resources.InformationProjectionIgnored, name));
 
             return result;
-        }
-
-        public Projection Get(string name)
-        {
-            Guard.AgainstNullOrEmptyString(name, nameof(name));
-
-            var projection = _repository.Find(name);
-
-            if (projection == null)
-            {
-                projection = new Projection(name, 1, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory);
-
-                _repository.Save(projection);
-            }
-
-            return projection;
-        }
-
-        public static IEventProcessor Create()
-        {
-            return Create(null);
         }
 
         public static IEventProcessor Create(IComponentResolver resolver)

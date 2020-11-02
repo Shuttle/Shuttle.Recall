@@ -44,15 +44,11 @@ namespace Shuttle.Recall
 
                 if (!projectionAggregation.ContainsPrimitiveEvent(sequenceNumber))
                 {
-                    foreach (var primitiveEvent in _repository.Get(sequenceNumber, sequenceNumber + _configuration.ProjectionEventFetchCount,
-                        projectionAggregation.EventTypes))
+                    _sequenceNumberHead = projection.SequenceNumber + _configuration.ProjectionEventFetchCount;
+
+                    foreach (var primitiveEvent in _repository.Get(sequenceNumber, _sequenceNumberHead,  projectionAggregation.EventTypes))
                     {
                         projectionAggregation.AddPrimitiveEvent(primitiveEvent);
-
-                        if (primitiveEvent.SequenceNumber > _sequenceNumberHead)
-                        {
-                            _sequenceNumberHead = primitiveEvent.SequenceNumber;
-                        }
                     }
                 }
 

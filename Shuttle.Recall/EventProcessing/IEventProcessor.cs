@@ -8,7 +8,7 @@ namespace Shuttle.Recall
         bool Started { get; }
         IEventProcessor Start();
         void Stop();
-        void AddProjection(Projection projection);
+        Projection AddProjection(string name);
         Projection GetProjection(string name);
         Projection GetProjection();
         void ReleaseProjection(Projection projection);

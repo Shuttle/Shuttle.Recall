@@ -69,20 +69,21 @@ namespace Shuttle.Recall
             }
 
             projection.Aggregate(Id);
+        }
 
-            var eventTypes = new List<Type>(EventTypes);
-
-            foreach (var type in projection.EventTypes)
+        public void AddEventTypes()
+        {
+            lock (_lock)
             {
-                if (eventTypes.Contains(type))
+                var eventTypes = new List<Type>(EventTypes);
+
+                foreach (var type in from projection in _projections.Values from type in projection.EventTypes where !eventTypes.Contains(type) select type)
                 {
-                    continue;
+                    eventTypes.Add(type);
                 }
 
-                eventTypes.Add(type);
+                EventTypes = eventTypes.AsReadOnly();
             }
-
-            EventTypes = eventTypes.AsReadOnly();
         }
 
         public long TrimSequenceNumberTail()

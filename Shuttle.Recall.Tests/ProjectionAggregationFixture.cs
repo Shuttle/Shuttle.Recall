@@ -20,10 +20,10 @@ namespace Shuttle.Recall.Tests
             var aggregation = new ProjectionAggregation(100);
 
             var projection1 =
-                new Projection("projection-1", 10, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory)
+                new Projection("projection-1", 10)
                     .AddEventHandler(this);
             var projection2 =
-                new Projection("projection-2", 15, Environment.MachineName, AppDomain.CurrentDomain.BaseDirectory)
+                new Projection("projection-2", 15)
                     .AddEventHandler(this);
 
             aggregation.Add(projection1);
