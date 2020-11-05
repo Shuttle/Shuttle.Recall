@@ -49,7 +49,7 @@ namespace Shuttle.Recall
                     _eventProcessor.ReleaseProjection(projection);
                 }
 
-                if (!waiting)
+                if (waiting)
                 {
                     _threadActivity.Waiting(cancellationToken);
                 }

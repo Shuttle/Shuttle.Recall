@@ -11,8 +11,7 @@ namespace Shuttle.Recall
     {
         private readonly object _lock = new object();
 
-        private readonly ConcurrentDictionary<long, PrimitiveEvent> _primitiveEvents =
-            new ConcurrentDictionary<long, PrimitiveEvent>();
+        private readonly SortedDictionary<long, PrimitiveEvent> _primitiveEvents = new SortedDictionary<long, PrimitiveEvent>();
 
         private readonly int _projectionAggregationTolerance;
         private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
@@ -106,7 +105,7 @@ namespace Shuttle.Recall
 
                 foreach (var key in keys)
                 {
-                    _primitiveEvents.TryRemove(key, out _);
+                    _primitiveEvents.Remove(key);
                 }
             }
         }
@@ -120,17 +119,20 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
 
-            if (_primitiveEvents.ContainsKey(primitiveEvent.SequenceNumber))
+            lock (_lock)
             {
-                return;
-            }
+                if (_primitiveEvents.ContainsKey(primitiveEvent.SequenceNumber))
+                {
+                    return;
+                }
 
-            _primitiveEvents.TryAdd(primitiveEvent.SequenceNumber, primitiveEvent);
+                _primitiveEvents.Add(primitiveEvent.SequenceNumber, primitiveEvent);
+            }
         }
 
         public PrimitiveEvent GetNextPrimitiveEvent(long sequenceNumber)
         {
-            return _primitiveEvents.FirstOrDefault(entry => entry.Value.SequenceNumber > sequenceNumber).Value;
+            return _primitiveEvents.FirstOrDefault(entry => entry.Key > sequenceNumber).Value;
         }
     }
 }

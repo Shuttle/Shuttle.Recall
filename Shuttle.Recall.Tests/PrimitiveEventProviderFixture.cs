@@ -70,7 +70,7 @@ namespace Shuttle.Recall.Tests
                 });
             }
 
-            repository.SetupSequence(m => m.Get(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<IEnumerable<Type>>()))
+            repository.SetupSequence(m => m.Fetch(It.IsAny<long>(), It.IsAny<int>(), It.IsAny<IEnumerable<Type>>()))
                 .Returns(events)
                 .Returns(new List<PrimitiveEvent>());
 

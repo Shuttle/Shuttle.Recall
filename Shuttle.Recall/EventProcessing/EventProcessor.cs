@@ -130,7 +130,7 @@ namespace Shuttle.Recall
             {
                 AssignToAggregation(projection);
 
-                _projections.Add(projection.Name, projection);
+                _projections.Add(projection.Name.ToLowerInvariant(), projection);
                 _projectionsQueue.Enqueue(projection);
             }
 
@@ -141,7 +141,7 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNullOrEmptyString(name, nameof(name));
 
-            var key = name.ToLower();
+            var key = name.ToLowerInvariant();
 
             if (!_projections.ContainsKey(key))
             {

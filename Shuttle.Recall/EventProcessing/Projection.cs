@@ -147,10 +147,5 @@ namespace Shuttle.Recall
 
             throw new InvalidOperationException(Resources.ExceptionInvalidProjectionRelease);
         }
-
-        public void Skip(long sequenceNumber)
-        {
-            SequenceNumber = sequenceNumber;
-        }
     }
 }
