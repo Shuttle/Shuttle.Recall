@@ -11,7 +11,7 @@ namespace Shuttle.Recall
 {
     public static class ComponentRegistryExtensions
     {
-        public static void RegisterEventStore(this IComponentRegistry registry, IEventStoreConfiguration configuration = null)
+        public static IEventStoreConfiguration RegisterEventStore(this IComponentRegistry registry, IEventStoreConfiguration configuration = null)
         {
             Guard.AgainstNull(registry, nameof(registry));
 
@@ -87,6 +87,8 @@ namespace Shuttle.Recall
 
             registry.AttemptRegister<IEventStore, EventStore>();
             registry.AttemptRegister<IEventProcessor, EventProcessor>();
+
+            return eventStoreConfiguration;
         }
     }
 }

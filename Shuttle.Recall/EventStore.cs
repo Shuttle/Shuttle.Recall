@@ -1,4 +1,5 @@
 ﻿using System;
+using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
@@ -100,6 +101,20 @@ namespace Shuttle.Recall
         public EventStream CreateEventStream()
         {
             return CreateEventStream(Guid.NewGuid());
+        }
+
+        [Obsolete("This method has been replaced by `ComponentRegistryExtensions.RegisterEventStore()`.", false)]
+        public static IEventStoreConfiguration Register(IComponentRegistry registry)
+        {
+            return registry.RegisterEventStore();
+        }
+
+        [Obsolete("Please create an instance of the service bus using `IComponentResolver.Resolve<IEventStore>()`.")]
+        public static IEventStore Create(IComponentResolver resolver)
+        {
+            Guard.AgainstNull(resolver, nameof(resolver));
+
+            return resolver.Resolve<IEventStore>();
         }
     }
 }
