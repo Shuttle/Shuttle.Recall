@@ -27,7 +27,7 @@ namespace Shuttle.Recall
         public void Execute(OnGetStreamEvents pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;
-            var events = new List<object>();
+            var events = new List<DomainEvent>();
             var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
 
             try

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Shuttle.Core.Compression;
-using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Encryption;
 using Shuttle.Core.TimeSpanTypeConverters;
@@ -26,7 +25,6 @@ namespace Shuttle.Recall
         private int _projectionEventFetchCountValue;
         private int _projectionThreadCount;
         private int _projectionThreadCountValue;
-        private IComponentResolver _resolver;
         private int _sequenceNumberTailThreadWorkerInterval;
         private ITransactionScopeConfiguration _transactionScope;
 
@@ -35,19 +33,6 @@ namespace Shuttle.Recall
             ProjectionEventFetchCount = 100;
             ProjectionThreadCount = 5;
             SequenceNumberTailThreadWorkerInterval = 5000;
-        }
-
-        public IComponentResolver Resolver
-        {
-            get
-            {
-                if (_resolver == null)
-                {
-                    throw new InvalidOperationException(Resources.NullResolverException);
-                }
-
-                return _resolver;
-            }
         }
 
         public ITransactionScopeConfiguration TransactionScope
@@ -100,15 +85,6 @@ namespace Shuttle.Recall
         {
             get => _sequenceNumberTailThreadWorkerInterval;
             set => _sequenceNumberTailThreadWorkerInterval = value < 100 ? 100 : value;
-        }
-
-        public IEventStoreConfiguration Assign(IComponentResolver resolver)
-        {
-            Guard.AgainstNull(resolver, nameof(resolver));
-
-            _resolver = resolver;
-
-            return this;
         }
 
         public IEventStoreConfiguration AddActiveProjectionName(string name)

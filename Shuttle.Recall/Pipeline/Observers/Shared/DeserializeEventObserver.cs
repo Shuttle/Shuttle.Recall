@@ -30,8 +30,7 @@ namespace Shuttle.Recall
 
             using (var stream = new MemoryStream(eventEnvelope.Event))
             {
-                state.SetEvent(_serializer.Deserialize(Type.GetType(eventEnvelope.AssemblyQualifiedName, true, true),
-                    stream));
+                state.SetEvent(new DomainEvent(_serializer.Deserialize(Type.GetType(eventEnvelope.AssemblyQualifiedName, true, true), stream), eventEnvelope.Version));
             }
         }
     }

@@ -37,7 +37,7 @@ namespace Shuttle.Recall
             Guard.AgainstNull(projection, nameof(projection));
             Guard.AgainstNull(domainEvent, nameof(domainEvent));
 
-            projection.Process(eventEnvelope, domainEvent, projectionEvent.PrimitiveEvent, state.GetCancellationToken());
+            projection.Process(eventEnvelope, domainEvent.Event, projectionEvent.PrimitiveEvent, state.GetCancellationToken());
         }
     }
 }

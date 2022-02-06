@@ -8,9 +8,17 @@ namespace Shuttle.Recall
 {
     public class EventStream
     {
+        [Flags]
+        public enum EventRegistrationType
+        {
+            Committed = 1 << 0,
+            Appended = 1 << 1,
+            All = Committed + Appended
+        }
+
         private readonly List<DomainEvent> _appendedEvents = new List<DomainEvent>();
         private readonly IEventMethodInvoker _eventMethodInvoker;
-        private readonly List<object> _events = new List<object>();
+        private readonly List<DomainEvent> _events = new List<DomainEvent>();
         private int _nextVersion;
 
         public EventStream(Guid id, IEventMethodInvoker eventMethodInvoker)
@@ -20,7 +28,7 @@ namespace Shuttle.Recall
             Version = 0;
         }
 
-        public EventStream(Guid id, int version, IEnumerable<object> events, IEventMethodInvoker eventMethodInvoker)
+        public EventStream(Guid id, int version, IEnumerable<DomainEvent> events, IEventMethodInvoker eventMethodInvoker)
         {
             Guard.AgainstNull(eventMethodInvoker, nameof(eventMethodInvoker));
 
@@ -39,7 +47,7 @@ namespace Shuttle.Recall
         public int Version { get; }
         public object Snapshot { get; private set; }
 
-        public int Count => (_events == null ? 0 : _events.Count()) + _appendedEvents.Count;
+        public int Count => (_events?.Count() ?? 0) + _appendedEvents.Count;
 
         public bool IsEmpty => Count == 0;
 
@@ -60,7 +68,7 @@ namespace Shuttle.Recall
         {
             var result = _nextVersion;
 
-            _nextVersion = _nextVersion + 1;
+            _nextVersion += 1;
 
             return result;
         }
@@ -80,7 +88,7 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNull(instance, nameof(instance));
 
-            _eventMethodInvoker.Apply(instance, _events);
+            _eventMethodInvoker.Apply(instance, _events.Select(domainEvent => domainEvent.Event));
         }
 
         public void Remove()
@@ -103,15 +111,23 @@ namespace Shuttle.Recall
             return _appendedEvents.Count > 0;
         }
 
-        public IEnumerable<DomainEvent> GetEvents()
+        public IEnumerable<DomainEvent> GetEvents(EventRegistrationType type = EventRegistrationType.Appended)
         {
-            return new ReadOnlyCollection<DomainEvent>(_appendedEvents);
+            var result = new List<DomainEvent>();
+
+            if (type.HasFlag(EventRegistrationType.Appended))
+            {
+                result.AddRange(_appendedEvents);
+            }
+
+            if (type.HasFlag(EventRegistrationType.Committed))
+            {
+                result.AddRange(_events);
+            }
+
+            return new ReadOnlyCollection<DomainEvent>(result);
         }
 
-        /// <summary>
-        ///     Appended events are moved to the events collection since they have been committed but can still be applied to any
-        ///     other aggregate.
-        /// </summary>
         public void Commit()
         {
             _events.AddRange(_appendedEvents);

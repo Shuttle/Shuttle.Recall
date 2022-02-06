@@ -1,13 +1,11 @@
 ﻿using System.Threading;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall
 {
     public class EventHandlerContext<T> : IEventHandlerContext<T> where T : class
     {
-        public EventHandlerContext(EventEnvelope eventEnvelope, T @event, PrimitiveEvent primitiveEvent,
-            CancellationToken cancellationToken)
+        public EventHandlerContext(EventEnvelope eventEnvelope, T @event, PrimitiveEvent primitiveEvent, CancellationToken cancellationToken)
         {
             Guard.AgainstNull(eventEnvelope, nameof(eventEnvelope));
             Guard.AgainstNull(@event, nameof(@event));

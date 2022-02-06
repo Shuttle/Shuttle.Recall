@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Transactions;
 using NUnit.Framework;
 
@@ -10,6 +11,8 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_populate_configuration()
         {
+            Console.WriteLine(ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
+
             var configuration = new EventStoreConfiguration();
             var configurator = new CoreConfigurator();
 

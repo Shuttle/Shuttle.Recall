@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Shuttle.Core.Compression;
-using Shuttle.Core.Container;
 using Shuttle.Core.Encryption;
 using Shuttle.Core.Transactions;
 
@@ -9,9 +8,6 @@ namespace Shuttle.Recall
 {
     public interface IEventStoreConfiguration
     {
-        IComponentResolver Resolver { get; }
-        IEventStoreConfiguration Assign(IComponentResolver resolver);
-
         ITransactionScopeConfiguration TransactionScope { get; set; }
 
         TimeSpan[] DurationToSleepWhenIdle { get; set; }

@@ -238,26 +238,5 @@ namespace Shuttle.Recall
 
             return result;
         }
-
-        public static IEventProcessor Create(IComponentResolver resolver)
-        {
-            Guard.AgainstNull(resolver, nameof(resolver));
-
-            var configuration = resolver.Resolve<IEventStoreConfiguration>();
-
-            if (configuration == null)
-            {
-                throw new InvalidOperationException(string.Format(Core.Container.Resources.TypeNotRegisteredException,
-                    typeof(IEventStoreConfiguration).FullName));
-            }
-
-            configuration.Assign(resolver);
-
-            var defaultPipelineFactory = resolver.Resolve<IPipelineFactory>() as DefaultPipelineFactory;
-
-            defaultPipelineFactory?.Assign(resolver);
-
-            return resolver.Resolve<IEventProcessor>();
-        }
     }
 }

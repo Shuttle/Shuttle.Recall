@@ -1,11 +1,6 @@
 ﻿using System;
-using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.PipelineTransaction;
-using Shuttle.Core.Reflection;
-using Shuttle.Core.Serialization;
-using Shuttle.Core.Transactions;
 
 namespace Shuttle.Recall
 {
@@ -105,114 +100,6 @@ namespace Shuttle.Recall
         public EventStream CreateEventStream()
         {
             return CreateEventStream(Guid.NewGuid());
-        }
-
-        public static IEventStoreConfiguration Register(IComponentRegistry registry)
-        {
-            Guard.AgainstNull(registry, nameof(registry));
-
-            var configuration = new EventStoreConfiguration();
-
-            new CoreConfigurator().Apply(configuration);
-
-            Register(registry, configuration);
-
-            return configuration;
-        }
-
-        public static void Register(IComponentRegistry registry, IEventStoreConfiguration configuration)
-        {
-            Guard.AgainstNull(registry, nameof(registry));
-            Guard.AgainstNull(configuration, nameof(configuration));
-
-            registry.AttemptRegisterInstance(configuration);
-
-            registry.RegistryBootstrap();
-
-            registry.AttemptRegister<IEventMethodInvokerConfiguration, EventMethodInvokerConfiguration>();
-            registry.AttemptRegister<IEventMethodInvoker, DefaultEventMethodInvoker>();
-            registry.AttemptRegister<ISerializer, DefaultSerializer>();
-            registry.AttemptRegister<IConcurrencyExceptionSpecification, DefaultConcurrencyExceptionSpecification>();
-
-            registry.AttemptRegister<IProjectionEventProvider, ProjectionEventProvider>();
-
-            registry.AttemptRegister<ITransactionScopeObserver, TransactionScopeObserver>();
-
-            if (!registry.IsRegistered<ITransactionScopeFactory>())
-            {
-                var transactionScopeConfiguration =
-                    configuration.TransactionScope ?? new TransactionScopeConfiguration();
-
-                registry.AttemptRegisterInstance<ITransactionScopeFactory>(
-                    new DefaultTransactionScopeFactory(transactionScopeConfiguration.Enabled,
-                        transactionScopeConfiguration.IsolationLevel,
-                        TimeSpan.FromSeconds(transactionScopeConfiguration.TimeoutSeconds)));
-            }
-
-            registry.AttemptRegister<IPipelineFactory, DefaultPipelineFactory>();
-
-            var reflectionService = new ReflectionService();
-
-            foreach (var type in reflectionService.GetTypesAssignableTo<IPipeline>(typeof(EventStore).Assembly))
-            {
-                if (type.IsInterface || type.IsAbstract || registry.IsRegistered(type))
-                {
-                    continue;
-                }
-
-                registry.Register(type, type, Lifestyle.Transient);
-            }
-
-            foreach (var type in reflectionService.GetTypesAssignableTo<IPipelineObserver>(typeof(EventStore).Assembly))
-            {
-                if (type.IsInterface || type.IsAbstract)
-                {
-                    continue;
-                }
-
-                var interfaceType = type.InterfaceMatching($"I{type.Name}");
-
-                if (interfaceType != null)
-                {
-                    if (registry.IsRegistered(type))
-                    {
-                        continue;
-                    }
-
-                    registry.Register(interfaceType, type, Lifestyle.Singleton);
-                }
-                else
-                {
-                    throw new ApplicationException(string.Format(Resources.ObserverInterfaceMissingException, type.Name));
-                }
-            }
-
-            registry.AttemptRegister<IEventStore, EventStore>();
-            registry.AttemptRegister<IEventProcessor, EventProcessor>();
-        }
-
-        public static IEventStore Create(IComponentResolver resolver)
-        {
-            Guard.AgainstNull(resolver, nameof(resolver));
-
-            resolver.ResolverBootstrap();
-
-            var configuration = resolver.Resolve<IEventStoreConfiguration>();
-
-            if (configuration == null)
-            {
-                throw new InvalidOperationException(string.Format(Core.Container.Resources.TypeNotRegisteredException,
-                    typeof(IEventStoreConfiguration).FullName));
-            }
-
-            configuration.Assign(resolver);
-
-            if (resolver.Resolve<IPipelineFactory>() is DefaultPipelineFactory defaultPipelineFactory)
-            {
-                defaultPipelineFactory.Assign(resolver);
-            }
-
-            return resolver.Resolve<IEventStore>();
         }
     }
 }
