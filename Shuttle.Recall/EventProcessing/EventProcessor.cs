@@ -238,5 +238,14 @@ namespace Shuttle.Recall
 
             return result;
         }
+
+        [Obsolete("Please create an instance using `IComponentResolver.Resolve<IEventProcessor>()`.")]
+        public static IEventProcessor Create(IComponentResolver resolver)
+        {
+            Guard.AgainstNull(resolver, nameof(resolver));
+
+            return resolver.Resolve<IEventProcessor>();
+
+        }
     }
 }

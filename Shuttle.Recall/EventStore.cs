@@ -109,7 +109,7 @@ namespace Shuttle.Recall
             return registry.RegisterEventStore();
         }
 
-        [Obsolete("Please create an instance of the service bus using `IComponentResolver.Resolve<IEventStore>()`.")]
+        [Obsolete("Please create an instance using `IComponentResolver.Resolve<IEventStore>()`.")]
         public static IEventStore Create(IComponentResolver resolver)
         {
             Guard.AgainstNull(resolver, nameof(resolver));
