@@ -69,7 +69,7 @@ namespace Shuttle.Recall
 
             _processorThreadPool =
                 new ProcessorThreadPool(
-                    "ControlInboxProcessor",
+                    "ProjectionProcessor",
                     _configuration.ProjectionThreadCount,
                     new ProjectionProcessorFactory(_configuration, _pipelineFactory, this)).Start();
 
@@ -245,7 +245,6 @@ namespace Shuttle.Recall
             Guard.AgainstNull(resolver, nameof(resolver));
 
             return resolver.Resolve<IEventProcessor>();
-
         }
     }
 }
