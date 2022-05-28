@@ -33,6 +33,7 @@ namespace Shuttle.Recall
             ProjectionEventFetchCount = 100;
             ProjectionThreadCount = 5;
             SequenceNumberTailThreadWorkerInterval = 5000;
+            RegisterHandlers = true;
         }
 
         public ITransactionScopeConfiguration TransactionScope
@@ -86,6 +87,8 @@ namespace Shuttle.Recall
             get => _sequenceNumberTailThreadWorkerInterval;
             set => _sequenceNumberTailThreadWorkerInterval = value < 100 ? 100 : value;
         }
+
+        public bool RegisterHandlers { get; set; }
 
         public IEventStoreConfiguration AddActiveProjectionName(string name)
         {

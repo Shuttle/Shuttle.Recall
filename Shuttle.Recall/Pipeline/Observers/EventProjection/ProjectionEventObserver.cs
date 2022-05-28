@@ -24,6 +24,11 @@ namespace Shuttle.Recall
             var projection = state.GetProjection();
             var projectionEvent = _provider.Get(projection);
 
+            if (projectionEvent.HasPrimitiveEvent)
+            {
+                state.SetWorking();
+            }
+
             state.SetProjectionEvent(projectionEvent);
         }
     }

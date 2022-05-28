@@ -3,17 +3,17 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
 {
-    public static class Extensions
+    public static class ComponentResolverExtensions
     {
-        public static IComponentResolver AddEventHandler<TEventHandler>(this IComponentResolver resolver, string name)
+        public static IComponentResolver AddEventHandler<TEventHandler>(this IComponentResolver resolver, string projectionName)
             where TEventHandler : class
         {
             Guard.AgainstNull(resolver, nameof(resolver));
-            Guard.AgainstNullOrEmptyString(name, nameof(name));
+            Guard.AgainstNullOrEmptyString(projectionName, nameof(projectionName));
 
             resolver
                 .Resolve<IEventProcessor>()
-                .GetProjection(name)
+                .GetProjection(projectionName)
                 .AddEventHandler(resolver.Resolve<TEventHandler>());
 
             return resolver;

@@ -34,6 +34,9 @@ namespace Shuttle.Recall
         [ConfigurationProperty("sequenceNumberTailThreadWorkerInterval", IsRequired = false, DefaultValue = 5000)]
         public int SequenceNumberTailThreadWorkerInterval { get; set; }
 
+        [ConfigurationProperty("registerHandlers", IsRequired = false, DefaultValue = true)]
+        public bool RegisterHandlers => (bool)this["registerHandlers"];
+
         public static EventStoreSection Get()
         {
             lock (Padlock)

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Reflection;
 using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
@@ -11,6 +13,8 @@ namespace Shuttle.Recall
 {
     public static class ComponentRegistryExtensions
     {
+        private static readonly Type EventHandlerType = typeof(IEventHandler<>);
+
         public static IEventStoreConfiguration RegisterEventStore(this IComponentRegistry registry, IEventStoreConfiguration configuration = null)
         {
             Guard.AgainstNull(registry, nameof(registry));
@@ -85,10 +89,31 @@ namespace Shuttle.Recall
                 }
             }
 
+            if (eventStoreConfiguration.RegisterHandlers)
+            {
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    registry.RegisterEventHandlers(assembly);
+                }
+            }
+
             registry.AttemptRegister<IEventStore, EventStore>();
             registry.AttemptRegister<IEventProcessor, EventProcessor>();
 
             return eventStoreConfiguration;
+        }
+
+        public static void RegisterEventHandlers(this IComponentRegistry registry, Assembly assembly)
+        {
+            var reflectionService = new ReflectionService();
+
+            foreach (var type in reflectionService.GetTypesAssignableTo(EventHandlerType, assembly))
+            {
+                if (!registry.IsRegistered(type))
+                {
+                    registry.Register(type, type, Lifestyle.Transient);
+                }
+            }
         }
     }
 }

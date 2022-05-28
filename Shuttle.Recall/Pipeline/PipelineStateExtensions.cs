@@ -27,16 +27,6 @@ namespace Shuttle.Recall
             return state.Get<bool>(StateKeys.Working);
         }
 
-        public static void SetSequenceNumber(this IState state, long sequenceNumber)
-        {
-            state.Replace(StateKeys.SequenceNumber, sequenceNumber);
-        }
-
-        public static long GetSequenceNumber(this IState state)
-        {
-            return state.Get<long>(StateKeys.SequenceNumber);
-        }
-
         public static void SetEventEnvelope(this IState state, EventEnvelope value)
         {
             state.Replace(StateKeys.EventEnvelope, value);

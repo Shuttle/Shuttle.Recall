@@ -19,6 +19,7 @@ namespace Shuttle.Recall
 
         IEnumerable<string> ActiveProjectionNames { get; }
         int SequenceNumberTailThreadWorkerInterval { get; set; }
+        bool RegisterHandlers { get; set; }
         IEventStoreConfiguration AddActiveProjectionName(string name);
 
         IEncryptionAlgorithm FindEncryptionAlgorithm(string name);

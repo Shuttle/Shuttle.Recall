@@ -29,6 +29,7 @@ namespace Shuttle.Recall
             configuration.ProjectionEventFetchCount = eventProcessorSection.ProjectionEventFetchCount;
             configuration.ProjectionThreadCount = eventProcessorSection.ProjectionThreadCount;
             configuration.SequenceNumberTailThreadWorkerInterval = eventProcessorSection.SequenceNumberTailThreadWorkerInterval;
+            configuration.RegisterHandlers = eventProcessorSection.RegisterHandlers;
 
             configuration.DurationToSleepWhenIdle =
                 eventProcessorSection.DurationToSleepWhenIdle ??

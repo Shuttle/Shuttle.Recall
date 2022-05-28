@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading;
 using Moq;
+using Ninject;
 using NUnit.Framework;
+using Shuttle.Core.Container;
+using Shuttle.Core.Ninject;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.PipelineTransaction;
+using Shuttle.Core.Serialization;
+using Shuttle.Core.Streams;
 
 namespace Shuttle.Recall.Tests
 {
@@ -125,6 +131,106 @@ namespace Shuttle.Recall.Tests
             Assert.That(projection1.AggregationId, Is.EqualTo(projection2.AggregationId));
             Assert.That(projection3.AggregationId, Is.EqualTo(projection4.AggregationId));
             Assert.That(projection1.AggregationId, Is.Not.EqualTo(projection3.AggregationId));
+        }
+        
+        [Test]
+        public void Should_be_able_to_process_projections_timeously()
+        {
+            const int projectionEventCount = 10000;
+            const string projectionName = "projection-1";
+            var id = Guid.NewGuid();
+
+            var serializer = new DefaultSerializer();
+
+            var configuration = new EventStoreConfiguration
+            {
+                RegisterHandlers = true,
+                ProjectionEventFetchCount = 100,
+                SequenceNumberTailThreadWorkerInterval = 100,
+                ProjectionThreadCount = 1
+            };
+
+            var container = new NinjectComponentContainer(new StandardKernel());
+
+            var projectionEventProvider = new Mock<IProjectionEventProvider>();
+
+            var entry = 1;
+
+            projectionEventProvider.Setup(m => m.Get(It.IsAny<Projection>())).Returns(() =>
+            {
+                if (entry > projectionEventCount)
+                {
+                    return new ProjectionEvent(entry);
+                }
+
+                var primitiveEvent = entry % 2 == 0 ? new PrimitiveEvent
+                {
+                    EventType = typeof(EventA).FullName
+                } : new PrimitiveEvent
+                {
+                    EventType = typeof(EventB).FullName
+                };
+
+                var eventEnvelope = new EventEnvelope
+                {
+                    EventType = primitiveEvent.EventType,
+                    AssemblyQualifiedName = entry % 2 == 0 ? typeof(EventA).AssemblyQualifiedName : typeof(EventB).AssemblyQualifiedName,
+                    Event = serializer.Serialize(entry % 2 == 0 ? new EventA { Entry = entry } : new EventB { Entry = entry }).ToBytes(),
+                    EventId = Guid.NewGuid(),
+                    Version = entry,
+                    EventDate = DateTime.Now,
+                };
+
+                primitiveEvent.Id = id;
+                primitiveEvent.DateRegistered = DateTime.Now;
+                primitiveEvent.EventId = Guid.NewGuid();
+                primitiveEvent.SequenceNumber = entry;
+                primitiveEvent.Version = entry;
+                primitiveEvent.EventEnvelope = serializer.Serialize(eventEnvelope).ToBytes();
+
+                entry++;
+
+                return new ProjectionEvent(primitiveEvent);
+            });
+
+            var projectionRepository = new Mock<IProjectionRepository>();
+
+            projectionRepository.Setup(m => m.Find(projectionName)).Returns(new Projection(projectionName, 0));
+
+            container.RegisterInstance(projectionRepository.Object);
+            container.RegisterInstance(projectionEventProvider.Object);
+
+            container.RegisterEventStore(configuration);
+
+            var processor = container.Resolve<IEventProcessor>();
+
+            var projection = processor.AddProjection(projectionName);
+            var projectionAggregation = processor.GetProjectionAggregation(projection.AggregationId);
+
+            var eventHandler = new EventHandler();
+
+            projection.AddEventHandler(eventHandler);
+
+            try
+            {
+                processor.Start();
+
+                var now = DateTime.Now;
+                var timeout = now.AddSeconds(5);
+
+                while (eventHandler.Entry < projectionEventCount && DateTime.Now < timeout)
+                {
+                    Thread.Sleep(100);
+                }
+
+                Assert.That((DateTime.Now - now).TotalMilliseconds, Is.LessThan(2000));
+                Assert.That(projectionAggregation.IsEmpty, Is.True);
+                Assert.That(eventHandler.Entry, Is.EqualTo(projectionEventCount));
+            }
+            finally
+            {
+                processor.Stop();
+            }
         }
     }
 }

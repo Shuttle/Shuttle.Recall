@@ -85,21 +85,14 @@ namespace Shuttle.Recall
             }
         }
 
-        public long TrimSequenceNumberTail()
-        {
-            SequenceNumberTail = _projections.Min(item => item.Value.SequenceNumber);
-
-            return SequenceNumberTail;
-        }
-
         public void ProcessSequenceNumberTail()
         {
             lock (_lock)
             {
-                var sequenceNumberTail = _projections
+                SequenceNumberTail = _projections
                     .Min(pair => pair.Value.SequenceNumber);
                 var keys = _primitiveEvents
-                    .Where(pair => pair.Value.SequenceNumber <= sequenceNumberTail)
+                    .Where(pair => pair.Value.SequenceNumber <= SequenceNumberTail)
                     .Select(pair => pair.Key)
                     .ToList();
 

@@ -9,7 +9,7 @@ namespace Shuttle.Recall
         public EventEnvelope()
         {
             EventId = Guid.NewGuid();
-            EventDate = DateTime.Now;
+            EventDate = DateTime.UtcNow;
             Headers = new List<EnvelopeHeader>();
         }
 

@@ -22,7 +22,7 @@ namespace Shuttle.Recall
                 AssemblyQualifiedName = @event.GetType().AssemblyQualifiedName,
                 EncryptionAlgorithm = encryptionAlgorithm,
                 CompressionAlgorithm = compressionAlgorithm,
-                EventDate = DateTime.Now
+                EventDate = DateTime.UtcNow
             };
 
             result.Headers.Merge(Headers);

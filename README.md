@@ -1,6 +1,6 @@
 # Shuttle.Recall
 
-An .Net event-sourcing mechanism.
+A .Net event-sourcing mechanism.
 
 # Documentation
 

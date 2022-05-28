@@ -3,12 +3,13 @@
 <package>
 	<metadata>
 		<id>Shuttle.Recall</id>
-		<version>13.0.1</version>
+		<version>14.0.0</version>
 		<authors>Eben Roux</authors>
 		<owners>Eben Roux</owners>
 		<license type="expression">BSD-3-Clause</license>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<icon>images\logo.png</icon>
+		<readme>docs\README.md</readme>
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Recall.git" />
 		<description>Event sourcing mechanism</description>
 		<copyright>Copyright (c) 2022, Eben Roux</copyright>
@@ -31,6 +32,7 @@
 	</metadata>
 	<files>
 		<file src="..\..\..\.media\logo.png" target="images" />
+		<file src="..\..\..\README.md" target="docs\" />
 		<file src="lib\**\*.*" target="lib" />
 	</files>
 </package>
