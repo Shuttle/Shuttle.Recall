@@ -6,22 +6,182 @@ A .Net event-sourcing mechanism.
 
 If you would like to give `Shuttle.Recall` a spin you can [head over to our documentation](http://shuttle.github.io/shuttle-recall/) site.
 
-# Event Sourcing
+# Getting Started
 
-For some background you can have a look at the following:
+This guide demonstrates using Shuttle.Recall with a Sql Server implementation.
 
-- [Event Sourcing FAQs](http://cqrs.nu/Faq/event-sourcing)
-- [Event Sourcing (Martin Fowler)](http://martinfowler.com/eaaDev/EventSourcing.html)
-- [Event Sourcing Pattern (MSDN)](https://msdn.microsoft.com/en-us/library/dn589792.aspx)
+Start a new **Console Application** project called `RecallQuickstart` and select a Shuttle.Recall implementation:
 
-The basic premise of event sourcing is that we do not store only the latest state of a particular object but rather *rebuild* the state of the objects by applying each state change in the same sequence that the change occurred.
+```
+PM> Install-Package Shuttle.Recall.Sql.Storage
+```
 
-This is quite a departure from what one typically learns about storing data.  However, let's use the example of a financial account.  Each time we transact using an account the balance of the account changes.  However, we do not simply store only the balance.  We also store each transaction and the amount.  This means that we could "*lose*" the balance on an account but we would be able to determine the current balance by applying all the transactions to the balance in the order that they occurred. 
+Now we'll need select one of the [supported containers](https://shuttle.github.io/shuttle-core/container/shuttle-core-container.html#implementations):
 
-It is rather odd that we are quite happy with our traditional data storage for our everyday objects such as `Customer`, `Employee`, and `Address` where we simply store the current/latest state but we would never consider *not* storing the transactions when it comes to an account.  Accounting is a very established discipline and this is one of those cases where they got it spot on.
+```
+PM> Install-Package Shuttle.Core.Ninject
+```
 
-Even souring effectively does the same thing by storing all changes as a series of events.  However, it is not possible to get an overview of the state of the object by querying the events in the same way as we have no idea what the balance is at a particular point by simply querying some account transactions.
+Since we will be interacting with Sql Server we will be using the [Shuttle.Core.Data](https://shuttle.github.io/shuttle-core/data/shuttle-core-data.html) data access components as well as the `System.Data.Client` package:
 
-## CQRS != Event Sourcing
+```
+PM> Install-Package Shuttle.Core.Data
+PM> Install-Package System.Data.Client
+```
 
-Command/Query Responsibility Segregation relates to explicitly separating the command side of things (transactional / OLTP) from the querying (read / reporting / OLAP) side of things.  This, in no way, implies that event sourcing is a requirement in order to implement CQRS, though.  However, when implementing event sourcing you are definitely going to be implementing CQRS.
+Now we'll define the domain event that will represent a state change in the `Name` attribute:
+
+``` c#
+public class Renamed
+{
+    public string Name { get; set; }
+}
+```
+
+Next we'll create our `Aggregate Root` that will make use of an `EventStream` to save it's states:
+
+``` c#
+using System;
+using System.Collections.Generic;
+
+namespace RecallQuickstart
+{
+    public class AggregateRoot
+    {
+        public Guid Id { get; }
+        public string Name { get; private set; }
+
+        public List<string> AllNames { get; } = new List<string>();
+
+        public AggregateRoot(Guid id)
+        {
+            Id = id;
+        }
+
+        public Renamed Rename(string name)
+        {
+            return On(new Renamed
+            {
+                Name = name
+            });
+        }
+
+        private Renamed On(Renamed renamed)
+        {
+            Name = renamed.Name;
+
+            AllNames.Add(Name);
+
+            return renamed;
+        }
+    }
+}
+```
+
+Create a new Sql Server database called `RecallQuickstart` to store our events and execute the following creation script against that database:
+
+```
+%userprofile%\.nuget\packages\shuttle.recall.sql.storage\{version}\scripts\System.Data.SqlClient\EventStoreCreate.sql
+```
+
+Add the relevant `connectionString` to the `App.config` file:
+
+``` xml
+<configuration>
+  <connectionStrings>
+    <add 
+        name="EventStore" 
+        providerName="System.Data.SqlClient" 
+        connectionString="Data Source=.;Initial Catalog=RecallQuickstart;user id=sa;password=Pass!000" 
+    />
+  </connectionStrings>
+</configuration>
+```
+
+Next we'll use event sourcing to store an rehydrate our aggregate root from the `Main()` entry point:
+
+``` c#
+using System;
+using System.Data.Common;
+using System.Data.SqlClient;
+using Ninject;
+using Shuttle.Core.Data;
+using Shuttle.Core.Ninject;
+using Shuttle.Recall;
+using Shuttle.Recall.Sql.Storage;
+
+namespace RecallQuickstart
+{
+    internal class Program
+    {
+        private static void Main()
+        {
+            DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
+
+            var container = new NinjectComponentContainer(new StandardKernel());
+
+            // This registers the event store dependencies provided by Shuttle.Recall
+            container.RegisterEventStore();
+
+            // This registers the sql server implementations provided by Shuttle.Recall.Sql.Storage
+            container.RegisterEventStoreStorage();
+            
+            // This registers the ado.net components provided by Shuttle.Core.Data
+            container.RegisterDataAccess();
+
+            var databaseContextFactory = container.Resolve<IDatabaseContextFactory>();
+            var store = container.Resolve<IEventStore>();
+
+            var id = Guid.NewGuid();
+
+            // we can very easily also add unit tests for our aggregate in a separate project... done here as an example
+            var aggregateRoot1 = new AggregateRoot(id);
+            var stream1 = store.CreateEventStream(id);
+
+            stream1.AddEvent(aggregateRoot1.Rename("Name-1"));
+            stream1.AddEvent(aggregateRoot1.Rename("Name-2"));
+            stream1.AddEvent(aggregateRoot1.Rename("Name-3"));
+            stream1.AddEvent(aggregateRoot1.Rename("Name-4"));
+            stream1.AddEvent(aggregateRoot1.Rename("Name-5"));
+
+            if (aggregateRoot1.AllNames.Count != 5)
+            {
+                throw new ApplicationException();
+            }
+
+            if (!aggregateRoot1.Name.Equals("Name-5"))
+            {
+                throw new ApplicationException();
+            }
+
+            using (databaseContextFactory.Create("EventStore"))
+            {
+                store.Save(stream1);
+            }
+
+            var aggregateRoot2 = new AggregateRoot(id);
+
+            EventStream stream2;
+
+            using (databaseContextFactory.Create("EventStore"))
+            {
+                stream2 = store.Get(id);
+            }
+
+            stream2.Apply(aggregateRoot2);
+
+            if (aggregateRoot2.AllNames.Count != 5)
+            {
+                throw new ApplicationException();
+            }
+
+            if (!aggregateRoot2.Name.Equals("Name-5"))
+            {
+                throw new ApplicationException();
+            }
+        }
+    }
+}
+```
+
+Once you have executed the program you'll find the 5 relevant entries in the `EventStore` table in the database.
