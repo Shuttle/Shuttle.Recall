@@ -11,7 +11,7 @@
 		<icon>images\logo.png</icon>
 		<readme>docs\README.md</readme>
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Recall.git" />
-		<description>Event sourcing mechanism</description>
+		<description>Event sourcing mechanism.</description>
 		<copyright>Copyright (c) #{Year}#, Eben Roux</copyright>
 		<tags>eventsourcing eventsource event-sourcing event-source eventstore event-store</tags>
 		<dependencies>

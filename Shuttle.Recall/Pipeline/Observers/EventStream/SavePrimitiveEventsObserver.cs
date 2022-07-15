@@ -38,6 +38,7 @@ namespace Shuttle.Recall
             Guard.AgainstNull(eventEnvelopes, nameof(eventEnvelopes));
 
             var version = -1;
+            long sequenceNumber = 0;
 
             try
             {
@@ -45,7 +46,7 @@ namespace Shuttle.Recall
                 {
                     version = eventEnvelope.Version;
 
-                    _primitiveEventRepository.Save(new PrimitiveEvent
+                    sequenceNumber = _primitiveEventRepository.Save(new PrimitiveEvent
                     {
                         Id = eventStream.Id,
                         EventEnvelope = _serializer.Serialize(eventEnvelope).ToBytes(),
@@ -55,6 +56,16 @@ namespace Shuttle.Recall
                         Version = version,
                         DateRegistered = eventEnvelope.EventDate
                     });
+
+                    if (sequenceNumber > 0)
+                    {
+                        state.SetSequenceNumber(sequenceNumber);
+                    }
+                }
+
+                if (sequenceNumber < 1)
+                {
+                    state.SetSequenceNumber(_primitiveEventRepository.GetSequenceNumber(eventStream.Id));
                 }
             }
             catch (Exception ex)

@@ -2,6 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Logging;
@@ -12,7 +14,6 @@ namespace Shuttle.Recall
 {
     public class EventProcessor : IEventProcessor
     {
-        private readonly IEventStoreConfiguration _configuration;
         private readonly object _lock = new object();
         private readonly ILog _log;
         private readonly IPipelineFactory _pipelineFactory;
@@ -30,17 +31,21 @@ namespace Shuttle.Recall
         private CancellationTokenSource _cancellationTokenSource;
         private CancellationToken _cancellationToken;
         private volatile bool _started;
+        private readonly EventStoreOptions _eventStoreOptions;
 
-        public EventProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory,
+        private static readonly TimeSpan JoinTimeout = TimeSpan.FromSeconds(1);
+
+        public EventProcessor(IOptions<EventStoreOptions> eventStoreOptions, IPipelineFactory pipelineFactory,
             IProjectionRepository repository)
         {
-            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
+            Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
             Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
             Guard.AgainstNull(repository, nameof(repository));
 
             _pipelineFactory = pipelineFactory;
             _repository = repository;
-            _configuration = configuration;
+            _eventStoreOptions = eventStoreOptions.Value;
 
             _sequenceNumberTailThread = new Thread(SequenceNumberTailThreadWorker);
 
@@ -70,8 +75,9 @@ namespace Shuttle.Recall
             _processorThreadPool =
                 new ProcessorThreadPool(
                     "ProjectionProcessor",
-                    _configuration.ProjectionThreadCount,
-                    new ProjectionProcessorFactory(_configuration, _pipelineFactory, this)).Start();
+                    _eventStoreOptions.ProjectionThreadCount,
+                    JoinTimeout,
+                    new ProjectionProcessorFactory(_eventStoreOptions, _pipelineFactory, this)).Start();
 
             _sequenceNumberTailThread.Start();
 
@@ -198,7 +204,13 @@ namespace Shuttle.Recall
                     }
                 }
 
-                ThreadSleep.While(_configuration.SequenceNumberTailThreadWorkerInterval, _cancellationToken);
+                try
+                {
+                    Task.Delay(_eventStoreOptions.SequenceNumberTailThreadWorkerInterval, _cancellationToken).Wait(_cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                }
             }
         }
 
@@ -220,7 +232,7 @@ namespace Shuttle.Recall
 
             if (result == null)
             {
-                result = new ProjectionAggregation(_configuration.ProjectionEventFetchCount * 3);
+                result = new ProjectionAggregation(_eventStoreOptions.ProjectionEventFetchCount * 3);
 
                 _projectionAggregations.Add(result.Id, result);
             }
@@ -230,7 +242,7 @@ namespace Shuttle.Recall
 
         private bool ShouldAddProjection(string name)
         {
-            var result = _configuration.HasActiveProjection(name);
+            var result = _eventStoreOptions.HasActiveProjection(name);
 
             _log.Information(result
                 ? string.Format(Resources.InformationProjectionActive, name)

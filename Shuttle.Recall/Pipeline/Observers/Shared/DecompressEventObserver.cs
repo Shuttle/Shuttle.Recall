@@ -1,4 +1,5 @@
 ﻿using System;
+using Shuttle.Core.Compression;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
@@ -10,13 +11,13 @@ namespace Shuttle.Recall
 
     public class DecompressEventObserver : IDecompressEventObserver
     {
-        private readonly IEventStoreConfiguration _configuration;
+        private readonly ICompressionService _compressionService;
 
-        public DecompressEventObserver(IEventStoreConfiguration configuration)
+        public DecompressEventObserver(ICompressionService compressionService)
         {
-            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(compressionService, nameof(compressionService));
 
-            _configuration = configuration;
+            _compressionService = compressionService;
         }
 
         public void Execute(OnDecompressEvent pipelineEvent)
@@ -29,7 +30,7 @@ namespace Shuttle.Recall
                 return;
             }
 
-            var algorithm = _configuration.FindCompressionAlgorithm(eventEnvelope.CompressionAlgorithm);
+            var algorithm = _compressionService.Get(eventEnvelope.CompressionAlgorithm);
 
             if (algorithm == null)
             {

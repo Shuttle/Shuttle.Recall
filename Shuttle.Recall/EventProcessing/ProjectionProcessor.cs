@@ -11,16 +11,16 @@ namespace Shuttle.Recall
         private readonly IEventProcessor _eventProcessor;
         private readonly IThreadActivity _threadActivity;
 
-        public ProjectionProcessor(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory,
+        public ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory,
             IEventProcessor eventProcessor)
         {
-            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
             Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
             Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
 
             _pipelineFactory = pipelineFactory;
             _eventProcessor = eventProcessor;
-            _threadActivity = new ThreadActivity(configuration.DurationToSleepWhenIdle);
+            _threadActivity = new ThreadActivity(eventStoreOptions.DurationToSleepWhenIdle);
         }
 
         public void Execute(CancellationToken cancellationToken)
