@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Logging;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
 
@@ -15,7 +13,6 @@ namespace Shuttle.Recall
     public class EventProcessor : IEventProcessor
     {
         private readonly object _lock = new object();
-        private readonly ILog _log;
         private readonly IPipelineFactory _pipelineFactory;
 
         private readonly Dictionary<Guid, ProjectionAggregation> _projectionAggregations =
@@ -48,8 +45,6 @@ namespace Shuttle.Recall
             _eventStoreOptions = eventStoreOptions.Value;
 
             _sequenceNumberTailThread = new Thread(SequenceNumberTailThreadWorker);
-
-            _log = Log.For(this);
         }
 
         public void Dispose()
@@ -118,7 +113,7 @@ namespace Shuttle.Recall
                 throw new EventProcessingException(string.Format(Resources.DuplicateProjectionName, name));
             }
 
-            if (!ShouldAddProjection(name))
+            if (!_eventStoreOptions.HasActiveProjection(name))
             {
                 return null;
             }
@@ -238,25 +233,6 @@ namespace Shuttle.Recall
             }
 
             result.Add(projection);
-        }
-
-        private bool ShouldAddProjection(string name)
-        {
-            var result = _eventStoreOptions.HasActiveProjection(name);
-
-            _log.Information(result
-                ? string.Format(Resources.InformationProjectionActive, name)
-                : string.Format(Resources.InformationProjectionIgnored, name));
-
-            return result;
-        }
-
-        [Obsolete("Please create an instance using `IComponentResolver.Resolve<IEventProcessor>()`.")]
-        public static IEventProcessor Create(IComponentResolver resolver)
-        {
-            Guard.AgainstNull(resolver, nameof(resolver));
-
-            return resolver.Resolve<IEventProcessor>();
         }
     }
 }
