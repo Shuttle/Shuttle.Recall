@@ -1,6 +1,4 @@
-﻿using System;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Logging;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
@@ -11,13 +9,6 @@ namespace Shuttle.Recall
 
     public class ProcessEventObserver : IProcessEventObserver
     {
-        private readonly ILog _log;
-
-        public ProcessEventObserver()
-        {
-            _log = Log.For(this);
-        }
-
         public void Execute(OnProcessEvent pipelineEvent)
         {
             var state = pipelineEvent.Pipeline.State;

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Logging;
 using Shuttle.Core.Reflection;
 
 namespace Shuttle.Recall
@@ -12,7 +11,6 @@ namespace Shuttle.Recall
         private static readonly Type EventHandlerType = typeof(IEventHandler<>);
         private readonly Dictionary<Type, object> _eventHandlers = new Dictionary<Type, object>();
 
-        private readonly ILog _log;
         private Guid? _projectionsQueueId;
 
         public Projection(string name, long sequenceNumber)
@@ -22,8 +20,6 @@ namespace Shuttle.Recall
             Name = name;
             SequenceNumber = sequenceNumber;
             AggregationId = Guid.Empty;
-
-            _log = Log.For(this);
         }
 
         public string Name { get; }
@@ -87,12 +83,6 @@ namespace Shuttle.Recall
             {
                 if (!HandlesType(domainEventType))
                 {
-                    if (Log.IsTraceEnabled)
-                    {
-                        _log.Trace(string.Format(Resources.TraceTypeNotHandled, Name,
-                            eventEnvelope.AssemblyQualifiedName));
-                    }
-
                     return;
                 }
 

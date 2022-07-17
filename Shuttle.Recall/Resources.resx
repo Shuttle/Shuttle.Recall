@@ -210,10 +210,6 @@
     <value>Type '{0}' is not registered with the serializer so it cannot be serialized.  Please use [SerialierInstance].EnqueueKnownType to add the type before attempting to serialize or deserialize a EventEnvelope containing this type in the object graph of the message property.</value>
     <comment>{0} = type name that is unknown.</comment>
   </data>
-  <data name="TraceTypeNotHandled" xml:space="preserve">
-    <value>Projection '{0}' does not handle type '{1}'.</value>
-    <comment>{0} = projection name, {1} = event type</comment>
-  </data>
   <data name="TransactionAlreadyStartedException" xml:space="preserve">
     <value>Call to '{0}.{1}' already contains an active TransactionScope.</value>
     <comment>{0} = full type name, {1} = method name</comment>
