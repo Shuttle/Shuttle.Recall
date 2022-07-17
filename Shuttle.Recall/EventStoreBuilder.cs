@@ -11,10 +11,15 @@ namespace Shuttle.Recall
     {
         private static readonly Type EventHandlerType = typeof(IEventHandler<>);
 
+        private EventStoreConfiguration _eventStoreConfiguration = new EventStoreConfiguration(); 
         private EventStoreOptions _eventStoreOptions = new EventStoreOptions();
-        private Dictionary<string, List<Type>> _projectionNameEventHandlerTypes = new Dictionary<string, List<Type>>();
-        private Dictionary<Projection, List<Type>> _projectionEventHandlerTypes = new Dictionary<Projection, List<Type>>();
 
+        public EventStoreConfiguration Configuration
+        {
+            get => _eventStoreConfiguration;
+            set => _eventStoreConfiguration = value ?? throw new ArgumentNullException(nameof(value));
+        }
+        
         public EventStoreOptions Options
         {
             get => _eventStoreOptions;
@@ -56,17 +61,7 @@ namespace Shuttle.Recall
 
             Services.AddTransient(type, type);
 
-            if (!_projectionNameEventHandlerTypes.ContainsKey(projectionName))
-            {
-                _projectionNameEventHandlerTypes.Add(projectionName, new List<Type>());
-            }
-
-            _projectionNameEventHandlerTypes[projectionName].Add(type);
-
-            //resolver
-            //    .Resolve<IEventProcessor>()
-            //    .GetProjection(projectionName)
-            //    .AddEventHandler(resolver.Resolve<TEventHandler>());
+            Configuration.AddProjectionEventHandlerType(projectionName, type);
 
             return this;
         }
@@ -80,17 +75,9 @@ namespace Shuttle.Recall
 
             Services.AddTransient(type, type);
 
-            if (!_projectionEventHandlerTypes.ContainsKey(projection))
-            {
-                _projectionEventHandlerTypes.Add(projection, new List<Type>());
-            }
-
-            _projectionEventHandlerTypes[projection].Add(type);
-
-            //projection.AddEventHandler(resolver.Resolve<TEventHandler>());
+            Configuration.AddProjectionEventHandlerType(projection.Name, type);
 
             return this;
         }
-
     }
 }

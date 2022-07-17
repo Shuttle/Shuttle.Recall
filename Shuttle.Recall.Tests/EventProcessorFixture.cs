@@ -25,7 +25,12 @@ namespace Shuttle.Recall.Tests
                     new Mock<IProjectionEventEnvelopeObserver>().Object,
                     new Mock<IProcessEventObserver>().Object,
                     new Mock<IAcknowledgeEventObserver>().Object,
-                    new Mock<ITransactionScopeObserver>().Object));
+                    new Mock<ITransactionScopeObserver>().Object)
+            );
+
+            pipelineFactory.Setup(m => m.GetPipeline<EventProcessorStartupPipeline>()).Returns(
+                new EventProcessorStartupPipeline(new Mock<IStartupEventProcessingObserver>().Object)
+            );
 
             var projectionRepository = new Mock<IProjectionRepository>();
 
@@ -33,7 +38,7 @@ namespace Shuttle.Recall.Tests
 
             var eventStoreOptions = Options.Create(new EventStoreOptions
             {
-                ProjectionEventFetchCount=100,
+                ProjectionEventFetchCount = 100,
                 SequenceNumberTailThreadWorkerInterval = TimeSpan.FromMilliseconds(100),
                 ProjectionThreadCount = 1
             });
@@ -76,7 +81,8 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_get_round_robin_projections()
         {
-            var processor = new EventProcessor(Options.Create(new EventStoreOptions()), new Mock<IPipelineFactory>().Object, new Mock<IProjectionRepository>().Object);
+            var processor = new EventProcessor(Options.Create(new EventStoreOptions()),
+                new Mock<IPipelineFactory>().Object, new Mock<IProjectionRepository>().Object);
 
             processor.AddProjection("projection-1");
             processor.AddProjection("projection-2");
@@ -101,7 +107,8 @@ namespace Shuttle.Recall.Tests
             Assert.That(processor.GetProjection(), Is.Not.Null);
             Assert.That(processor.GetProjection(), Is.Null);
 
-            Assert.That(() => processor.ReleaseProjection(new Projection("fail", 1)), Throws.TypeOf<InvalidOperationException>());
+            Assert.That(() => processor.ReleaseProjection(new Projection("fail", 1)),
+                Throws.TypeOf<InvalidOperationException>());
         }
 
         [Test]
@@ -119,7 +126,8 @@ namespace Shuttle.Recall.Tests
             projectionRepository.Setup(m => m.Find("projection-3")).Returns(new Projection("projection-3", 301));
             projectionRepository.Setup(m => m.Find("projection-4")).Returns(new Projection("projection-4", 600));
 
-            var processor = new EventProcessor(eventStoreOptions, new Mock<IPipelineFactory>().Object, projectionRepository.Object);
+            var processor = new EventProcessor(eventStoreOptions, new Mock<IPipelineFactory>().Object,
+                projectionRepository.Object);
 
             var projection1 = processor.AddProjection("projection-1");
             var projection2 = processor.AddProjection("projection-2");
@@ -130,7 +138,7 @@ namespace Shuttle.Recall.Tests
             Assert.That(projection3.AggregationId, Is.EqualTo(projection4.AggregationId));
             Assert.That(projection1.AggregationId, Is.Not.EqualTo(projection3.AggregationId));
         }
-        
+
         [Test]
         public void Should_be_able_to_process_projections_timeously()
         {
@@ -161,22 +169,28 @@ namespace Shuttle.Recall.Tests
                     return new ProjectionEvent(entry);
                 }
 
-                var primitiveEvent = entry % 2 == 0 ? new PrimitiveEvent
-                {
-                    EventType = typeof(EventA).FullName
-                } : new PrimitiveEvent
-                {
-                    EventType = typeof(EventB).FullName
-                };
+                var primitiveEvent = entry % 2 == 0
+                    ? new PrimitiveEvent
+                    {
+                        EventType = typeof(EventA).FullName
+                    }
+                    : new PrimitiveEvent
+                    {
+                        EventType = typeof(EventB).FullName
+                    };
 
                 var eventEnvelope = new EventEnvelope
                 {
                     EventType = primitiveEvent.EventType,
-                    AssemblyQualifiedName = entry % 2 == 0 ? typeof(EventA).AssemblyQualifiedName : typeof(EventB).AssemblyQualifiedName,
-                    Event = serializer.Serialize(entry % 2 == 0 ? new EventA { Entry = entry } : new EventB { Entry = entry }).ToBytes(),
+                    AssemblyQualifiedName = entry % 2 == 0
+                        ? typeof(EventA).AssemblyQualifiedName
+                        : typeof(EventB).AssemblyQualifiedName,
+                    Event = serializer
+                        .Serialize(entry % 2 == 0 ? new EventA { Entry = entry } : new EventB { Entry = entry })
+                        .ToBytes(),
                     EventId = Guid.NewGuid(),
                     Version = entry,
-                    EventDate = DateTime.Now,
+                    EventDate = DateTime.Now
                 };
 
                 primitiveEvent.Id = id;

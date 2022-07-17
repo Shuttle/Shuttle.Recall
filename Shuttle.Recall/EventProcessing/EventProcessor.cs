@@ -12,6 +12,8 @@ namespace Shuttle.Recall
 {
     public class EventProcessor : IEventProcessor
     {
+        private static readonly TimeSpan JoinTimeout = TimeSpan.FromSeconds(1);
+        private readonly EventStoreOptions _eventStoreOptions;
         private readonly object _lock = new object();
         private readonly IPipelineFactory _pipelineFactory;
 
@@ -24,13 +26,10 @@ namespace Shuttle.Recall
         private readonly IProjectionRepository _repository;
 
         private readonly Thread _sequenceNumberTailThread;
-        private IProcessorThreadPool _processorThreadPool;
-        private CancellationTokenSource _cancellationTokenSource;
         private CancellationToken _cancellationToken;
+        private CancellationTokenSource _cancellationTokenSource;
+        private IProcessorThreadPool _processorThreadPool;
         private volatile bool _started;
-        private readonly EventStoreOptions _eventStoreOptions;
-
-        private static readonly TimeSpan JoinTimeout = TimeSpan.FromSeconds(1);
 
         public EventProcessor(IOptions<EventStoreOptions> eventStoreOptions, IPipelineFactory pipelineFactory,
             IProjectionRepository repository)
@@ -63,6 +62,8 @@ namespace Shuttle.Recall
             {
                 projectionAggregation.AddEventTypes();
             }
+
+            _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>().Execute();
 
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
@@ -137,7 +138,7 @@ namespace Shuttle.Recall
 
             return projection;
         }
-        
+
         public Projection GetProjection(string name)
         {
             Guard.AgainstNullOrEmptyString(name, nameof(name));
@@ -201,7 +202,8 @@ namespace Shuttle.Recall
 
                 try
                 {
-                    Task.Delay(_eventStoreOptions.SequenceNumberTailThreadWorkerInterval, _cancellationToken).Wait(_cancellationToken);
+                    Task.Delay(_eventStoreOptions.SequenceNumberTailThreadWorkerInterval, _cancellationToken)
+                        .Wait(_cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {

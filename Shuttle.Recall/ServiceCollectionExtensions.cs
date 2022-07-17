@@ -72,6 +72,13 @@ namespace Shuttle.Recall
                 }
             }
 
+            var eventStoreConfigurationType = typeof(IEventStoreConfiguration);
+
+            if (services.All(item => item.ServiceType != eventStoreConfigurationType))
+            {
+                services.AddSingleton<IEventStoreConfiguration>(eventStoreBuilder.Configuration);
+            }
+
             return services;
         }
     }
