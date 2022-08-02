@@ -150,7 +150,6 @@ namespace Shuttle.Recall.Tests
 
             var eventStoreOptions = Options.Create(new EventStoreOptions
             {
-                AddEventHandlers = true,
                 ProjectionEventFetchCount = 100,
                 SequenceNumberTailThreadWorkerInterval = TimeSpan.FromMilliseconds(100),
                 ProjectionThreadCount = 1

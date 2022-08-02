@@ -25,8 +25,6 @@ namespace Shuttle.Recall
         public int ProjectionThreadCount { get; set; } = 5;
         public TimeSpan SequenceNumberTailThreadWorkerInterval { get; set; } = TimeSpan.FromSeconds(5);
 
-        public bool AddEventHandlers { get; set; } = true;
-
         public string EncryptionAlgorithm { get; set; }
         public string CompressionAlgorithm { get; set; }
     }

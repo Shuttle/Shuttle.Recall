@@ -1,32 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Reflection;
 
 namespace Shuttle.Recall
 {
     public class EventStoreBuilder
     {
-        private static readonly Type EventHandlerType = typeof(IEventHandler<>);
-
-        private EventStoreConfiguration _eventStoreConfiguration = new EventStoreConfiguration(); 
+        private EventStoreConfiguration _eventStoreConfiguration = new EventStoreConfiguration();
         private EventStoreOptions _eventStoreOptions = new EventStoreOptions();
-
-        public EventStoreConfiguration Configuration
-        {
-            get => _eventStoreConfiguration;
-            set => _eventStoreConfiguration = value ?? throw new ArgumentNullException(nameof(value));
-        }
-        
-        public EventStoreOptions Options
-        {
-            get => _eventStoreOptions;
-            set => _eventStoreOptions = value ?? throw new ArgumentNullException(nameof(value));
-        }
-
-        public IServiceCollection Services { get; }
 
         public EventStoreBuilder(IServiceCollection services)
         {
@@ -35,22 +16,19 @@ namespace Shuttle.Recall
             Services = services;
         }
 
-        public EventStoreBuilder AddEventHandlers(Assembly assembly)
+        public EventStoreConfiguration Configuration
         {
-            Guard.AgainstNull(assembly, nameof(assembly));
-
-            var reflectionService = new ReflectionService();
-
-            foreach (var type in reflectionService.GetTypesAssignableTo(EventHandlerType, assembly))
-            {
-                if (!Services.Contains(ServiceDescriptor.Transient(type, type)))
-                {
-                    Services.AddTransient(type, type);
-                }
-            }
-
-            return this;
+            get => _eventStoreConfiguration;
+            set => _eventStoreConfiguration = value ?? throw new ArgumentNullException(nameof(value));
         }
+
+        public EventStoreOptions Options
+        {
+            get => _eventStoreOptions;
+            set => _eventStoreOptions = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+        public IServiceCollection Services { get; }
 
         public EventStoreBuilder AddEventHandler<TEventHandler>(string projectionName)
             where TEventHandler : class

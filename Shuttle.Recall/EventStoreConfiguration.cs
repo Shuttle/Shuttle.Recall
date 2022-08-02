@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
@@ -24,6 +25,13 @@ namespace Shuttle.Recall
         public IEnumerable<string> GetProjectionNames()
         {
             return _projectionNameEventHandlerTypes.Keys;
+        }
+
+        public IEnumerable<Type> GetEventHandlerTypes(string projectionName)
+        {
+            Guard.AgainstNullOrEmptyString(projectionName, nameof(projectionName));
+
+            return _projectionNameEventHandlerTypes[projectionName] ?? Enumerable.Empty<Type>();
         }
     }
 }

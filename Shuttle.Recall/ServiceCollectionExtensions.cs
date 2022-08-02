@@ -47,8 +47,6 @@ namespace Shuttle.Recall
 
             services.AddOptions<EventStoreOptions>().Configure(options =>
             {
-                options.AddEventHandlers = eventStoreBuilder.Options.AddEventHandlers;
-                
                 options.SequenceNumberTailThreadWorkerInterval = eventStoreBuilder.Options.SequenceNumberTailThreadWorkerInterval.TotalMilliseconds > 100
                     ? eventStoreBuilder.Options.SequenceNumberTailThreadWorkerInterval
                     : TimeSpan.FromMilliseconds(100);
@@ -63,14 +61,6 @@ namespace Shuttle.Recall
 
                 options.DurationToSleepWhenIdle = eventStoreBuilder.Options.DurationToSleepWhenIdle;
             });
-
-            if (eventStoreBuilder.Options.AddEventHandlers)
-            {
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    eventStoreBuilder.AddEventHandlers(assembly);
-                }
-            }
 
             var eventStoreConfigurationType = typeof(IEventStoreConfiguration);
 
