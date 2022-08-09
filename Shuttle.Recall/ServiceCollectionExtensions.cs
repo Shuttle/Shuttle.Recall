@@ -73,7 +73,8 @@ namespace Shuttle.Recall
                 services.AddSingleton<IEventStoreConfiguration>(eventStoreBuilder.Configuration);
             }
 
-            if (!eventStoreBuilder.SuppressHostedService)
+            if (!eventStoreBuilder.SuppressEventProcessorHostedService &&
+                eventStoreBuilder.Configuration.GetProjectionNames().Any())
             {
                 services.AddHostedService<EventProcessorHostedService>();
             }

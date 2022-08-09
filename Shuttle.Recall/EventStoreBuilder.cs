@@ -29,7 +29,7 @@ namespace Shuttle.Recall
         }
 
         public IServiceCollection Services { get; }
-        public bool SuppressHostedService { get; set; }
+        public bool SuppressEventProcessorHostedService { get; set; }
 
         public EventStoreBuilder AddEventHandler<TEventHandler>(string projectionName)
             where TEventHandler : class
