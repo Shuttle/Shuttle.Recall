@@ -39,8 +39,12 @@ namespace Shuttle.Recall
                 services.AddTransactionScope();
             }
 
-            services.AddPipelineProcessing(typeof(EventStore).Assembly);
-            services.AddPipelineTransaction();
+            services.AddPipelineProcessing(pipelineProcessingBuilder =>
+            {
+                pipelineProcessingBuilder
+                    .AddAssembly(typeof(EventStore).Assembly)
+                    .AddTransactions();
+            });
 
             services.TryAddSingleton<IEventStore, EventStore>();
             services.TryAddSingleton<IEventProcessor, EventProcessor>();
@@ -67,6 +71,11 @@ namespace Shuttle.Recall
             if (services.All(item => item.ServiceType != eventStoreConfigurationType))
             {
                 services.AddSingleton<IEventStoreConfiguration>(eventStoreBuilder.Configuration);
+            }
+
+            if (!eventStoreBuilder.SuppressHostedService)
+            {
+                services.AddHostedService<EventProcessorHostedService>();
             }
 
             return services;
