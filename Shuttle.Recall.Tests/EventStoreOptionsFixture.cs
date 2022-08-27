@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 
@@ -31,6 +32,17 @@ namespace Shuttle.Recall.Tests
 
             Assert.That(options.ActiveProjections, Is.Not.Null);
             Assert.That(options.ActiveProjections.Count, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void Should_be_able_to_load_a_processor_thread_options()
+        {
+            var options = GetOptions();
+
+            Assert.IsNotNull(options);
+            Assert.That(options.ProcessorThread.IsBackground, Is.False);
+            Assert.That(options.ProcessorThread.JoinTimeout, Is.EqualTo(TimeSpan.FromSeconds(15)));
+            Assert.That(options.ProcessorThread.Priority, Is.EqualTo(ThreadPriority.Lowest));
         }
     }
 }

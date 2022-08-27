@@ -72,8 +72,8 @@ namespace Shuttle.Recall
                 new ProcessorThreadPool(
                     "ProjectionProcessor",
                     _eventStoreOptions.ProjectionThreadCount,
-                    JoinTimeout,
-                    new ProjectionProcessorFactory(_eventStoreOptions, _pipelineFactory, this)).Start();
+                    new ProjectionProcessorFactory(_eventStoreOptions, _pipelineFactory, this),
+                    _eventStoreOptions.ProcessorThread).Start();
 
             _sequenceNumberTailThread.Start();
 

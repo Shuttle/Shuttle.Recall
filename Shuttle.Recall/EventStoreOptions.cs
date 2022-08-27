@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall
 {
@@ -27,5 +28,7 @@ namespace Shuttle.Recall
 
         public string EncryptionAlgorithm { get; set; }
         public string CompressionAlgorithm { get; set; }
+
+        public ProcessorThreadOptions ProcessorThread { get; set; } = new ProcessorThreadOptions();
     }
 }

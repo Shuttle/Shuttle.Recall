@@ -8,7 +8,6 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Encryption;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.PipelineTransaction;
-using Shuttle.Core.Reflection;
 using Shuttle.Core.Serialization;
 using Shuttle.Core.Transactions;
 
@@ -64,6 +63,8 @@ namespace Shuttle.Recall
                     : 1;
 
                 options.DurationToSleepWhenIdle = eventStoreBuilder.Options.DurationToSleepWhenIdle;
+
+                options.ProcessorThread = eventStoreBuilder.Options.ProcessorThread;
             });
 
             var eventStoreConfigurationType = typeof(IEventStoreConfiguration);
