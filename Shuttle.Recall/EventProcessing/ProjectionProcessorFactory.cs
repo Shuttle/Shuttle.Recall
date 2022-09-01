@@ -6,24 +6,24 @@ namespace Shuttle.Recall
 {
     public class ProjectionProcessorFactory : IProcessorFactory
     {
-        private readonly IEventStoreConfiguration _configuration;
+        private readonly EventStoreOptions _eventStoreOptions;
         private readonly IPipelineFactory _pipelineFactory;
         private readonly EventProcessor _eventProcessor;
 
-        public ProjectionProcessorFactory(IEventStoreConfiguration configuration, IPipelineFactory pipelineFactory, EventProcessor eventProcessor)
+        public ProjectionProcessorFactory(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory, EventProcessor eventProcessor)
         {
-            Guard.AgainstNull(configuration,nameof(configuration));
+            Guard.AgainstNull(eventStoreOptions,nameof(eventStoreOptions));
             Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
             Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
 
-            _configuration = configuration;
+            _eventStoreOptions = eventStoreOptions;
             _pipelineFactory = pipelineFactory;
             _eventProcessor = eventProcessor;
         }
 
         public IProcessor Create()
         {
-            return new ProjectionProcessor(_configuration, _pipelineFactory, _eventProcessor);
+            return new ProjectionProcessor(_eventStoreOptions, _pipelineFactory, _eventProcessor);
         }
     }
 }

@@ -156,5 +156,15 @@ namespace Shuttle.Recall
         {
             state.Replace(StateKeys.Id, id);
         }
+
+        public static long GetSequenceNumber(this IState state)
+        {
+            return state.Get<long>(StateKeys.SequenceNumber);
+        }
+
+        public static void SetSequenceNumber(this IState state, long sequenceNumber)
+        {
+            state.Replace(StateKeys.SequenceNumber, sequenceNumber);
+        }
     }
 }

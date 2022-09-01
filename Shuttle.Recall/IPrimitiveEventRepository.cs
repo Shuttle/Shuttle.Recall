@@ -8,6 +8,7 @@ namespace Shuttle.Recall
         void Remove(Guid id);
         IEnumerable<PrimitiveEvent> Get(Guid id);
         IEnumerable<PrimitiveEvent> Fetch(long fromSequenceNumber, int count, IEnumerable<Type> eventTypes);
-        void Save(PrimitiveEvent primitiveEvent);
+        long Save(PrimitiveEvent primitiveEvent);
+        long GetSequenceNumber(Guid id);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 
@@ -27,8 +28,7 @@ namespace Shuttle.Recall.Tests
 
             eventProcessor.Setup(m => m.GetProjectionAggregation(It.IsAny<Guid>())).Returns(projectionAggregation);
 
-            var configuration = new Mock<IEventStoreConfiguration>();
-            var provider = new ProjectionEventProvider(configuration.Object, eventProcessor.Object, GetRepository());
+            var provider = new ProjectionEventProvider(Options.Create(new EventStoreOptions()), eventProcessor.Object, GetRepository());
 
             ProjectionEvent projectionEvent;
 

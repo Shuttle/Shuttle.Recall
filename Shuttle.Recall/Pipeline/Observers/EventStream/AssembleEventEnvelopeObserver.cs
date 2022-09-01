@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Contract;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
@@ -9,13 +10,14 @@ namespace Shuttle.Recall
 
     public class AssembleEventEnvelopeObserver : IAssembleEventEnvelopeObserver
     {
-        private readonly IEventStoreConfiguration _configuration;
+        private readonly EventStoreOptions _options;
 
-        public AssembleEventEnvelopeObserver(IEventStoreConfiguration configuration)
+        public AssembleEventEnvelopeObserver(IOptions<EventStoreOptions> options)
         {
-            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(options, nameof(options));
+            Guard.AgainstNull(options.Value, nameof(options.Value));
 
-            _configuration = configuration;
+            _options = options.Value;
         }
 
         public void Execute(OnAssembleEventEnvelope pipelineEvent)
@@ -33,8 +35,8 @@ namespace Shuttle.Recall
                 IsSnapshot = domainEvent.IsSnapshot,
                 Version = domainEvent.Version,
                 AssemblyQualifiedName = domainEvent.Event.GetType().AssemblyQualifiedName,
-                EncryptionAlgorithm = _configuration.EncryptionAlgorithm,
-                CompressionAlgorithm = _configuration.CompressionAlgorithm
+                EncryptionAlgorithm = _options.EncryptionAlgorithm,
+                CompressionAlgorithm = _options.CompressionAlgorithm
             };
 
             if (configurator != null)

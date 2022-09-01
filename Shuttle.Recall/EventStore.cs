@@ -1,5 +1,4 @@
 ﻿using System;
-using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
@@ -40,12 +39,12 @@ namespace Shuttle.Recall
             }
         }
 
-        public void Save(EventStream eventStream)
+        public long Save(EventStream eventStream)
         {
-            Save(eventStream, null);
+            return Save(eventStream, null);
         }
 
-        public void Save(EventStream eventStream, Action<EventEnvelopeConfigurator> configure)
+        public long Save(EventStream eventStream, Action<EventEnvelopeConfigurator> configure)
         {
             Guard.AgainstNull(eventStream, nameof(eventStream));
 
@@ -53,12 +52,12 @@ namespace Shuttle.Recall
             {
                 Remove(eventStream.Id);
 
-                return;
+                return -1;
             }
 
             if (!eventStream.ShouldSave())
             {
-                return;
+                return -1;
             }
 
             var pipeline = _pipelineFactory.GetPipeline<SaveEventStreamPipeline>();
@@ -70,6 +69,8 @@ namespace Shuttle.Recall
                 configure?.Invoke(configurator);
 
                 pipeline.Execute(eventStream, configurator);
+
+                return pipeline.State.GetSequenceNumber();
             }
             finally
             {
@@ -101,20 +102,6 @@ namespace Shuttle.Recall
         public EventStream CreateEventStream()
         {
             return CreateEventStream(Guid.NewGuid());
-        }
-
-        [Obsolete("This method has been replaced by `ComponentRegistryExtensions.RegisterEventStore()`.", false)]
-        public static IEventStoreConfiguration Register(IComponentRegistry registry)
-        {
-            return registry.RegisterEventStore();
-        }
-
-        [Obsolete("Please create an instance using `IComponentResolver.Resolve<IEventStore>()`.")]
-        public static IEventStore Create(IComponentResolver resolver)
-        {
-            Guard.AgainstNull(resolver, nameof(resolver));
-
-            return resolver.Resolve<IEventStore>();
         }
     }
 }

@@ -145,4 +145,16 @@ namespace Shuttle.Recall
     public class OnAfterEncryptEvent : PipelineEvent
     {
     }
+
+    public class OnBeforeStartEventProcessingEvent : PipelineEvent
+    {
+    }
+
+    public class OnStartEventProcessingEvent : PipelineEvent
+    {
+    }
+
+    public class OnAfterStartEventProcessingEvent : PipelineEvent
+    {
+    }
 }

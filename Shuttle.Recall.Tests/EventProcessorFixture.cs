@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Reflection;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
-using Ninject;
 using NUnit.Framework;
-using Shuttle.Core.Container;
-using Shuttle.Core.Ninject;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.PipelineTransaction;
 using Shuttle.Core.Serialization;
@@ -19,12 +17,6 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_process_sequence_number_tail()
         {
-            var configuration = new Mock<IEventStoreConfiguration>();
-
-            configuration.Setup(m => m.ProjectionEventFetchCount).Returns(100);
-            configuration.Setup(m => m.SequenceNumberTailThreadWorkerInterval).Returns(100);
-            configuration.Setup(m => m.ProjectionThreadCount).Returns(1);
-
             var pipelineFactory = new Mock<IPipelineFactory>();
 
             pipelineFactory.Setup(m => m.GetPipeline<EventProcessingPipeline>()).Returns(
@@ -33,13 +25,25 @@ namespace Shuttle.Recall.Tests
                     new Mock<IProjectionEventEnvelopeObserver>().Object,
                     new Mock<IProcessEventObserver>().Object,
                     new Mock<IAcknowledgeEventObserver>().Object,
-                    new Mock<ITransactionScopeObserver>().Object));
+                    new Mock<ITransactionScopeObserver>().Object)
+            );
+
+            pipelineFactory.Setup(m => m.GetPipeline<EventProcessorStartupPipeline>()).Returns(
+                new EventProcessorStartupPipeline(new Mock<IStartupEventProcessingObserver>().Object)
+            );
 
             var projectionRepository = new Mock<IProjectionRepository>();
 
             projectionRepository.Setup(m => m.Find("projection-1")).Returns(new Projection("projection-1", 200));
 
-            var processor = new EventProcessor(configuration.Object, pipelineFactory.Object, projectionRepository.Object);
+            var eventStoreOptions = Options.Create(new EventStoreOptions
+            {
+                ProjectionEventFetchCount = 100,
+                SequenceNumberTailThreadWorkerInterval = TimeSpan.FromMilliseconds(100),
+                ProjectionThreadCount = 1
+            });
+
+            var processor = new EventProcessor(eventStoreOptions, pipelineFactory.Object, projectionRepository.Object);
             var projection = processor.AddProjection("projection-1");
             var projectionAggregation = processor.GetProjectionAggregation(projection.AggregationId);
 
@@ -77,7 +81,7 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_get_round_robin_projections()
         {
-            var processor = new EventProcessor(new Mock<IEventStoreConfiguration>().Object,
+            var processor = new EventProcessor(Options.Create(new EventStoreOptions()),
                 new Mock<IPipelineFactory>().Object, new Mock<IProjectionRepository>().Object);
 
             processor.AddProjection("projection-1");
@@ -103,15 +107,17 @@ namespace Shuttle.Recall.Tests
             Assert.That(processor.GetProjection(), Is.Not.Null);
             Assert.That(processor.GetProjection(), Is.Null);
 
-            Assert.That(() => processor.ReleaseProjection(new Projection("fail", 1)), Throws.TypeOf<InvalidOperationException>());
+            Assert.That(() => processor.ReleaseProjection(new Projection("fail", 1)),
+                Throws.TypeOf<InvalidOperationException>());
         }
 
         [Test]
         public void Should_be_able_to_place_projection_into_clustered_aggregation()
         {
-            var configuration = new Mock<IEventStoreConfiguration>();
-
-            configuration.Setup(m => m.ProjectionEventFetchCount).Returns(100);
+            var eventStoreOptions = Options.Create(new EventStoreOptions
+            {
+                ProjectionEventFetchCount = 100
+            });
 
             var projectionRepository = new Mock<IProjectionRepository>();
 
@@ -120,8 +126,8 @@ namespace Shuttle.Recall.Tests
             projectionRepository.Setup(m => m.Find("projection-3")).Returns(new Projection("projection-3", 301));
             projectionRepository.Setup(m => m.Find("projection-4")).Returns(new Projection("projection-4", 600));
 
-            var processor = new EventProcessor(configuration.Object,
-                new Mock<IPipelineFactory>().Object, projectionRepository.Object);
+            var processor = new EventProcessor(eventStoreOptions, new Mock<IPipelineFactory>().Object,
+                projectionRepository.Object);
 
             var projection1 = processor.AddProjection("projection-1");
             var projection2 = processor.AddProjection("projection-2");
@@ -132,7 +138,7 @@ namespace Shuttle.Recall.Tests
             Assert.That(projection3.AggregationId, Is.EqualTo(projection4.AggregationId));
             Assert.That(projection1.AggregationId, Is.Not.EqualTo(projection3.AggregationId));
         }
-        
+
         [Test]
         public void Should_be_able_to_process_projections_timeously()
         {
@@ -142,15 +148,14 @@ namespace Shuttle.Recall.Tests
 
             var serializer = new DefaultSerializer();
 
-            var configuration = new EventStoreConfiguration
+            var eventStoreOptions = Options.Create(new EventStoreOptions
             {
-                RegisterHandlers = true,
                 ProjectionEventFetchCount = 100,
-                SequenceNumberTailThreadWorkerInterval = 100,
+                SequenceNumberTailThreadWorkerInterval = TimeSpan.FromMilliseconds(100),
                 ProjectionThreadCount = 1
-            };
+            });
 
-            var container = new NinjectComponentContainer(new StandardKernel());
+            var services = new ServiceCollection();
 
             var projectionEventProvider = new Mock<IProjectionEventProvider>();
 
@@ -163,22 +168,28 @@ namespace Shuttle.Recall.Tests
                     return new ProjectionEvent(entry);
                 }
 
-                var primitiveEvent = entry % 2 == 0 ? new PrimitiveEvent
-                {
-                    EventType = typeof(EventA).FullName
-                } : new PrimitiveEvent
-                {
-                    EventType = typeof(EventB).FullName
-                };
+                var primitiveEvent = entry % 2 == 0
+                    ? new PrimitiveEvent
+                    {
+                        EventType = typeof(EventA).FullName
+                    }
+                    : new PrimitiveEvent
+                    {
+                        EventType = typeof(EventB).FullName
+                    };
 
                 var eventEnvelope = new EventEnvelope
                 {
                     EventType = primitiveEvent.EventType,
-                    AssemblyQualifiedName = entry % 2 == 0 ? typeof(EventA).AssemblyQualifiedName : typeof(EventB).AssemblyQualifiedName,
-                    Event = serializer.Serialize(entry % 2 == 0 ? new EventA { Entry = entry } : new EventB { Entry = entry }).ToBytes(),
+                    AssemblyQualifiedName = entry % 2 == 0
+                        ? typeof(EventA).AssemblyQualifiedName
+                        : typeof(EventB).AssemblyQualifiedName,
+                    Event = serializer
+                        .Serialize(entry % 2 == 0 ? new EventA { Entry = entry } : new EventB { Entry = entry })
+                        .ToBytes(),
                     EventId = Guid.NewGuid(),
                     Version = entry,
-                    EventDate = DateTime.Now,
+                    EventDate = DateTime.Now
                 };
 
                 primitiveEvent.Id = id;
@@ -197,12 +208,14 @@ namespace Shuttle.Recall.Tests
 
             projectionRepository.Setup(m => m.Find(projectionName)).Returns(new Projection(projectionName, 0));
 
-            container.RegisterInstance(projectionRepository.Object);
-            container.RegisterInstance(projectionEventProvider.Object);
+            services.AddSingleton(projectionRepository.Object);
+            services.AddSingleton(projectionEventProvider.Object);
 
-            container.RegisterEventStore(configuration);
+            services.AddEventStore();
 
-            var processor = container.Resolve<IEventProcessor>();
+            var serviceProvider = services.BuildServiceProvider();
+
+            var processor = serviceProvider.GetRequiredService<IEventProcessor>();
 
             var projection = processor.AddProjection(projectionName);
             var projectionAggregation = processor.GetProjectionAggregation(projection.AggregationId);

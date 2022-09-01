@@ -1,26 +1,25 @@
 ﻿using System;
+using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
 {
     public class ProjectionEventProvider : IProjectionEventProvider
     {
-        private readonly IEventStoreConfiguration _configuration;
-
         private readonly IEventProcessor _eventProcessor;
-
         private readonly IPrimitiveEventRepository _repository;
-
+        private readonly EventStoreOptions _eventStoreOptions;
         private long _sequenceNumberHead;
 
-        public ProjectionEventProvider(IEventStoreConfiguration configuration, IEventProcessor eventProcessor,
+        public ProjectionEventProvider(IOptions<EventStoreOptions> eventStoreOptions, IEventProcessor eventProcessor,
             IPrimitiveEventRepository repository)
         {
-            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
+            Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
             Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
             Guard.AgainstNull(repository, nameof(repository));
 
-            _configuration = configuration;
+            _eventStoreOptions = eventStoreOptions.Value;
             _eventProcessor = eventProcessor;
             _repository = repository;
         }
@@ -44,7 +43,7 @@ namespace Shuttle.Recall
 
                 if (!projectionAggregation.ContainsPrimitiveEvent(sequenceNumber))
                 {
-                    foreach (var primitiveEvent in _repository.Fetch(sequenceNumber, _configuration.ProjectionEventFetchCount,  projectionAggregation.EventTypes))
+                    foreach (var primitiveEvent in _repository.Fetch(sequenceNumber, _eventStoreOptions.ProjectionEventFetchCount,  projectionAggregation.EventTypes))
                     {
                         projectionAggregation.AddPrimitiveEvent(primitiveEvent);
 

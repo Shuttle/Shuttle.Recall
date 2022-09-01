@@ -1,5 +1,6 @@
 ﻿using System;
 using Shuttle.Core.Contract;
+using Shuttle.Core.Encryption;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
@@ -10,13 +11,13 @@ namespace Shuttle.Recall
 
     public class DecryptEventObserver : IDecryptEventObserver
     {
-        private readonly IEventStoreConfiguration _configuration;
+        private readonly IEncryptionService _encryptionService;
 
-        public DecryptEventObserver(IEventStoreConfiguration configuration)
+        public DecryptEventObserver(IEncryptionService encryptionService)
         {
-            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(encryptionService, nameof(encryptionService));
 
-            _configuration = configuration;
+            _encryptionService = encryptionService;
         }
 
         public void Execute(OnDecryptEvent pipelineEvent)
@@ -29,7 +30,7 @@ namespace Shuttle.Recall
                 return;
             }
 
-            var algorithm = _configuration.FindEncryptionAlgorithm(eventEnvelope.EncryptionAlgorithm);
+            var algorithm = _encryptionService.Get(eventEnvelope.EncryptionAlgorithm);
 
             if (algorithm == null)
             {
