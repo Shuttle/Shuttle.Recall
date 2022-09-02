@@ -25,12 +25,12 @@ namespace Shuttle.Recall
             RegisterObserver(eventStreamObserver);
         }
 
-        public void Execute(EventStream eventStream, EventEnvelopeConfigurator configurator)
+        public void Execute(EventStream eventStream, EventEnvelopeBuilder builder)
         {
             Guard.AgainstNull(eventStream, nameof(eventStream));
 
             State.SetEventStream(eventStream);
-            State.SetEventEnvelopeConfigurator(configurator);
+            State.SetEventEnvelopeConfigurator(builder);
 
             Execute();
         }

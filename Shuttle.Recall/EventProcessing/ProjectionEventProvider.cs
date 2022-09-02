@@ -7,21 +7,20 @@ namespace Shuttle.Recall
     public class ProjectionEventProvider : IProjectionEventProvider
     {
         private readonly IEventProcessor _eventProcessor;
-        private readonly IPrimitiveEventRepository _repository;
+        private readonly IPrimitiveEventQuery _query;
         private readonly EventStoreOptions _eventStoreOptions;
         private long _sequenceNumberHead;
 
-        public ProjectionEventProvider(IOptions<EventStoreOptions> eventStoreOptions, IEventProcessor eventProcessor,
-            IPrimitiveEventRepository repository)
+        public ProjectionEventProvider(IOptions<EventStoreOptions> eventStoreOptions, IEventProcessor eventProcessor, IPrimitiveEventQuery query)
         {
             Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
             Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
             Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
-            Guard.AgainstNull(repository, nameof(repository));
+            Guard.AgainstNull(query, nameof(query));
 
             _eventStoreOptions = eventStoreOptions.Value;
             _eventProcessor = eventProcessor;
-            _repository = repository;
+            _query = query;
         }
 
         public ProjectionEvent Get(Projection projection)
@@ -43,7 +42,7 @@ namespace Shuttle.Recall
 
                 if (!projectionAggregation.ContainsPrimitiveEvent(sequenceNumber))
                 {
-                    foreach (var primitiveEvent in _repository.Fetch(sequenceNumber, _eventStoreOptions.ProjectionEventFetchCount,  projectionAggregation.EventTypes))
+                    foreach (var primitiveEvent in _query.Search(new PrimitiveEvent.Specification().WithSequenceNumberStart(sequenceNumber).WithCount(_eventStoreOptions.ProjectionEventFetchCount).AddEventTypes(projectionAggregation.EventTypes)))
                     {
                         projectionAggregation.AddPrimitiveEvent(primitiveEvent);
 

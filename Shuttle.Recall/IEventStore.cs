@@ -8,7 +8,7 @@ namespace Shuttle.Recall
         EventStream CreateEventStream();
         EventStream Get(Guid id);
         long Save(EventStream eventStream);
-        long Save(EventStream eventStream, Action<EventEnvelopeConfigurator> configurator);
+        long Save(EventStream eventStream, Action<EventEnvelopeBuilder> builder);
         void Remove(Guid id);
     }
 }
