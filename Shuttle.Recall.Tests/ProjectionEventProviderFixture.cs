@@ -28,7 +28,7 @@ namespace Shuttle.Recall.Tests
 
             eventProcessor.Setup(m => m.GetProjectionAggregation(It.IsAny<Guid>())).Returns(projectionAggregation);
 
-            var provider = new ProjectionEventProvider(Options.Create(new EventStoreOptions()), eventProcessor.Object, GetRepository());
+            var provider = new ProjectionEventProvider(Options.Create(new EventStoreOptions()), eventProcessor.Object, GetQuery());
 
             ProjectionEvent projectionEvent;
 
@@ -57,9 +57,9 @@ namespace Shuttle.Recall.Tests
             Assert.That(projectionAggregation.IsEmpty, Is.True);
         }
 
-        private IPrimitiveEventRepository GetRepository()
+        private IPrimitiveEventQuery GetQuery()
         {
-            var repository = new Mock<IPrimitiveEventRepository>();
+            var query = new Mock<IPrimitiveEventQuery>();
             var events = new List<PrimitiveEvent>();
 
             for (int i = 0; i < 10; i++)
@@ -70,11 +70,11 @@ namespace Shuttle.Recall.Tests
                 });
             }
 
-            repository.SetupSequence(m => m.Fetch(It.IsAny<long>(), It.IsAny<int>(), It.IsAny<IEnumerable<Type>>()))
+            query.SetupSequence(m => m.Search(It.IsAny<PrimitiveEvent.Specification>()))
                 .Returns(events)
                 .Returns(new List<PrimitiveEvent>());
 
-            return repository.Object;
+            return query.Object;
         }
 
         public void ProcessEvent(IEventHandlerContext<TestEvent> context)

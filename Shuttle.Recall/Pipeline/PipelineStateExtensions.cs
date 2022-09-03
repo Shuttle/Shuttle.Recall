@@ -67,14 +67,14 @@ namespace Shuttle.Recall
             return state.Get<EventStream>(StateKeys.EventStream);
         }
 
-        public static void SetEventEnvelopeConfigurator(this IState state, EventEnvelopeConfigurator value)
+        public static void SetEventEnvelopeConfigurator(this IState state, EventEnvelopeBuilder value)
         {
             state.Replace(StateKeys.EventEnvelopeConfigurator, value);
         }
 
-        public static EventEnvelopeConfigurator GetEventEnvelopeConfigurator(this IState state)
+        public static EventEnvelopeBuilder GetEventEnvelopeConfigurator(this IState state)
         {
-            return state.Get<EventEnvelopeConfigurator>(StateKeys.EventEnvelopeConfigurator);
+            return state.Get<EventEnvelopeBuilder>(StateKeys.EventEnvelopeConfigurator);
         }
 
         public static void SetEvents(this IState state, IEnumerable<DomainEvent> value)

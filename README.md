@@ -16,31 +16,24 @@ Start a new **Console Application** project called `RecallQuickstart` and select
 PM> Install-Package Shuttle.Recall.Sql.Storage
 ```
 
-Now we'll need select one of the [supported containers](https://shuttle.github.io/shuttle-core/container/shuttle-core-container.html#implementations):
+This provides a SQL-based store for doamin events.
 
-```
-PM> Install-Package Shuttle.Core.Ninject
-```
+> Install the `System.Data.SqlClient` nuget package.
 
-Since we will be interacting with Sql Server we will be using the [Shuttle.Core.Data](https://shuttle.github.io/shuttle-core/data/shuttle-core-data.html) data access components as well as the `System.Data.Client` package:
-
-```
-PM> Install-Package Shuttle.Core.Data
-PM> Install-Package System.Data.Client
-```
+This will provide a connection to our Sql Server.
 
 Now we'll define the domain event that will represent a state change in the `Name` attribute:
 
-``` c#
+```c#
 public class Renamed
 {
     public string Name { get; set; }
 }
 ```
 
-Next we'll create our `Aggregate Root` that will make use of an `EventStream` to save it's states:
+Next we'll create our `Aggregate Root`.  In a real-world scenario the aggregate in our domain would be something like `Customer`, `Member`, `Invoice`, and so forth.  The aggregate will make use of an `EventStream` to save the changes in the state:
 
-``` c#
+```c#
 using System;
 using System.Collections.Generic;
 
@@ -84,29 +77,13 @@ Create a new Sql Server database called `RecallQuickstart` to store our events a
 %userprofile%\.nuget\packages\shuttle.recall.sql.storage\{version}\scripts\System.Data.SqlClient\EventStoreCreate.sql
 ```
 
-Add the relevant `connectionString` to the `App.config` file:
-
-``` xml
-<configuration>
-  <connectionStrings>
-    <add 
-        name="EventStore" 
-        providerName="System.Data.SqlClient" 
-        connectionString="Data Source=.;Initial Catalog=RecallQuickstart;user id=sa;password=Pass!000" 
-    />
-  </connectionStrings>
-</configuration>
-```
-
 Next we'll use event sourcing to store an rehydrate our aggregate root from the `Main()` entry point:
 
 ``` c#
-using System;
 using System.Data.Common;
 using System.Data.SqlClient;
-using Ninject;
+using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Data;
-using Shuttle.Core.Ninject;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
 
@@ -114,23 +91,27 @@ namespace RecallQuickstart
 {
     internal class Program
     {
-        private static void Main()
+        static void Main(string[] args)
         {
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
 
-            var container = new NinjectComponentContainer(new StandardKernel());
+            var services = new ServiceCollection();
 
-            // This registers the event store dependencies provided by Shuttle.Recall
-            container.RegisterEventStore();
+            services
+                .AddDataAccess(builder =>
+                {
+                    builder.AddConnectionString("EventStore", "System.Data.SqlClient",
+                        "Data Source=.;Initial Catalog=RecallQuickstart;user id=sa;password=Pass!000");
 
-            // This registers the sql server implementations provided by Shuttle.Recall.Sql.Storage
-            container.RegisterEventStoreStorage();
-            
-            // This registers the ado.net components provided by Shuttle.Core.Data
-            container.RegisterDataAccess();
+                    builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "EventStore";
+                })
+                .AddSqlEventStorage()
+                .AddEventStore();
 
-            var databaseContextFactory = container.Resolve<IDatabaseContextFactory>();
-            var store = container.Resolve<IEventStore>();
+            var provider = services.BuildServiceProvider();
+
+            var databaseContextFactory = provider.GetRequiredService<IDatabaseContextFactory>();
+            var store = provider.GetRequiredService<IEventStore>();
 
             var id = Guid.NewGuid();
 

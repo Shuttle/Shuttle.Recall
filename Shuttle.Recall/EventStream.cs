@@ -47,7 +47,7 @@ namespace Shuttle.Recall
         public int Version { get; }
         public object Snapshot { get; private set; }
 
-        public int Count => (_events?.Count() ?? 0) + _appendedEvents.Count;
+        public int Count => (_events?.Count ?? 0) + _appendedEvents.Count;
 
         public bool IsEmpty => Count == 0;
 

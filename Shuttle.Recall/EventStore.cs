@@ -44,7 +44,7 @@ namespace Shuttle.Recall
             return Save(eventStream, null);
         }
 
-        public long Save(EventStream eventStream, Action<EventEnvelopeConfigurator> configure)
+        public long Save(EventStream eventStream, Action<EventEnvelopeBuilder> builder)
         {
             Guard.AgainstNull(eventStream, nameof(eventStream));
 
@@ -64,9 +64,9 @@ namespace Shuttle.Recall
 
             try
             {
-                var configurator = new EventEnvelopeConfigurator();
+                var configurator = new EventEnvelopeBuilder();
 
-                configure?.Invoke(configurator);
+                builder?.Invoke(configurator);
 
                 pipeline.Execute(eventStream, configurator);
 
