@@ -18,21 +18,15 @@ namespace Shuttle.Recall
 
         public class Specification
         {
-            public Guid Id { get; private set; }
             public long SequenceNumberStart { get; private set; }
             public int Count { get; private set; }
             
             private readonly List<Type> _eventTypes = new List<Type>();
+            private readonly List<Guid> _ids = new List<Guid>();
 
-            public Specification WithSequenceNumberStart(long sequenceNumberStart)
+            public Specification WithRange(long sequenceNumberStart, int count)
             {
                 SequenceNumberStart = sequenceNumberStart;
-
-                return this;
-            }
-
-            public Specification WithCount(int count)
-            {
                 Count = count;
 
                 return this;
@@ -64,6 +58,29 @@ namespace Shuttle.Recall
                 foreach (var type in types ?? Enumerable.Empty<Type>())
                 {
                     AddEventType(type);
+                }
+
+                return this;
+            }
+            public Specification AddId(Guid id)
+            {
+                Guard.AgainstNull(id, nameof(id));
+
+                if (!_ids.Contains(id))
+                {
+                    _ids.Add(id);
+                }
+
+                return this;
+            }
+
+            public IEnumerable<Guid> Ids => _ids.AsReadOnly();
+
+            public Specification AddIds(IEnumerable<Guid> ids)
+            {
+                foreach (var type in ids ?? Enumerable.Empty<Guid>())
+                {
+                    AddId(type);
                 }
 
                 return this;

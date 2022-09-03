@@ -42,7 +42,7 @@ namespace Shuttle.Recall
 
                 if (!projectionAggregation.ContainsPrimitiveEvent(sequenceNumber))
                 {
-                    foreach (var primitiveEvent in _query.Search(new PrimitiveEvent.Specification().WithSequenceNumberStart(sequenceNumber).WithCount(_eventStoreOptions.ProjectionEventFetchCount).AddEventTypes(projectionAggregation.EventTypes)))
+                    foreach (var primitiveEvent in _query.Search(new PrimitiveEvent.Specification().WithRange(sequenceNumber, _eventStoreOptions.ProjectionEventFetchCount).AddEventTypes(projectionAggregation.EventTypes)))
                     {
                         projectionAggregation.AddPrimitiveEvent(primitiveEvent);
 
