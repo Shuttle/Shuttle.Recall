@@ -47,6 +47,9 @@ namespace Shuttle.Recall
 
             services.TryAddSingleton<IEventStore, EventStore>();
             services.TryAddSingleton<IEventProcessor, EventProcessor>();
+            services.TryAddSingleton<IProjectionRepository, NotImplementedProjectionRepository>();
+            services.TryAddSingleton<IPrimitiveEventQuery, NotImplementedPrimitiveEventQuery>();
+            services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
 
             services.AddOptions<EventStoreOptions>().Configure(options =>
             {
