@@ -22,9 +22,7 @@ namespace Shuttle.Recall
                 .WithEvent<OnEncryptEvent>()
                 .WithEvent<OnAfterEncryptEvent>()
                 .WithEvent<OnCompressEvent>()
-                .WithEvent<OnAfterCompressEvent>()
-                .WithEvent<OnAssembleEventEnvelope>()
-                .WithEvent<OnAfterAssembleEventEnvelope>();
+                .WithEvent<OnAfterCompressEvent>();
 
             RegisterObserver(assembleEventEnvelopeObserver);
             RegisterObserver(compressEventObserver);

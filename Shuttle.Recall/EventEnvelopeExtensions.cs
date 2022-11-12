@@ -42,6 +42,20 @@ namespace Shuttle.Recall
             }
         }
 
+        public static string GetHeaderValue(this List<EnvelopeHeader> headers, string key)
+        {
+            if (headers == null)
+            {
+                return string.Empty;
+            }
+
+            var header =
+                headers.FirstOrDefault(
+                    candidate => candidate.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase));
+
+            return header == null ? string.Empty : header.Value;
+        }
+
         public static bool Contains(this IEnumerable<EnvelopeHeader> headers, string key)
         {
             Guard.AgainstNull(headers, nameof(headers));
