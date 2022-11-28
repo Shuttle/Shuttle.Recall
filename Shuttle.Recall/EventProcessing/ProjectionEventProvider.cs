@@ -14,13 +14,9 @@ namespace Shuttle.Recall
         public ProjectionEventProvider(IOptions<EventStoreOptions> eventStoreOptions, IEventProcessor eventProcessor, IPrimitiveEventQuery query)
         {
             Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
-            Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
-            Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
-            Guard.AgainstNull(query, nameof(query));
-
-            _eventStoreOptions = eventStoreOptions.Value;
-            _eventProcessor = eventProcessor;
-            _query = query;
+            _eventStoreOptions = Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
+            _eventProcessor = Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
+            _query = Guard.AgainstNull(query, nameof(query));
         }
 
         public ProjectionEvent Get(Projection projection)

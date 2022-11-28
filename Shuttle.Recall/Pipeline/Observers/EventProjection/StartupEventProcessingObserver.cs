@@ -12,13 +12,9 @@ namespace Shuttle.Recall
 
         public StartupEventProcessingObserver(IServiceProvider serviceProvider, IEventProcessor processor, IEventStoreConfiguration eventStoreConfiguration)
         {
-            Guard.AgainstNull(serviceProvider, nameof(serviceProvider));
-            Guard.AgainstNull(processor, nameof(processor));
-            Guard.AgainstNull(eventStoreConfiguration, nameof(eventStoreConfiguration));
-
-            _serviceProvider = serviceProvider;
-            _processor = processor;
-            _eventStoreConfiguration = eventStoreConfiguration;
+            _serviceProvider = Guard.AgainstNull(serviceProvider, nameof(serviceProvider));
+            _processor = Guard.AgainstNull(processor, nameof(processor));
+            _eventStoreConfiguration = Guard.AgainstNull(eventStoreConfiguration, nameof(eventStoreConfiguration));
         }
 
         public void Execute(OnStartEventProcessingEvent pipelineEvent)

@@ -35,13 +35,9 @@ namespace Shuttle.Recall
             IProjectionRepository repository)
         {
             Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
-            Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
-            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-            Guard.AgainstNull(repository, nameof(repository));
-
-            _pipelineFactory = pipelineFactory;
-            _repository = repository;
-            _eventStoreOptions = eventStoreOptions.Value;
+            _eventStoreOptions = Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
+            _pipelineFactory = Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
+            _repository = Guard.AgainstNull(repository, nameof(repository));
 
             _sequenceNumberTailThread = new Thread(SequenceNumberTailThreadWorker);
         }
