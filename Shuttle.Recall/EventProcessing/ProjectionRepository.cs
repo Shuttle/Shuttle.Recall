@@ -1,8 +1,15 @@
-﻿namespace Shuttle.Recall
+﻿using System.Threading.Tasks;
+
+namespace Shuttle.Recall
 {
     public class NotImplementedProjectionRepository : IProjectionRepository
     {
         public Projection Find(string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<Projection> FindAsync(string name)
         {
             throw new System.NotImplementedException();
         }
@@ -12,12 +19,27 @@
             throw new System.NotImplementedException();
         }
 
+        public Task SaveAsync(Projection projection)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public void SetSequenceNumber(string projectionName, long sequenceNumber)
         {
             throw new System.NotImplementedException();
         }
 
+        public Task SetSequenceNumberAsync(string projectionName, long sequenceNumber)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public long GetSequenceNumber(string projectionName)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public ValueTask<long> GetSequenceNumberAsync(string projectionName)
         {
             throw new System.NotImplementedException();
         }

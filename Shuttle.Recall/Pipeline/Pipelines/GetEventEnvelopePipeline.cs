@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Contract;
+﻿using System.Threading.Tasks;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
@@ -32,11 +33,16 @@ namespace Shuttle.Recall
 
         public void Execute(PrimitiveEvent primitiveEvent)
         {
+            ExecuteAsync(primitiveEvent).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(PrimitiveEvent primitiveEvent)
+        {
             Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
 
             State.SetPrimitiveEvent(primitiveEvent);
 
-            Execute();
+            await ExecuteAsync().ConfigureAwait(false);
         }
     }
 }

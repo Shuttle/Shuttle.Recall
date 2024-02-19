@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Reflection;
 
@@ -58,15 +59,13 @@ namespace Shuttle.Recall
 
             if (typesAddedCount == 0)
             {
-                throw new EventProcessingException(string.Format(Resources.InvalidEventHandlerType,
-                    handler.GetType().FullName));
+                throw new EventProcessingException(string.Format(Resources.InvalidEventHandlerType, handler.GetType().FullName));
             }
 
             return this;
         }
 
-        public void Process(EventEnvelope eventEnvelope, object domainEvent, PrimitiveEvent primitiveEvent,
-            CancellationToken cancellationToken)
+        public void Process(EventEnvelope eventEnvelope, object domainEvent, PrimitiveEvent primitiveEvent, CancellationToken cancellationToken)
         {
             Guard.AgainstNull(eventEnvelope, nameof(eventEnvelope));
             Guard.AgainstNull(domainEvent, nameof(domainEvent));
@@ -87,20 +86,54 @@ namespace Shuttle.Recall
                 }
 
                 var contextType = typeof(EventHandlerContext<>).MakeGenericType(domainEventType);
-                var method = _eventHandlers[domainEventType].GetType().GetMethod("ProcessEvent", new[] {contextType});
+                var method = _eventHandlers[domainEventType].GetType().GetMethod("ProcessEvent", new[] { contextType });
 
                 if (method == null)
                 {
-                    throw new ProcessEventMethodMissingException(string.Format(
-                        Resources.ProcessEventMethodMissingException,
-                        _eventHandlers[domainEventType].GetType().FullName,
-                        domainEventType.FullName));
+                    throw new ProcessEventMethodMissingException(string.Format(Resources.ProcessEventMethodMissingException, _eventHandlers[domainEventType].GetType().FullName, domainEventType.FullName));
                 }
 
-                var handlerContext =
-                    Activator.CreateInstance(contextType, eventEnvelope, domainEvent, primitiveEvent, cancellationToken);
+                var handlerContext = Activator.CreateInstance(contextType, eventEnvelope, domainEvent, primitiveEvent, cancellationToken);
 
-                method.Invoke(_eventHandlers[domainEventType], new[] {handlerContext});
+                method.Invoke(_eventHandlers[domainEventType], new[] { handlerContext });
+            }
+            finally
+            {
+                SequenceNumber = primitiveEvent.SequenceNumber;
+            }
+        }
+
+        public async Task ProcessAsync(EventEnvelope eventEnvelope, object domainEvent, PrimitiveEvent primitiveEvent, CancellationToken cancellationToken)
+        {
+            Guard.AgainstNull(eventEnvelope, nameof(eventEnvelope));
+            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+            Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
+
+            if (primitiveEvent.SequenceNumber <= SequenceNumber)
+            {
+                return;
+            }
+
+            var domainEventType = Type.GetType(eventEnvelope.AssemblyQualifiedName, true);
+
+            try
+            {
+                if (!HandlesType(domainEventType))
+                {
+                    return;
+                }
+
+                var contextType = typeof(EventHandlerContext<>).MakeGenericType(domainEventType);
+                var method = _eventHandlers[domainEventType].GetType().GetMethod("ProcessEvent", new[] { contextType });
+
+                if (method == null)
+                {
+                    throw new ProcessEventMethodMissingException(string.Format(Resources.ProcessEventMethodMissingException, _eventHandlers[domainEventType].GetType().FullName, domainEventType.FullName));
+                }
+
+                var handlerContext = Activator.CreateInstance(contextType, eventEnvelope, domainEvent, primitiveEvent, cancellationToken);
+
+                method.Invoke(_eventHandlers[domainEventType], new[] { handlerContext });
             }
             finally
             {
@@ -112,8 +145,7 @@ namespace Shuttle.Recall
         {
             if (!AggregationId.Equals(Guid.Empty))
             {
-                throw new InvalidOperationException(
-                    string.Format(Resources.ProjectionAggregationAlreadyAssignedException, Name));
+                throw new InvalidOperationException(string.Format(Resources.ProjectionAggregationAlreadyAssignedException, Name));
             }
 
             AggregationId = aggregationId;

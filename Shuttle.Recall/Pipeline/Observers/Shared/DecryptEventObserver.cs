@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Encryption;
 using Shuttle.Core.Pipelines;
@@ -22,7 +23,17 @@ namespace Shuttle.Recall
 
         public void Execute(OnDecryptEvent pipelineEvent)
         {
-            var state = pipelineEvent.Pipeline.State;
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(OnDecryptEvent pipelineEvent)
+        {
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteAsync(OnDecryptEvent pipelineEvent, bool sync)
+        {
+            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
             var eventEnvelope = state.GetEventEnvelope();
 
             if (!eventEnvelope.EncryptionEnabled())
@@ -38,7 +49,9 @@ namespace Shuttle.Recall
                     Resources.MissingCompressionAlgorithmException, eventEnvelope.CompressionAlgorithm));
             }
 
-            eventEnvelope.Event = algorithm.Decrypt(eventEnvelope.Event);
+            eventEnvelope.Event = sync
+                ? algorithm.Decrypt(eventEnvelope.Event)
+                : await algorithm.DecryptAsync(eventEnvelope.Event).ConfigureAwait(false);
         }
     }
 }

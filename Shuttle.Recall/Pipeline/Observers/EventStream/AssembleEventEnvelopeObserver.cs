@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
@@ -10,23 +11,30 @@ namespace Shuttle.Recall
 
     public class AssembleEventEnvelopeObserver : IAssembleEventEnvelopeObserver
     {
-        private readonly EventStoreOptions _options;
+        private readonly EventStoreOptions _eventStoreOptions;
 
-        public AssembleEventEnvelopeObserver(IOptions<EventStoreOptions> options)
+        public AssembleEventEnvelopeObserver(IOptions<EventStoreOptions> eventStoreOptions)
         {
-            Guard.AgainstNull(options, nameof(options));
-            Guard.AgainstNull(options.Value, nameof(options.Value));
+            Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
 
-            _options = options.Value;
+            _eventStoreOptions = Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
         }
 
         public void Execute(OnAssembleEventEnvelope pipelineEvent)
         {
-            var state = pipelineEvent.Pipeline.State;
-            var domainEvent = state.GetDomainEvent();
-            var configurator = state.GetEventEnvelopeConfigurator();
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
+        }
 
-            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+        public async Task ExecuteAsync(OnAssembleEventEnvelope pipelineEvent)
+        {
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteAsync(OnAssembleEventEnvelope pipelineEvent, bool sync)
+        {
+            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
+            var domainEvent = Guard.AgainstNull(state.GetDomainEvent(), StateKeys.DomainEvent);
+            var configurator = state.GetEventEnvelopeConfigurator();
 
             var eventEnvelope = new EventEnvelope
             {
@@ -35,8 +43,8 @@ namespace Shuttle.Recall
                 IsSnapshot = domainEvent.IsSnapshot,
                 Version = domainEvent.Version,
                 AssemblyQualifiedName = domainEvent.Event.GetType().AssemblyQualifiedName,
-                EncryptionAlgorithm = _options.EncryptionAlgorithm,
-                CompressionAlgorithm = _options.CompressionAlgorithm
+                EncryptionAlgorithm = _eventStoreOptions.EncryptionAlgorithm,
+                CompressionAlgorithm = _eventStoreOptions.CompressionAlgorithm
             };
 
             if (configurator != null)
@@ -45,6 +53,8 @@ namespace Shuttle.Recall
             }
 
             state.SetEventEnvelope(eventEnvelope);
+
+            await Task.CompletedTask;
         }
     }
 }

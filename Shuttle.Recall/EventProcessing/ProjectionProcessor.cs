@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
@@ -11,19 +12,24 @@ namespace Shuttle.Recall
         private readonly IEventProcessor _eventProcessor;
         private readonly IThreadActivity _threadActivity;
 
-        public ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory,
-            IEventProcessor eventProcessor)
+        public ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory, IEventProcessor eventProcessor)
         {
-            Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
-            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-            Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
-
-            _pipelineFactory = pipelineFactory;
-            _eventProcessor = eventProcessor;
-            _threadActivity = new ThreadActivity(eventStoreOptions.DurationToSleepWhenIdle);
+            _pipelineFactory = Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
+            _eventProcessor = Guard.AgainstNull(eventProcessor, nameof(eventProcessor)); 
+            _threadActivity = new ThreadActivity(Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions)).DurationToSleepWhenIdle);
         }
 
         public void Execute(CancellationToken cancellationToken)
+        {
+            ExecuteAsync(cancellationToken, true).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(CancellationToken cancellationToken)
+        {
+            await ExecuteAsync(cancellationToken, false).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteAsync(CancellationToken cancellationToken, bool sync)
         {
             var pipeline = _pipelineFactory.GetPipeline<EventProcessingPipeline>();
 
@@ -38,7 +44,14 @@ namespace Shuttle.Recall
                     pipeline.State.SetProjection(projection);
                     pipeline.State.SetCancellationToken(cancellationToken);
 
-                    pipeline.Execute();
+                    if (sync)
+                    {
+                        pipeline.Execute(cancellationToken);
+                    }
+                    else
+                    {
+                        await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+                    }   
 
                     if (pipeline.State.GetWorking())
                     {

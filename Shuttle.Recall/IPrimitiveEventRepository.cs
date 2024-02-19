@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Shuttle.Recall
 {
@@ -9,5 +10,10 @@ namespace Shuttle.Recall
         IEnumerable<PrimitiveEvent> Get(Guid id);
         long Save(PrimitiveEvent primitiveEvent);
         long GetSequenceNumber(Guid id);
+        
+        Task RemoveAsync(Guid id);
+        Task<IEnumerable<PrimitiveEvent>> GetAsync(Guid id);
+        ValueTask<long> SaveAsync(PrimitiveEvent primitiveEvent);
+        Task<long> GetSequenceNumberAsync(Guid id);
     }
 }

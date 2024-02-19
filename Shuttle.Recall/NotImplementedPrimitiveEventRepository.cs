@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Shuttle.Recall
 {
@@ -21,6 +22,26 @@ namespace Shuttle.Recall
         }
 
         public long GetSequenceNumber(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<PrimitiveEvent>> GetAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ValueTask<long> SaveAsync(PrimitiveEvent primitiveEvent)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<long> GetSequenceNumberAsync(Guid id)
         {
             throw new NotImplementedException();
         }

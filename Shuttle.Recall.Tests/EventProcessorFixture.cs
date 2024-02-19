@@ -140,20 +140,13 @@ namespace Shuttle.Recall.Tests
         }
 
         [Test]
-        public void Should_be_able_to_process_projections_timeously()
+        public void Should_be_able_to_process_projections_with_optimal_performance()
         {
             const int projectionEventCount = 10000;
             const string projectionName = "projection-1";
             var id = Guid.NewGuid();
 
             var serializer = new DefaultSerializer();
-
-            var eventStoreOptions = Options.Create(new EventStoreOptions
-            {
-                ProjectionEventFetchCount = 100,
-                SequenceNumberTailThreadWorkerInterval = TimeSpan.FromMilliseconds(100),
-                ProjectionThreadCount = 1
-            });
 
             var services = new ServiceCollection();
 
@@ -211,15 +204,18 @@ namespace Shuttle.Recall.Tests
             services.AddSingleton(projectionRepository.Object);
             services.AddSingleton(projectionEventProvider.Object);
 
-            services.AddEventStore();
+            services.AddEventStore(builder =>
+            {
+                builder.Options.ProjectionEventFetchCount = 100;
+                builder.Options.SequenceNumberTailThreadWorkerInterval = TimeSpan.FromMilliseconds(100);
+                builder.Options.ProjectionThreadCount = 1;
+            });
 
             var serviceProvider = services.BuildServiceProvider();
 
             var processor = serviceProvider.GetRequiredService<IEventProcessor>();
-
             var projection = processor.AddProjection(projectionName);
             var projectionAggregation = processor.GetProjectionAggregation(projection.AggregationId);
-
             var eventHandler = new EventHandler();
 
             projection.AddEventHandler(eventHandler);
@@ -235,6 +231,8 @@ namespace Shuttle.Recall.Tests
                 {
                     Thread.Sleep(100);
                 }
+
+                Console.WriteLine($@"[event-handler] : entry = {eventHandler.Entry}");
 
                 Assert.That((DateTime.Now - now).TotalMilliseconds, Is.LessThan(2000));
                 Assert.That(projectionAggregation.IsEmpty, Is.True);

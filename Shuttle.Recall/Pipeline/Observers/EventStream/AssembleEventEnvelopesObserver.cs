@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
@@ -21,7 +22,7 @@ namespace Shuttle.Recall
 
         public void Execute(OnAssembleEventEnvelopes pipelineEvent)
         {
-            var state = pipelineEvent.Pipeline.State;
+            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
             var eventStream = state.GetEventStream();
             var configurator = state.GetEventEnvelopeConfigurator();
             var eventEnvelopes = new List<EventEnvelope>();
@@ -48,6 +49,11 @@ namespace Shuttle.Recall
             }
 
             state.SetEventEnvelopes(eventEnvelopes);
+        }
+
+        public Task ExecuteAsync(OnAssembleEventEnvelopes pipelineEvent)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }
