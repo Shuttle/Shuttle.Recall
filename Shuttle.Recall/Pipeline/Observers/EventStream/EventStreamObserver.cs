@@ -23,6 +23,8 @@ namespace Shuttle.Recall
             Guard.AgainstNull(eventStream, nameof(eventStream));
 
             eventStream.Commit();
+
+            await Task.CompletedTask;
         }
     }
 }

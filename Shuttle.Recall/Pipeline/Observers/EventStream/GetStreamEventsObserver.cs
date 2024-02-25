@@ -27,11 +27,12 @@ namespace Shuttle.Recall
 
         public void Execute(OnGetStreamEvents pipelineEvent)
         {
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
         }
 
         public async Task ExecuteAsync(OnGetStreamEvents pipelineEvent)
         {
-            throw new NotImplementedException();
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
         }
 
         public async Task ExecuteAsync(OnGetStreamEvents pipelineEvent, bool sync)

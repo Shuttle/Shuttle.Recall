@@ -31,6 +31,8 @@ namespace Shuttle.Recall
         private IProcessorThreadPool _processorThreadPool;
         private volatile bool _started;
 
+        public bool Asynchronous { get; private set; }
+
         public EventProcessor(IOptions<EventStoreOptions> eventStoreOptions, IPipelineFactory pipelineFactory,
             IProjectionRepository repository)
         {
@@ -44,54 +46,14 @@ namespace Shuttle.Recall
 
         public void Dispose()
         {
-            Stop();
+            this.Stop();
         }
 
         public IEventProcessor Start()
         {
-            if (Started)
-            {
-                return this;
-            }
-
-            foreach (var projectionAggregation in _projectionAggregations.Values)
-            {
-                projectionAggregation.AddEventTypes();
-            }
-
-            _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>().Execute();
-
-            _cancellationTokenSource = new CancellationTokenSource();
-            _cancellationToken = _cancellationTokenSource.Token;
-
-            _processorThreadPool =
-                new ProcessorThreadPool(
-                    "ProjectionProcessor",
-                    _eventStoreOptions.ProjectionThreadCount,
-                    new ProjectionProcessorFactory(_eventStoreOptions, _pipelineFactory, this),
-                    _eventStoreOptions.ProcessorThread).Start();
-
-            _sequenceNumberTailThread.Start();
-
-            _started = true;
+            StartAsync(true).GetAwaiter().GetResult();
 
             return this;
-        }
-
-        public void Stop()
-        {
-            if (!Started)
-            {
-                return;
-            }
-
-            _cancellationTokenSource.Cancel();
-
-            _processorThreadPool?.Dispose();
-
-            _started = false;
-
-            _sequenceNumberTailThread?.Join();
         }
 
         public bool Started => _started;
@@ -175,6 +137,80 @@ namespace Shuttle.Recall
             return result;
         }
 
+        public async Task<IEventProcessor> StartAsync()
+        {
+            await StartAsync(false).ConfigureAwait(false);
+
+            return this;
+        }
+
+        public async Task StopAsync()
+        {
+            if (!Started)
+            {
+                return;
+            }
+
+            _cancellationTokenSource.Cancel();
+
+            _processorThreadPool?.Dispose();
+
+            _started = false;
+
+            _sequenceNumberTailThread?.Join();
+
+            await Task.CompletedTask;
+        }
+
+        private async Task<IEventProcessor> StartAsync(bool sync)
+        {
+            if (Started)
+            {
+                return this;
+            }
+
+            Asynchronous = !sync;
+
+            foreach (var projectionAggregation in _projectionAggregations.Values)
+            {
+                projectionAggregation.AddEventTypes();
+            }
+
+            if (sync)
+            {
+                _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>().Execute();
+            }
+            else
+            {
+                await _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>().ExecuteAsync().ConfigureAwait(false);
+            }
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
+
+            _processorThreadPool =
+                new ProcessorThreadPool(
+                    "ProjectionProcessor",
+                    _eventStoreOptions.ProjectionThreadCount,
+                    new ProjectionProcessorFactory(_eventStoreOptions, _pipelineFactory, this),
+                    _eventStoreOptions.ProcessorThread);
+
+            if (sync)
+            {
+                _processorThreadPool.Start();
+            }
+            else
+            {
+                await _processorThreadPool.StartAsync().ConfigureAwait(false);
+            }
+
+            _sequenceNumberTailThread.Start();
+
+            _started = true;
+
+            return this;
+        }
+
         public void ReleaseProjection(Projection projection)
         {
             Guard.AgainstNull(projection, nameof(projection));
@@ -231,6 +267,11 @@ namespace Shuttle.Recall
             }
 
             result.Add(projection);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await StopAsync().ConfigureAwait(false);
         }
     }
 }

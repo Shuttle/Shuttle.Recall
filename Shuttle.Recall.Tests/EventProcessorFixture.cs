@@ -234,6 +234,7 @@ namespace Shuttle.Recall.Tests
 
                 Console.WriteLine($@"[event-handler] : entry = {eventHandler.Entry}");
 
+
                 Assert.That((DateTime.Now - now).TotalMilliseconds, Is.LessThan(2000));
                 Assert.That(projectionAggregation.IsEmpty, Is.True);
                 Assert.That(eventHandler.Entry, Is.EqualTo(projectionEventCount));
