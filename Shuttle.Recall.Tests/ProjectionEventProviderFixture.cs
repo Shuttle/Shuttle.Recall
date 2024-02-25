@@ -22,7 +22,7 @@ namespace Shuttle.Recall.Tests
             projection.AddEventHandler(this);
 
             var eventProcessor = new Mock<IEventProcessor>();
-            var projectionAggregation = new ProjectionAggregation(100);
+            var projectionAggregation = new ProjectionAggregation(100, CancellationToken.None);
 
             projectionAggregation.Add(projection);
 

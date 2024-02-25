@@ -33,10 +33,10 @@ namespace Shuttle.Recall
 
         public bool Asynchronous { get; private set; }
 
-        public EventProcessor(IOptions<EventStoreOptions> eventStoreOptions, IPipelineFactory pipelineFactory,
-            IProjectionRepository repository)
+        public EventProcessor(IOptions<EventStoreOptions> eventStoreOptions, IPipelineFactory pipelineFactory, IProjectionRepository repository)
         {
             Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
+
             _eventStoreOptions = Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
             _pipelineFactory = Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
             _repository = Guard.AgainstNull(repository, nameof(repository));
@@ -261,7 +261,7 @@ namespace Shuttle.Recall
 
             if (result == null)
             {
-                result = new ProjectionAggregation(_eventStoreOptions.ProjectionEventFetchCount * 3);
+                result = new ProjectionAggregation(_eventStoreOptions.ProjectionEventFetchCount * 3, _cancellationToken);
 
                 _projectionAggregations.Add(result.Id, result);
             }

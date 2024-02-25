@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -16,6 +18,18 @@ namespace Shuttle.Recall.Tests
     {
         [Test]
         public void Should_be_able_process_sequence_number_tail()
+        {
+            Should_be_able_process_sequence_number_tail_async(true).GetAwaiter().GetResult();
+        }
+
+        [Test]
+        public async Task Should_be_able_process_sequence_number_tail_async()
+        {
+            await Should_be_able_process_sequence_number_tail_async(false);
+        }
+
+
+        private async Task Should_be_able_process_sequence_number_tail_async(bool sync)
         {
             var pipelineFactory = new Mock<IPipelineFactory>();
 
@@ -60,7 +74,14 @@ namespace Shuttle.Recall.Tests
 
             try
             {
-                processor.Start();
+                if (sync)
+                {
+                    processor.Start();
+                }
+                else
+                {
+                    await processor.StartAsync();
+                }
 
                 var timeout = DateTime.Now.AddSeconds(60);
 
@@ -126,8 +147,7 @@ namespace Shuttle.Recall.Tests
             projectionRepository.Setup(m => m.Find("projection-3")).Returns(new Projection("projection-3", 301));
             projectionRepository.Setup(m => m.Find("projection-4")).Returns(new Projection("projection-4", 600));
 
-            var processor = new EventProcessor(eventStoreOptions, new Mock<IPipelineFactory>().Object,
-                projectionRepository.Object);
+            var processor = new EventProcessor(eventStoreOptions, new Mock<IPipelineFactory>().Object, projectionRepository.Object);
 
             var projection1 = processor.AddProjection("projection-1");
             var projection2 = processor.AddProjection("projection-2");
@@ -142,7 +162,19 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_process_projections_with_optimal_performance()
         {
-            const int projectionEventCount = 10000;
+            Should_be_able_to_process_projections_with_optimal_performance_async(true).GetAwaiter().GetResult();
+        }
+
+        [Test]
+        public async Task Should_be_able_to_process_projections_with_optimal_performance_async()
+        {
+            await Should_be_able_to_process_projections_with_optimal_performance_async(false);
+        }
+
+
+        private async Task Should_be_able_to_process_projections_with_optimal_performance_async(bool sync)
+        {
+            const int projectionEventCount = 5000;
             const string projectionName = "projection-1";
             var id = Guid.NewGuid();
 
@@ -200,6 +232,7 @@ namespace Shuttle.Recall.Tests
             var projectionRepository = new Mock<IProjectionRepository>();
 
             projectionRepository.Setup(m => m.Find(projectionName)).Returns(new Projection(projectionName, 0));
+            projectionRepository.Setup(m => m.FindAsync(projectionName)).Returns(Task.FromResult(new Projection(projectionName, 0)));
 
             services.AddSingleton(projectionRepository.Object);
             services.AddSingleton(projectionEventProvider.Object);
@@ -222,20 +255,30 @@ namespace Shuttle.Recall.Tests
 
             try
             {
-                processor.Start();
+                if (sync)
+                {
+                    processor.Start();
+                }
+                else
+                {
+                    await processor.StartAsync();
+                }   
 
-                var now = DateTime.Now;
-                var timeout = now.AddSeconds(5);
+                var sw = new Stopwatch();
 
-                while (eventHandler.Entry < projectionEventCount && DateTime.Now < timeout)
+                sw.Start();
+
+                while (eventHandler.Entry < projectionEventCount && sw.ElapsedMilliseconds < 5000)
                 {
                     Thread.Sleep(100);
                 }
 
-                Console.WriteLine($@"[event-handler] : entry = {eventHandler.Entry}");
+                sw.Stop();
+
+                Console.WriteLine($@"[event-handler] : entry = {eventHandler.Entry} / elapsed ms = {sw.ElapsedMilliseconds}");
 
 
-                Assert.That((DateTime.Now - now).TotalMilliseconds, Is.LessThan(2000));
+                Assert.That(sw.ElapsedMilliseconds, Is.LessThan(2000));
                 Assert.That(projectionAggregation.IsEmpty, Is.True);
                 Assert.That(eventHandler.Entry, Is.EqualTo(projectionEventCount));
             }

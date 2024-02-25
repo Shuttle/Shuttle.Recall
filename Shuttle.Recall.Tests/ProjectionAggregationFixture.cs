@@ -17,7 +17,7 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_trim_sequence_number_tail()
         {
-            var aggregation = new ProjectionAggregation(100);
+            var aggregation = new ProjectionAggregation(100, CancellationToken.None);
 
             var projection1 =
                 new Projection("projection-1", 10)
