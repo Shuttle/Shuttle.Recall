@@ -79,11 +79,20 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Async event handler &apos;{0}&apos; is already registered for event type &apos;{1}&apos;..
+        /// </summary>
+        public static string DuplicateAsyncEventHandlerEventTypeException {
+            get {
+                return ResourceManager.GetString("DuplicateAsyncEventHandlerEventTypeException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Event handler &apos;{0}&apos; is already registered for event type &apos;{1}&apos;..
         /// </summary>
-        public static string DuplicateHandlerEventTypeException {
+        public static string DuplicateEventHandlerEventTypeException {
             get {
-                return ResourceManager.GetString("DuplicateHandlerEventTypeException", resourceCulture);
+                return ResourceManager.GetString("DuplicateEventHandlerEventTypeException", resourceCulture);
             }
         }
         
@@ -102,6 +111,42 @@ namespace Shuttle.Recall {
         public static string DuplicateProjectionName {
             get {
                 return ResourceManager.GetString("DuplicateProjectionName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;true&apos;.  Cannot add a synchronous projection.  Please call the `AddProjectionAsync()` method..
+        /// </summary>
+        public static string EventProcessorAddProjectionAsynchronousException {
+            get {
+                return ResourceManager.GetString("EventProcessorAddProjectionAsynchronousException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;false&apos;.  Cannot add an asynchronous projection.  Please call the `AddProjection()` method..
+        /// </summary>
+        public static string EventProcessorAddProjectionSynchronousException {
+            get {
+                return ResourceManager.GetString("EventProcessorAddProjectionSynchronousException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;true&apos;.  Cannot start the event processor synchronously.  Please call the `StartAsync()` method..
+        /// </summary>
+        public static string EventProcessorStartAsynchronousException {
+            get {
+                return ResourceManager.GetString("EventProcessorStartAsynchronousException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;false&apos;.  Cannot start the event processor asynchronously.  Please call the `Start()` method..
+        /// </summary>
+        public static string EventProcessorStartSynchronousException {
+            get {
+                return ResourceManager.GetString("EventProcessorStartSynchronousException", resourceCulture);
             }
         }
         
@@ -151,11 +196,20 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; does not implement IAsyncEventHandler&lt;T&gt;..
+        /// </summary>
+        public static string InvalidAsyncEventHandlerTypeExpection {
+            get {
+                return ResourceManager.GetString("InvalidAsyncEventHandlerTypeExpection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; does not implement IEventHandler&lt;T&gt;..
         /// </summary>
-        public static string InvalidEventHandlerType {
+        public static string InvalidEventHandlerTypeExpection {
             get {
-                return ResourceManager.GetString("InvalidEventHandlerType", resourceCulture);
+                return ResourceManager.GetString("InvalidEventHandlerTypeExpection", resourceCulture);
             }
         }
         
@@ -241,6 +295,24 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;true&apos;.  Cannot add a synchronous event handler.  Please call the `AddAsyncEventHandler()` method..
+        /// </summary>
+        public static string ProjectionAddEventHandlerAsynchronousException {
+            get {
+                return ResourceManager.GetString("ProjectionAddEventHandlerAsynchronousException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;false&apos;.  Cannot add an asynchronous event handler.  Please call the `AddEventHandler()` method..
+        /// </summary>
+        public static string ProjectionAddEventHandlerSynchronousException {
+            get {
+                return ResourceManager.GetString("ProjectionAddEventHandlerSynchronousException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Projection &apos;{0}&apos; has already been assigned to an projectionAggregation..
         /// </summary>
         public static string ProjectionAggregationAlreadyAssignedException {
@@ -273,15 +345,6 @@ namespace Shuttle.Recall {
         public static string SerializerUnknownTypeExcption {
             get {
                 return ResourceManager.GetString("SerializerUnknownTypeExcption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Projection &apos;{0}&apos; does not handle type &apos;{1}&apos;..
-        /// </summary>
-        public static string TraceTypeNotHandled {
-            get {
-                return ResourceManager.GetString("TraceTypeNotHandled", resourceCulture);
             }
         }
         

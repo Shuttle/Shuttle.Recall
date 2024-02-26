@@ -8,8 +8,6 @@ namespace Shuttle.Recall.Tests
     [TestFixture]
     public class ProjectionAggregationFixture : IEventHandler<object>
     {
-        public bool Active => true;
-
         public void ProcessEvent(IEventHandlerContext<object> context)
         {
         }
@@ -20,10 +18,10 @@ namespace Shuttle.Recall.Tests
             var aggregation = new ProjectionAggregation(100, CancellationToken.None);
 
             var projection1 =
-                new Projection("projection-1", 10)
+                new Projection(new EventStoreOptions(), "projection-1", 10)
                     .AddEventHandler(this);
             var projection2 =
-                new Projection("projection-2", 15)
+                new Projection(new EventStoreOptions(), "projection-2", 15)
                     .AddEventHandler(this);
 
             aggregation.Add(projection1);

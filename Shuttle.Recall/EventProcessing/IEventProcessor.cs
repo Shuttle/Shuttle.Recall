@@ -9,6 +9,7 @@ namespace Shuttle.Recall
         bool Asynchronous { get; }
         IEventProcessor Start();
         Projection AddProjection(string name);
+        Task<Projection> AddProjectionAsync(string name);
         Projection GetProjection(string name);
         Projection GetProjection();
         void ReleaseProjection(Projection projection);

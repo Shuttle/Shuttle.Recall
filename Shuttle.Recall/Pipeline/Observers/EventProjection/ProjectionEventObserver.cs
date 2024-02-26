@@ -21,14 +21,21 @@ namespace Shuttle.Recall
 
         public void Execute(OnGetProjectionEvent pipelineEvent)
         {
-            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
         }
 
         public async Task ExecuteAsync(OnGetProjectionEvent pipelineEvent)
         {
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteAsync(OnGetProjectionEvent pipelineEvent, bool sync)
+        {
             var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
             var projection = Guard.AgainstNull(state.GetProjection(), StateKeys.Projection);
-            var projectionEvent = _provider.Get(projection);
+            var projectionEvent = sync
+                ? _provider.Get(projection)
+                : await _provider.GetAsync(projection);
 
             if (projectionEvent.HasPrimitiveEvent)
             {
@@ -36,8 +43,6 @@ namespace Shuttle.Recall
             }
 
             state.SetProjectionEvent(projectionEvent);
-
-            await Task.CompletedTask;
         }
     }
 }

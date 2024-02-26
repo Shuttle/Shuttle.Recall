@@ -95,6 +95,7 @@ namespace Shuttle.Recall
             {
                 SequenceNumberTail = _projections
                     .Min(pair => pair.Value.SequenceNumber);
+
                 var keys = _primitiveEvents
                     .Where(pair => pair.Value.SequenceNumber <= SequenceNumberTail)
                     .Select(pair => pair.Key)

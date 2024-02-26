@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Reflection;
-using System.Runtime.InteropServices;
-using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
 {
@@ -17,33 +15,73 @@ namespace Shuttle.Recall
         private static readonly Type HandlerContextType = typeof(EventHandlerContext<>);
         private static readonly Type EventHandlerType = typeof(IEventHandler<>);
         private static readonly Type AsyncEventHandlerType = typeof(IAsyncEventHandler<>);
+        private readonly Dictionary<Type, object> _asyncEventHandlers = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, ContextConstructorInvoker> _constructorCache = new Dictionary<Type, ContextConstructorInvoker>();
+        private readonly Dictionary<Type, object> _eventHandlers = new Dictionary<Type, object>();
+        private readonly EventStoreOptions _eventStoreOptions;
 
         private readonly Dictionary<Type, ContextMethodInvoker> _methodCache = new Dictionary<Type, ContextMethodInvoker>();
         private readonly Dictionary<Type, AsyncContextMethodInvoker> _methodCacheAsync = new Dictionary<Type, AsyncContextMethodInvoker>();
-        private readonly Dictionary<Type, ContextConstructorInvoker> _constructorCache = new Dictionary<Type, ContextConstructorInvoker>();
-        private readonly Dictionary<Type, object> _eventHandlers = new Dictionary<Type, object>();
-        private readonly Dictionary<Type, object> _asyncEventHandlers = new Dictionary<Type, object>();
 
         private Guid? _projectionsQueueId;
 
-        public Projection(string name, long sequenceNumber)
+        public Projection(EventStoreOptions eventStoreOptions, string name, long sequenceNumber)
         {
-            Guard.AgainstNullOrEmptyString(name, nameof(name));
+            _eventStoreOptions = Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
 
-            Name = name;
+            Name = Guard.AgainstNullOrEmptyString(name, nameof(name));
             SequenceNumber = sequenceNumber;
             AggregationId = Guid.Empty;
         }
 
-        public string Name { get; }
-        public long SequenceNumber { get; private set; }
         public Guid AggregationId { get; private set; }
 
         public IEnumerable<Type> EventTypes => _eventHandlers.Keys;
 
+        public string Name { get; }
+        public long SequenceNumber { get; private set; }
+
+        public async Task<Projection> AddEventHandlerAsync(object handler)
+        {
+            Guard.AgainstNull(handler, nameof(handler));
+
+            if (!_eventStoreOptions.Asynchronous)
+            {
+                throw new InvalidOperationException(string.Format(Resources.ProjectionAddEventHandlerSynchronousException, handler.GetType().FullName));
+            }
+
+            var typesAddedCount = 0;
+
+            foreach (var interfaceType in handler.GetType().InterfacesAssignableTo(AsyncEventHandlerType))
+            {
+                var type = interfaceType.GetGenericArguments()[0];
+
+                if (_asyncEventHandlers.ContainsKey(type))
+                {
+                    throw new InvalidOperationException(string.Format(Resources.DuplicateAsyncEventHandlerEventTypeException, handler.GetType().FullName, type.FullName));
+                }
+
+                _asyncEventHandlers.Add(type, handler);
+
+                typesAddedCount++;
+            }
+
+            if (typesAddedCount == 0)
+            {
+                throw new EventProcessingException(string.Format(Resources.InvalidAsyncEventHandlerTypeExpection, handler.GetType().FullName));
+            }
+
+            return await Task.FromResult(this);
+        }
+
         public Projection AddEventHandler(object handler)
         {
             Guard.AgainstNull(handler, nameof(handler));
+
+            if (_eventStoreOptions.Asynchronous)
+            {
+                throw new InvalidOperationException(string.Format(Resources.ProjectionAddEventHandlerAsynchronousException, handler.GetType().FullName));
+            }
 
             var typesAddedCount = 0;
 
@@ -53,7 +91,7 @@ namespace Shuttle.Recall
 
                 if (_eventHandlers.ContainsKey(type))
                 {
-                    throw new InvalidOperationException(string.Format(Resources.DuplicateHandlerEventTypeException, handler.GetType().FullName, type.FullName));
+                    throw new InvalidOperationException(string.Format(Resources.DuplicateEventHandlerEventTypeException, handler.GetType().FullName, type.FullName));
                 }
 
                 _eventHandlers.Add(type, handler);
@@ -63,10 +101,27 @@ namespace Shuttle.Recall
 
             if (typesAddedCount == 0)
             {
-                throw new EventProcessingException(string.Format(Resources.InvalidEventHandlerType, handler.GetType().FullName));
+                throw new EventProcessingException(string.Format(Resources.InvalidEventHandlerTypeExpection, handler.GetType().FullName));
             }
 
             return this;
+        }
+
+        public Projection Aggregate(Guid aggregationId)
+        {
+            if (!AggregationId.Equals(Guid.Empty))
+            {
+                throw new InvalidOperationException(string.Format(Resources.ProjectionAggregationAlreadyAssignedException, Name));
+            }
+
+            AggregationId = aggregationId;
+
+            return this;
+        }
+
+        public void Assigned(Guid projectionsQueueId)
+        {
+            _projectionsQueueId = projectionsQueueId;
         }
 
         public void Process(EventEnvelope eventEnvelope, object domainEvent, PrimitiveEvent primitiveEvent, CancellationToken cancellationToken)
@@ -94,17 +149,10 @@ namespace Shuttle.Recall
 
             try
             {
-                if (sync && !_eventHandlers.ContainsKey(domainEventType))
+                if (!(sync ? _eventHandlers : _asyncEventHandlers).TryGetValue(domainEventType, out var eventHandler))
                 {
                     return;
                 }
-
-                if (!sync && !_eventHandlers.ContainsKey(domainEventType))
-                {
-                    return;
-                }
-
-                var eventHandler = _eventHandlers[domainEventType];
 
                 ContextMethodInvoker contextMethod = null;
                 AsyncContextMethodInvoker asyncContextMethod = null;
@@ -163,23 +211,6 @@ namespace Shuttle.Recall
             }
         }
 
-        public Projection Aggregate(Guid aggregationId)
-        {
-            if (!AggregationId.Equals(Guid.Empty))
-            {
-                throw new InvalidOperationException(string.Format(Resources.ProjectionAggregationAlreadyAssignedException, Name));
-            }
-
-            AggregationId = aggregationId;
-
-            return this;
-        }
-
-        public void Assigned(Guid projectionsQueueId)
-        {
-            _projectionsQueueId = projectionsQueueId;
-        }
-
         public void Release(Guid projectionsQueueId)
         {
             if (_projectionsQueueId.HasValue && _projectionsQueueId.Equals(projectionsQueueId))
@@ -190,6 +221,35 @@ namespace Shuttle.Recall
             }
 
             throw new InvalidOperationException(Resources.ExceptionInvalidProjectionRelease);
+        }
+
+        internal class AsyncContextMethodInvoker
+        {
+            private readonly InvokeHandler _invoker;
+
+            public AsyncContextMethodInvoker(Type messageType, MethodInfo methodInfo)
+            {
+                var dynamicMethod = new DynamicMethod(string.Empty,
+                    typeof(Task), new[] { typeof(object), typeof(object) },
+                    HandlerContextType.Module);
+
+                var il = dynamicMethod.GetILGenerator();
+
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldarg_1);
+
+                il.EmitCall(OpCodes.Callvirt, methodInfo, null);
+                il.Emit(OpCodes.Ret);
+
+                _invoker = (InvokeHandler)dynamicMethod.CreateDelegate(typeof(InvokeHandler));
+            }
+
+            public async Task InvokeAsync(object handler, object handlerContext)
+            {
+                await _invoker.Invoke(handler, handlerContext).ConfigureAwait(false);
+            }
+
+            private delegate Task InvokeHandler(object handler, object handlerContext);
         }
 
         internal class ContextConstructorInvoker
@@ -264,35 +324,6 @@ namespace Shuttle.Recall
             }
 
             private delegate void InvokeHandler(object handler, object handlerContext);
-        }
-
-        internal class AsyncContextMethodInvoker
-        {
-            private readonly InvokeHandler _invoker;
-
-            public AsyncContextMethodInvoker(Type messageType, MethodInfo methodInfo)
-            {
-                var dynamicMethod = new DynamicMethod(string.Empty,
-                    typeof(Task), new[] { typeof(object), typeof(object) },
-                    HandlerContextType.Module);
-
-                var il = dynamicMethod.GetILGenerator();
-
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldarg_1);
-
-                il.EmitCall(OpCodes.Callvirt, methodInfo, null);
-                il.Emit(OpCodes.Ret);
-
-                _invoker = (InvokeHandler)dynamicMethod.CreateDelegate(typeof(InvokeHandler));
-            }
-
-            public async Task InvokeAsync(object handler, object handlerContext)
-            {
-                await _invoker.Invoke(handler, handlerContext).ConfigureAwait(false);
-            }
-
-            private delegate Task InvokeHandler(object handler, object handlerContext);
         }
     }
 }
