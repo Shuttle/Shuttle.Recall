@@ -41,7 +41,7 @@ namespace Shuttle.Recall
             throw new NotImplementedException();
         }
 
-        public Task<long> GetSequenceNumberAsync(Guid id)
+        public ValueTask<long> GetSequenceNumberAsync(Guid id)
         {
             throw new NotImplementedException();
         }

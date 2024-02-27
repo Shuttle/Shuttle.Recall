@@ -14,6 +14,6 @@ namespace Shuttle.Recall
         Task RemoveAsync(Guid id);
         Task<IEnumerable<PrimitiveEvent>> GetAsync(Guid id);
         ValueTask<long> SaveAsync(PrimitiveEvent primitiveEvent);
-        Task<long> GetSequenceNumberAsync(Guid id);
+        ValueTask<long> GetSequenceNumberAsync(Guid id);
     }
 }
