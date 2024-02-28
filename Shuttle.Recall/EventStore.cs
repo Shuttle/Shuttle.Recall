@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
@@ -20,18 +21,50 @@ namespace Shuttle.Recall
 
         public EventStream Get(Guid id)
         {
+            return GetAsync(id, true).GetAwaiter().GetResult();
+        }
+
+        public async Task<EventStream> GetAsync(Guid id)
+        {
+            return await GetAsync(id, false).ConfigureAwait(false);
+        }
+
+        public long Save(EventStream eventStream, Action<EventEnvelopeBuilder> builder = null)
+        {
+            return SaveAsync(eventStream, builder, true).GetAwaiter().GetResult();
+        }
+
+        public async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventEnvelopeBuilder> builder = null)
+        {
+            return await SaveAsync(eventStream, builder, false).ConfigureAwait(false);
+        }
+
+        public void Remove(Guid id)
+        {
+            RemoveAsync(id, true).GetAwaiter().GetResult();
+        }
+
+        public async Task RemoveAsync(Guid id)
+        {
+            await RemoveAsync(id, false).ConfigureAwait(false);
+        }
+
+        private async Task RemoveAsync(Guid id, bool sync)
+        {
             Guard.AgainstNull(id, nameof(id));
 
-            if (id.Equals(Guid.Empty))
-            {
-                return CreateEventStream();
-            }
-
-            var pipeline = _pipelineFactory.GetPipeline<GetEventStreamPipeline>();
+            var pipeline = _pipelineFactory.GetPipeline<RemoveEventStreamPipeline>();
 
             try
             {
-                return pipeline.Execute(id);
+                if (sync)
+                {
+                    pipeline.Execute(id);
+                }
+                else
+                {
+                    await pipeline.ExecuteAsync(id).ConfigureAwait(false);
+                }
             }
             finally
             {
@@ -39,18 +72,41 @@ namespace Shuttle.Recall
             }
         }
 
-        public long Save(EventStream eventStream)
+        private async Task<EventStream> GetAsync(Guid id, bool sync)
         {
-            return Save(eventStream, null);
+            if (id.Equals(Guid.Empty))
+            {
+                return new EventStream(id, _eventMethodInvoker);
+            }
+
+            var pipeline = _pipelineFactory.GetPipeline<GetEventStreamPipeline>();
+
+            try
+            {
+                return sync
+                    ? pipeline.Execute(id)
+                    : await pipeline.ExecuteAsync(id).ConfigureAwait(false);
+            }
+            finally
+            {
+                _pipelineFactory.ReleasePipeline(pipeline);
+            }
         }
 
-        public long Save(EventStream eventStream, Action<EventEnvelopeBuilder> builder)
+        private async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventEnvelopeBuilder> builder, bool sync)
         {
             Guard.AgainstNull(eventStream, nameof(eventStream));
 
             if (eventStream.Removed)
             {
-                Remove(eventStream.Id);
+                if (sync)
+                {
+                    Remove(eventStream.Id);
+                }
+                else
+                {
+                    await RemoveAsync(eventStream.Id).ConfigureAwait(false);
+                }
 
                 return -1;
             }
@@ -68,7 +124,14 @@ namespace Shuttle.Recall
 
                 builder?.Invoke(configurator);
 
-                pipeline.Execute(eventStream, configurator);
+                if (sync)
+                {
+                    pipeline.Execute(eventStream, configurator);
+                }
+                else
+                {
+                    await pipeline.ExecuteAsync(eventStream, configurator).ConfigureAwait(false);
+                }
 
                 return pipeline.State.GetSequenceNumber();
             }
@@ -76,32 +139,6 @@ namespace Shuttle.Recall
             {
                 _pipelineFactory.ReleasePipeline(pipeline);
             }
-        }
-
-        public void Remove(Guid id)
-        {
-            Guard.AgainstNull(id, nameof(id));
-
-            var pipeline = _pipelineFactory.GetPipeline<RemoveEventStreamPipeline>();
-
-            try
-            {
-                pipeline.Execute(id);
-            }
-            finally
-            {
-                _pipelineFactory.ReleasePipeline(pipeline);
-            }
-        }
-
-        public EventStream CreateEventStream(Guid id)
-        {
-            return new EventStream(id, _eventMethodInvoker);
-        }
-
-        public EventStream CreateEventStream()
-        {
-            return CreateEventStream(Guid.NewGuid());
         }
     }
 }

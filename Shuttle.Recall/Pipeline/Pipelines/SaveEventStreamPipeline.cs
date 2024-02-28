@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Contract;
+﻿using System.Threading.Tasks;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
@@ -27,12 +28,27 @@ namespace Shuttle.Recall
 
         public void Execute(EventStream eventStream, EventEnvelopeBuilder builder)
         {
-            Guard.AgainstNull(eventStream, nameof(eventStream));
+            ExecuteAsync(eventStream, builder, true).GetAwaiter().GetResult();
+        }
 
-            State.SetEventStream(eventStream);
+        public async Task ExecuteAsync(EventStream eventStream, EventEnvelopeBuilder builder)
+        {
+            await ExecuteAsync(eventStream, builder, false).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteAsync(EventStream eventStream, EventEnvelopeBuilder builder, bool sync)
+        {
+            State.SetEventStream(Guard.AgainstNull(eventStream, nameof(eventStream)));
             State.SetEventEnvelopeConfigurator(builder);
 
-            Execute();
+            if (sync)
+            {
+                Execute();
+            }
+            else
+            {
+                await ExecuteAsync().ConfigureAwait(false);
+            }
         }
     }
 }

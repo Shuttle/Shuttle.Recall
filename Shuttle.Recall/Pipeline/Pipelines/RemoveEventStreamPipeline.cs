@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
@@ -19,9 +20,26 @@ namespace Shuttle.Recall
 
         public void Execute(Guid id)
         {
+            ExecuteAsync(id, true).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(Guid id)
+        {
+            await ExecuteAsync(id, false).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteAsync(Guid id, bool sync)
+        {
             State.SetId(id);
 
-            Execute();
+            if (sync)
+            {
+                Execute();
+            }
+            else
+            {
+                await ExecuteAsync();
+            }   
         }
     }
 }
