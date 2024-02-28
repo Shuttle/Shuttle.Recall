@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Contract;
+﻿using System.Threading.Tasks;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
@@ -32,9 +33,26 @@ namespace Shuttle.Recall
 
         public EventEnvelope Execute(DomainEvent domainEvent)
         {
-            State.SetDomainEvent(domainEvent);
+            return ExecuteAsync(domainEvent, true).GetAwaiter().GetResult();
+        }
 
-            Execute();
+        public async Task<EventEnvelope> ExecuteAsync(DomainEvent domainEvent)
+        {
+            return await ExecuteAsync(domainEvent, false).ConfigureAwait(false);
+        }
+
+        private async Task<EventEnvelope> ExecuteAsync(DomainEvent domainEvent, bool sync)
+        {
+            State.SetDomainEvent(Guard.AgainstNull(domainEvent, nameof(domainEvent)));
+
+            if (sync)
+            {
+                Execute();
+            }
+            else
+            {
+                await ExecuteAsync().ConfigureAwait(false);
+            }
 
             return State.GetEventEnvelope();
         }

@@ -22,13 +22,20 @@ namespace Shuttle.Recall
 
         public void Execute(OnAssembleEventEnvelopes pipelineEvent)
         {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var eventStream = state.GetEventStream();
-            var configurator = state.GetEventEnvelopeConfigurator();
-            var eventEnvelopes = new List<EventEnvelope>();
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
+        }
 
-            Guard.AgainstNull(eventStream, nameof(eventStream));
-            Guard.AgainstNull(configurator, nameof(configurator));
+        public async Task ExecuteAsync(OnAssembleEventEnvelopes pipelineEvent)
+        {
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteAsync(OnAssembleEventEnvelopes pipelineEvent, bool sync)
+        {
+            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
+            var eventStream = Guard.AgainstNull(state.GetEventStream(), StateKeys.EventStream);
+            var configurator = Guard.AgainstNull(state.GetEventEnvelopeConfigurator(), StateKeys.EventEnvelopeConfigurator);
+            var eventEnvelopes = new List<EventEnvelope>();
 
             var pipeline = _pipelineFactory.GetPipeline<AssembleEventEnvelopePipeline>();
 
@@ -38,7 +45,14 @@ namespace Shuttle.Recall
             {
                 foreach (var appendedEvent in eventStream.GetEvents())
                 {
-                    eventEnvelopes.Add(pipeline.Execute(appendedEvent));
+                    if (sync)
+                    {
+                        eventEnvelopes.Add(pipeline.Execute(appendedEvent));
+                    }
+                    else
+                    {
+                        eventEnvelopes.Add(await pipeline.ExecuteAsync(appendedEvent).ConfigureAwait(false));
+                    }
                 }
 
                 state.SetEventEnvelopes(eventEnvelopes);
@@ -49,11 +63,6 @@ namespace Shuttle.Recall
             }
 
             state.SetEventEnvelopes(eventEnvelopes);
-        }
-
-        public Task ExecuteAsync(OnAssembleEventEnvelopes pipelineEvent)
-        {
-            throw new System.NotImplementedException();
         }
     }
 }
