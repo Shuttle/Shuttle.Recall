@@ -259,6 +259,33 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No implementation of the `IPrimitiveEventQuery` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventStorage(), before calling `ServiceCollection.AddEventStore()`..
+        /// </summary>
+        public static string NotImplementedPrimitiveEventQuery {
+            get {
+                return ResourceManager.GetString("NotImplementedPrimitiveEventQuery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No implementation of the `IPrimitiveEventRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventStorage(), before calling `ServiceCollection.AddEventStore()`..
+        /// </summary>
+        public static string NotImplementedPrimitiveEventRepository {
+            get {
+                return ResourceManager.GetString("NotImplementedPrimitiveEventRepository", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No implementation of the `IProjectionRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`..
+        /// </summary>
+        public static string NotImplementedProjectionRepository {
+            get {
+                return ResourceManager.GetString("NotImplementedProjectionRepository", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No `IComponentResolver` instance has been assigned to the configuration..
         /// </summary>
         public static string NullResolverException {

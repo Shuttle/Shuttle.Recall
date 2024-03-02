@@ -199,6 +199,15 @@
     <value>Module could not be instantiated: {0}</value>
     <comment>{0} = full type name of module type to be instanced</comment>
   </data>
+  <data name="NotImplementedPrimitiveEventQuery" xml:space="preserve">
+    <value>No implementation of the `IPrimitiveEventQuery` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventStorage(), before calling `ServiceCollection.AddEventStore()`.</value>
+  </data>
+  <data name="NotImplementedPrimitiveEventRepository" xml:space="preserve">
+    <value>No implementation of the `IPrimitiveEventRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventStorage(), before calling `ServiceCollection.AddEventStore()`.</value>
+  </data>
+  <data name="NotImplementedProjectionRepository" xml:space="preserve">
+    <value>No implementation of the `IProjectionRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`.</value>
+  </data>
   <data name="NullResolverException" xml:space="preserve">
     <value>No `IComponentResolver` instance has been assigned to the configuration.</value>
   </data>

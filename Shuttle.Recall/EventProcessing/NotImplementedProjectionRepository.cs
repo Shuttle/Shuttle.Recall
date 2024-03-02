@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Shuttle.Recall
 {
@@ -6,42 +7,42 @@ namespace Shuttle.Recall
     {
         public Projection Find(string name)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException(Resources.NotImplementedProjectionRepository);
         }
 
         public Task<Projection> FindAsync(string name)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException(Resources.NotImplementedProjectionRepository);
         }
 
         public void Save(Projection projection)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException(Resources.NotImplementedProjectionRepository);
         }
 
         public Task SaveAsync(Projection projection)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException(Resources.NotImplementedProjectionRepository);
         }
 
         public void SetSequenceNumber(string projectionName, long sequenceNumber)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException(Resources.NotImplementedProjectionRepository);
         }
 
         public Task SetSequenceNumberAsync(string projectionName, long sequenceNumber)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException(Resources.NotImplementedProjectionRepository);
         }
 
         public long GetSequenceNumber(string projectionName)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException(Resources.NotImplementedProjectionRepository);
         }
 
         public ValueTask<long> GetSequenceNumberAsync(string projectionName)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException(Resources.NotImplementedProjectionRepository);
         }
     }
 }
