@@ -8,9 +8,9 @@ namespace Shuttle.Recall
     {
         private readonly EventStoreOptions _eventStoreOptions;
         private readonly IPipelineFactory _pipelineFactory;
-        private readonly EventProcessor _eventProcessor;
+        private readonly IEventProcessor _eventProcessor;
 
-        public ProjectionProcessorFactory(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory, EventProcessor eventProcessor)
+        public ProjectionProcessorFactory(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory, IEventProcessor eventProcessor)
         {
             Guard.AgainstNull(eventStoreOptions,nameof(eventStoreOptions));
             Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));

@@ -17,7 +17,11 @@ namespace Shuttle.Recall
                 .WithEvent<OnStartEventProcessingEvent>()
                 .WithEvent<OnAfterStartEventProcessingEvent>()
                 .WithEvent<OnCompleteTransactionScope>()
-                .WithEvent<OnDisposeTransactionScope>();
+                .WithEvent<OnDisposeTransactionScope>()
+                .WithEvent<OnConfigureThreadPools>()
+                .WithEvent<OnAfterConfigureThreadPools>()
+                .WithEvent<OnStartThreadPools>()
+                .WithEvent<OnAfterStartThreadPools>();
 
             RegisterObserver(startupEventProcessingObserver);
         }

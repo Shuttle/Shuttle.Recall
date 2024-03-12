@@ -27,8 +27,7 @@ namespace Shuttle.Recall
         private readonly Thread _sequenceNumberTailThread;
         private CancellationToken _cancellationToken;
         private CancellationTokenSource _cancellationTokenSource;
-        private IProcessorThreadPool _processorThreadPool;
-        private volatile bool _started;
+        private IProcessorThreadPool _eventProcessorThreadPool;
 
         public EventProcessor(IOptions<EventStoreOptions> eventStoreOptions, IPipelineFactory pipelineFactory, IProjectionRepository repository)
         {
@@ -60,7 +59,7 @@ namespace Shuttle.Recall
             return this;
         }
 
-        public bool Started => _started;
+        public bool Started { get; private set; }
 
         public Projection AddProjection(string name)
         {
@@ -143,9 +142,9 @@ namespace Shuttle.Recall
 
             _cancellationTokenSource.Cancel();
 
-            _processorThreadPool?.Dispose();
+            _eventProcessorThreadPool?.Dispose();
 
-            _started = false;
+            Started = false;
 
             _sequenceNumberTailThread?.Join();
 
@@ -170,7 +169,7 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNullOrEmptyString(name, nameof(name));
 
-            if (_started)
+            if (Started)
             {
                 throw new EventProcessingException(Resources.ExceptionEventProcessorStarted);
             }
@@ -248,7 +247,7 @@ namespace Shuttle.Recall
 
         private void SequenceNumberTailThreadWorker()
         {
-            while (_started)
+            while (Started)
             {
                 try
                 {
@@ -279,6 +278,7 @@ namespace Shuttle.Recall
                 return this;
             }
 
+            Started = true;
             Asynchronous = !sync;
 
             foreach (var projectionAggregation in _projectionAggregations.Values)
@@ -286,37 +286,31 @@ namespace Shuttle.Recall
                 projectionAggregation.AddEventTypes();
             }
 
-            if (sync)
+            try
             {
-                _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>().Execute();
+                var startupPipeline = _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>();
+
+                if (sync)
+                {
+                    startupPipeline.Execute();
+                }
+                else
+                {
+                    await startupPipeline.ExecuteAsync().ConfigureAwait(false);
+                }
+
+                _cancellationTokenSource = new CancellationTokenSource();
+                _cancellationToken = _cancellationTokenSource.Token;
+
+                _eventProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool");
+
+                _sequenceNumberTailThread.Start();
             }
-            else
+            catch
             {
-                await _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>().ExecuteAsync().ConfigureAwait(false);
+                Started = false;
+                throw;
             }
-
-            _cancellationTokenSource = new CancellationTokenSource();
-            _cancellationToken = _cancellationTokenSource.Token;
-
-            _processorThreadPool =
-                new ProcessorThreadPool(
-                    "ProjectionProcessor",
-                    _eventStoreOptions.ProjectionThreadCount,
-                    new ProjectionProcessorFactory(_eventStoreOptions, _pipelineFactory, this),
-                    _eventStoreOptions.ProcessorThread);
-
-            if (sync)
-            {
-                _processorThreadPool.Start();
-            }
-            else
-            {
-                await _processorThreadPool.StartAsync().ConfigureAwait(false);
-            }
-
-            _sequenceNumberTailThread.Start();
-
-            _started = true;
 
             return this;
         }

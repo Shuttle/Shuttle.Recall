@@ -157,4 +157,21 @@ namespace Shuttle.Recall
     public class OnAfterStartEventProcessingEvent : PipelineEvent
     {
     }
+
+    public class OnConfigureThreadPools : PipelineEvent
+    {
+    }
+
+    public class OnAfterConfigureThreadPools : PipelineEvent
+    {
+    }
+
+    public class OnStartThreadPools : PipelineEvent
+    {
+    }
+
+    public class OnAfterStartThreadPools : PipelineEvent
+    {
+    }
+
 }
