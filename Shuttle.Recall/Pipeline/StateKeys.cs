@@ -12,6 +12,7 @@
         public const string EventEnvelopeConfigurator = "EventEnvelopeConfigurator";
         public const string EventEnvelopeStream = "EventEnvelopeStream";
         public const string Projection = "Projection";
+        public const string ProjectionName = "ProjectionName";
         public const string EventStream = "EventStream";
         public const string Id = "Id";
         public const string EventBytes = "EventBytes";

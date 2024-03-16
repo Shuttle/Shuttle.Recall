@@ -38,6 +38,11 @@ namespace Shuttle.Recall.Tests
                 ProjectionThreadCount = 1
             });
 
+            var projectionRepository = new Mock<IProjectionRepository>();
+
+            projectionRepository.Setup(m => m.Find("projection-1")).Returns(new Projection(eventStoreOptions.Value, "projection-1", 200));
+            projectionRepository.Setup(m => m.FindAsync("projection-1")).Returns(Task.FromResult(new Projection(eventStoreOptions.Value, "projection-1", 200)));
+
             var pipelineFactory = new Mock<IPipelineFactory>();
 
             pipelineFactory.Setup(m => m.GetPipeline<EventProcessingPipeline>()).Returns(
@@ -53,12 +58,11 @@ namespace Shuttle.Recall.Tests
                 new EventProcessorStartupPipeline(new Mock<IStartupEventProcessingObserver>().Object)
             );
 
-            var projectionRepository = new Mock<IProjectionRepository>();
+            pipelineFactory.Setup(m => m.GetPipeline<AddProjectionPipeline>()).Returns(
+                new AddProjectionPipeline(new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
+            );
 
-            projectionRepository.Setup(m => m.Find("projection-1")).Returns(new Projection(eventStoreOptions.Value, "projection-1", 200));
-            projectionRepository.Setup(m => m.FindAsync("projection-1")).Returns(Task.FromResult(new Projection(eventStoreOptions.Value, "projection-1", 200)));
-
-            var processor = new EventProcessor(eventStoreOptions, pipelineFactory.Object, projectionRepository.Object);
+            var processor = new EventProcessor(eventStoreOptions, pipelineFactory.Object);
             var projection = sync ? processor.AddProjection("projection-1") : await processor.AddProjectionAsync("projection-1");
             var projectionAggregation = processor.GetProjectionAggregation(projection.AggregationId);
 
@@ -103,8 +107,19 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_get_round_robin_projections()
         {
-            var processor = new EventProcessor(Options.Create(new EventStoreOptions()),
-                new Mock<IPipelineFactory>().Object, new Mock<IProjectionRepository>().Object);
+            var eventStoreOptions = Options.Create(new EventStoreOptions());
+            var projectionRepository = new Mock<IProjectionRepository>();
+
+            projectionRepository.Setup(m => m.Find("projection-1")).Returns(new Projection(eventStoreOptions.Value, "projection-1", 0));
+            projectionRepository.Setup(m => m.Find("projection-2")).Returns(new Projection(eventStoreOptions.Value, "projection-2", 0));
+
+            var pipelineFactory = new Mock<IPipelineFactory>();
+
+            pipelineFactory.Setup(m => m.GetPipeline<AddProjectionPipeline>()).Returns(
+                new AddProjectionPipeline(new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
+            );
+
+            var processor = new EventProcessor(Options.Create(new EventStoreOptions()), pipelineFactory.Object);
 
             processor.AddProjection("projection-1");
             processor.AddProjection("projection-2");
@@ -147,7 +162,13 @@ namespace Shuttle.Recall.Tests
             projectionRepository.Setup(m => m.Find("projection-3")).Returns(new Projection(eventStoreOptions.Value, "projection-3", 301));
             projectionRepository.Setup(m => m.Find("projection-4")).Returns(new Projection(eventStoreOptions.Value, "projection-4", 600));
 
-            var processor = new EventProcessor(eventStoreOptions, new Mock<IPipelineFactory>().Object, projectionRepository.Object);
+            var pipelineFactory = new Mock<IPipelineFactory>();
+
+            pipelineFactory.Setup(m => m.GetPipeline<AddProjectionPipeline>()).Returns(
+                new AddProjectionPipeline(new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
+            );
+
+            var processor = new EventProcessor(Options.Create(new EventStoreOptions()), pipelineFactory.Object);
 
             var projection1 = processor.AddProjection("projection-1");
             var projection2 = processor.AddProjection("projection-2");

@@ -51,8 +51,6 @@ namespace Shuttle.Recall
 
         private async Task RemoveAsync(Guid id, bool sync)
         {
-            Guard.AgainstNull(id, nameof(id));
-
             var pipeline = _pipelineFactory.GetPipeline<RemoveEventStreamPipeline>();
 
             try

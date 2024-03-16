@@ -22,20 +22,18 @@ namespace Shuttle.Recall
         private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
         private readonly ConcurrentQueue<Projection> _projectionsQueue = new ConcurrentQueue<Projection>();
         private readonly Guid _projectionsQueueId = Guid.NewGuid();
-        private readonly IProjectionRepository _repository;
 
         private readonly Thread _sequenceNumberTailThread;
         private CancellationToken _cancellationToken;
         private CancellationTokenSource _cancellationTokenSource;
         private IProcessorThreadPool _eventProcessorThreadPool;
 
-        public EventProcessor(IOptions<EventStoreOptions> eventStoreOptions, IPipelineFactory pipelineFactory, IProjectionRepository repository)
+        public EventProcessor(IOptions<EventStoreOptions> eventStoreOptions, IPipelineFactory pipelineFactory)
         {
             Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
 
             _eventStoreOptions = Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
             _pipelineFactory = Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-            _repository = Guard.AgainstNull(repository, nameof(repository));
 
             _sequenceNumberTailThread = new Thread(SequenceNumberTailThreadWorker);
         }
@@ -184,23 +182,25 @@ namespace Shuttle.Recall
                 return null;
             }
 
-            var projection = sync
-                ? _repository.Find(name)
-                : await _repository.FindAsync(name).ConfigureAwait(false);
+            var pipeline = _pipelineFactory.GetPipeline<AddProjectionPipeline>();
 
-            if (projection == null)
+            try
             {
-                projection = new Projection(_eventStoreOptions, name, 0);
-
                 if (sync)
                 {
-                    _repository.Save(projection);
+                    pipeline.Execute(name);
                 }
                 else
                 {
-                    await _repository.SaveAsync(projection).ConfigureAwait(false);
+                    await pipeline.ExecuteAsync(name).ConfigureAwait(false);
                 }
             }
+            finally
+            {
+                _pipelineFactory.ReleasePipeline(pipeline);
+            }
+
+            var projection = pipeline.State.GetProjection();
 
             await _lock.WaitAsync(_cancellationToken).ConfigureAwait(false);
 

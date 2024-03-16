@@ -147,6 +147,16 @@ namespace Shuttle.Recall
             state.Replace(StateKeys.Projection, projection);
         }
 
+        public static string GetProjectionName(this IState state)
+        {
+            return state.Get<string>(StateKeys.ProjectionName);
+        }
+
+        public static void SetProjectionName(this IState state, string projectionName)
+        {
+            state.Replace(StateKeys.ProjectionName, projectionName);
+        }
+
         public static Guid GetId(this IState state)
         {
             return state.Get<Guid>(StateKeys.Id);
