@@ -9,7 +9,8 @@
         public const string EventEnvelopes = "EventEnvelopes";
         public const string Event = "Event";
         public const string Events = "Events";
-        public const string EventEnvelopeConfigurator = "EventEnvelopeConfigurator";
+        public const string EventStreamBuilder = "EventStreamBuilder";
+        public const string SaveEventStreamBuilder = "SaveEventStreamBuilder";
         public const string EventEnvelopeStream = "EventEnvelopeStream";
         public const string Projection = "Projection";
         public const string ProjectionName = "ProjectionName";

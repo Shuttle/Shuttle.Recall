@@ -16,6 +16,7 @@ namespace Shuttle.Recall
             RegisterStage("Process")
                 .WithEvent<OnAssembleEventEnvelopes>()
                 .WithEvent<OnAfterAssembleEventEnvelopes>()
+                .WithEvent<OnBeforeSavePrimitiveEvents>()
                 .WithEvent<OnSavePrimitiveEvents>()
                 .WithEvent<OnAfterSavePrimitiveEvents>()
                 .WithEvent<OnCommitEventStream>()
@@ -26,20 +27,20 @@ namespace Shuttle.Recall
             RegisterObserver(eventStreamObserver);
         }
 
-        public void Execute(EventStream eventStream, EventEnvelopeBuilder builder)
+        public void Execute(EventStream eventStream, SaveEventStreamBuilder builder)
         {
             ExecuteAsync(eventStream, builder, true).GetAwaiter().GetResult();
         }
 
-        public async Task ExecuteAsync(EventStream eventStream, EventEnvelopeBuilder builder)
+        public async Task ExecuteAsync(EventStream eventStream, SaveEventStreamBuilder builder)
         {
             await ExecuteAsync(eventStream, builder, false).ConfigureAwait(false);
         }
 
-        private async Task ExecuteAsync(EventStream eventStream, EventEnvelopeBuilder builder, bool sync)
+        private async Task ExecuteAsync(EventStream eventStream, SaveEventStreamBuilder builder, bool sync)
         {
             State.SetEventStream(Guard.AgainstNull(eventStream, nameof(eventStream)));
-            State.SetEventEnvelopeConfigurator(builder);
+            State.SetSaveEventStreamBuilder(builder);
 
             if (sync)
             {

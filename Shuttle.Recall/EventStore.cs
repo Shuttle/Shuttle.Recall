@@ -19,49 +19,53 @@ namespace Shuttle.Recall
             _eventMethodInvoker = eventMethodInvoker;
         }
 
-        public EventStream Get(Guid id)
+        public EventStream Get(Guid id, Action<EventStreamBuilder> builder = null)
         {
-            return GetAsync(id, true).GetAwaiter().GetResult();
+            return GetAsync(id, builder, true).GetAwaiter().GetResult();
         }
 
-        public async Task<EventStream> GetAsync(Guid id)
+        public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder> builder = null)
         {
-            return await GetAsync(id, false).ConfigureAwait(false);
+            return await GetAsync(id, builder, false).ConfigureAwait(false);
         }
 
-        public long Save(EventStream eventStream, Action<EventEnvelopeBuilder> builder = null)
+        public long Save(EventStream eventStream, Action<SaveEventStreamBuilder> builder = null)
         {
             return SaveAsync(eventStream, builder, true).GetAwaiter().GetResult();
         }
 
-        public async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventEnvelopeBuilder> builder = null)
+        public async ValueTask<long> SaveAsync(EventStream eventStream, Action<SaveEventStreamBuilder> builder = null)
         {
             return await SaveAsync(eventStream, builder, false).ConfigureAwait(false);
         }
 
-        public void Remove(Guid id)
+        public void Remove(Guid id, Action<EventStreamBuilder> builder = null)
         {
-            RemoveAsync(id, true).GetAwaiter().GetResult();
+            RemoveAsync(id, builder, true).GetAwaiter().GetResult();
         }
 
-        public async Task RemoveAsync(Guid id)
+        public async Task RemoveAsync(Guid id, Action<EventStreamBuilder> builder = null)
         {
-            await RemoveAsync(id, false).ConfigureAwait(false);
+            await RemoveAsync(id, builder, false).ConfigureAwait(false);
         }
 
-        private async Task RemoveAsync(Guid id, bool sync)
+        private async Task RemoveAsync(Guid id, Action<EventStreamBuilder> builder, bool sync)
         {
+            var eventStreamBuilder = new EventStreamBuilder();
+
+            builder?.Invoke(eventStreamBuilder);
+            
             var pipeline = _pipelineFactory.GetPipeline<RemoveEventStreamPipeline>();
 
             try
             {
                 if (sync)
                 {
-                    pipeline.Execute(id);
+                    pipeline.Execute(id, eventStreamBuilder);
                 }
                 else
                 {
-                    await pipeline.ExecuteAsync(id).ConfigureAwait(false);
+                    await pipeline.ExecuteAsync(id, eventStreamBuilder).ConfigureAwait(false);
                 }
             }
             finally
@@ -70,20 +74,24 @@ namespace Shuttle.Recall
             }
         }
 
-        private async Task<EventStream> GetAsync(Guid id, bool sync)
+        private async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder> builder, bool sync)
         {
             if (id.Equals(Guid.Empty))
             {
                 return new EventStream(id, _eventMethodInvoker);
             }
 
+            var eventStreamBuilder = new EventStreamBuilder();
+
+            builder?.Invoke(eventStreamBuilder);
+
             var pipeline = _pipelineFactory.GetPipeline<GetEventStreamPipeline>();
 
             try
             {
                 return sync
-                    ? pipeline.Execute(id)
-                    : await pipeline.ExecuteAsync(id).ConfigureAwait(false);
+                    ? pipeline.Execute(id, eventStreamBuilder)
+                    : await pipeline.ExecuteAsync(id, eventStreamBuilder).ConfigureAwait(false);
             }
             finally
             {
@@ -91,7 +99,7 @@ namespace Shuttle.Recall
             }
         }
 
-        private async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventEnvelopeBuilder> builder, bool sync)
+        private async ValueTask<long> SaveAsync(EventStream eventStream, Action<SaveEventStreamBuilder> builder, bool sync)
         {
             Guard.AgainstNull(eventStream, nameof(eventStream));
 
@@ -99,11 +107,11 @@ namespace Shuttle.Recall
             {
                 if (sync)
                 {
-                    Remove(eventStream.Id);
+                    Remove(eventStream.Id, (Action<EventStreamBuilder>)builder);
                 }
                 else
                 {
-                    await RemoveAsync(eventStream.Id).ConfigureAwait(false);
+                    await RemoveAsync(eventStream.Id, (Action<EventStreamBuilder>)builder).ConfigureAwait(false);
                 }
 
                 return -1;
@@ -118,17 +126,17 @@ namespace Shuttle.Recall
 
             try
             {
-                var configurator = new EventEnvelopeBuilder();
+                var eventStreamBuilder = new SaveEventStreamBuilder();
 
-                builder?.Invoke(configurator);
+                builder?.Invoke(eventStreamBuilder);
 
                 if (sync)
                 {
-                    pipeline.Execute(eventStream, configurator);
+                    pipeline.Execute(eventStream, eventStreamBuilder);
                 }
                 else
                 {
-                    await pipeline.ExecuteAsync(eventStream, configurator).ConfigureAwait(false);
+                    await pipeline.ExecuteAsync(eventStream, eventStreamBuilder).ConfigureAwait(false);
                 }
 
                 return pipeline.State.GetSequenceNumber();

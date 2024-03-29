@@ -34,7 +34,7 @@ namespace Shuttle.Recall
         {
             var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
             var domainEvent = Guard.AgainstNull(state.GetDomainEvent(), StateKeys.DomainEvent);
-            var configurator = state.GetEventEnvelopeConfigurator();
+            var configurator = state.GetSaveEventStreamBuilder();
 
             var eventEnvelope = new EventEnvelope
             {

@@ -34,12 +34,12 @@ namespace Shuttle.Recall
         {
             var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
             var eventStream = Guard.AgainstNull(state.GetEventStream(), StateKeys.EventStream);
-            var configurator = Guard.AgainstNull(state.GetEventEnvelopeConfigurator(), StateKeys.EventEnvelopeConfigurator);
+            var configurator = Guard.AgainstNull(state.GetSaveEventStreamBuilder(), StateKeys.SaveEventStreamBuilder);
             var eventEnvelopes = new List<EventEnvelope>();
 
             var pipeline = _pipelineFactory.GetPipeline<AssembleEventEnvelopePipeline>();
 
-            pipeline.State.SetEventEnvelopeConfigurator(configurator);
+            pipeline.State.SetSaveEventStreamBuilder(configurator);
 
             try
             {

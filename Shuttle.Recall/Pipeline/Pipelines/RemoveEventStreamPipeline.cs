@@ -12,25 +12,27 @@ namespace Shuttle.Recall
             Guard.AgainstNull(removeEventStreamObserver, nameof(removeEventStreamObserver));
 
             RegisterStage("Process")
+                .WithEvent<OnBeforeRemoveEventStream>()
                 .WithEvent<OnRemoveEventStream>()
                 .WithEvent<OnAfterRemoveEventStream>();
 
             RegisterObserver(removeEventStreamObserver);
         }
 
-        public void Execute(Guid id)
+        public EventStream Execute(Guid id, EventStreamBuilder builder)
         {
-            ExecuteAsync(id, true).GetAwaiter().GetResult();
+            return ExecuteAsync(id, builder, true).GetAwaiter().GetResult();
         }
 
-        public async Task ExecuteAsync(Guid id)
+        public async Task<EventStream> ExecuteAsync(Guid id, EventStreamBuilder builder)
         {
-            await ExecuteAsync(id, false).ConfigureAwait(false);
+            return await ExecuteAsync(id, builder, false).ConfigureAwait(false);
         }
 
-        private async Task ExecuteAsync(Guid id, bool sync)
+        private async Task<EventStream> ExecuteAsync(Guid id, EventStreamBuilder builder, bool sync)
         {
             State.SetId(id);
+            State.SetEventStreamBuilder(builder);
 
             if (sync)
             {
@@ -38,8 +40,10 @@ namespace Shuttle.Recall
             }
             else
             {
-                await ExecuteAsync();
-            }   
+                await ExecuteAsync().ConfigureAwait(false);
+            }
+
+            return State.GetEventStream();
         }
     }
 }

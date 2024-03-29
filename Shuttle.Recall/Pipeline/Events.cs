@@ -30,6 +30,10 @@ namespace Shuttle.Recall
     {
     }
 
+    public class OnBeforeSavePrimitiveEvents : PipelineEvent
+    {
+    }
+
     public class OnSavePrimitiveEvents : PipelineEvent
     {
     }
@@ -46,6 +50,10 @@ namespace Shuttle.Recall
     {
     }
 
+    public class OnBeforeGetStreamEvents : PipelineEvent
+    {
+    }
+
     public class OnGetStreamEvents : PipelineEvent
     {
     }
@@ -59,6 +67,10 @@ namespace Shuttle.Recall
     }
 
     public class OnAfterAssembleEventStream : PipelineEvent
+    {
+    }
+
+    public class OnBeforeRemoveEventStream : PipelineEvent
     {
     }
 
