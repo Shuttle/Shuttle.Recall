@@ -32,7 +32,5 @@ namespace Shuttle.Recall
 
         public int ProjectionThreadCount { get; set; } = 5;
         public TimeSpan SequenceNumberTailThreadWorkerInterval { get; set; } = TimeSpan.FromSeconds(5);
-        public bool ManageEventStoreConnections { get; set; }
-        public bool ManageProjectionConnections { get; set; }
     }
 }

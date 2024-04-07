@@ -70,9 +70,6 @@ namespace Shuttle.Recall
                 options.DurationToSleepWhenIdle = eventStoreBuilder.Options.DurationToSleepWhenIdle;
 
                 options.ProcessorThread = eventStoreBuilder.Options.ProcessorThread;
-
-                options.ManageEventStoreConnections = eventStoreBuilder.Options.ManageEventStoreConnections;
-                options.ManageProjectionConnections = eventStoreBuilder.Options.ManageProjectionConnections;
             });
 
             var eventStoreConfigurationType = typeof(IEventStoreConfiguration);
