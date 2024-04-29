@@ -169,7 +169,7 @@ namespace Shuttle.Recall
 
             if (Started)
             {
-                throw new EventProcessingException(Resources.ExceptionEventProcessorStarted);
+                throw new EventProcessingException(Resources.AddProjectionEventProcessorStartedException);
             }
 
             if (_projections.ContainsKey(name))

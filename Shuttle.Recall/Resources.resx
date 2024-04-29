@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddProjectionEventProcessorStartedException" xml:space="preserve">
+    <value>Cannot add projections after the event processor has been started.</value>
+  </data>
   <data name="AggregateConstructorException" xml:space="preserve">
     <value>Could not create an aggregate of type '{0}'.  Ensure that there is a constructor that takes only the `Guid` identifier as a parameter.</value>
     <comment>{0} = type of the aggregate</comment>
@@ -156,9 +159,6 @@
   <data name="EventStreamConcurrencyException" xml:space="preserve">
     <value>The event stream for id '{0}' already at version '{1}' and cannot insert the new event.  The event will be ignored and be added to the event stream again as a newer version.</value>
     <comment>{0} = event stream id, {1} = existing version</comment>
-  </data>
-  <data name="ExceptionEventProcessorStarted" xml:space="preserve">
-    <value>The event processor has already been started.</value>
   </data>
   <data name="ExceptionInvalidProjectionRelease" xml:space="preserve">
     <value>Cannot release the projection since it either has not been assigned for processing or it has been assigned using another queue identifier.</value>

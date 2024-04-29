@@ -61,6 +61,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot add projections after the event processor has been started..
+        /// </summary>
+        public static string AddProjectionEventProcessorStartedException {
+            get {
+                return ResourceManager.GetString("AddProjectionEventProcessorStartedException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not create an aggregate of type &apos;{0}&apos;.  Ensure that there is a constructor that takes only the `Guid` identifier as a parameter..
         /// </summary>
         public static string AggregateConstructorException {
@@ -156,15 +165,6 @@ namespace Shuttle.Recall {
         public static string EventStreamConcurrencyException {
             get {
                 return ResourceManager.GetString("EventStreamConcurrencyException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The event processor has already been started..
-        /// </summary>
-        public static string ExceptionEventProcessorStarted {
-            get {
-                return ResourceManager.GetString("ExceptionEventProcessorStarted", resourceCulture);
             }
         }
         
