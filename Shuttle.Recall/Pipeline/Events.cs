@@ -170,15 +170,15 @@ namespace Shuttle.Recall
     {
     }
 
-    public class OnBeforeStartEventProcessingEvent : PipelineEvent
+    public class OnBeforeStartEventProcessing : PipelineEvent
     {
     }
 
-    public class OnStartEventProcessingEvent : PipelineEvent
+    public class OnStartEventProcessing : PipelineEvent
     {
     }
 
-    public class OnAfterStartEventProcessingEvent : PipelineEvent
+    public class OnAfterStartEventProcessing : PipelineEvent
     {
     }
 

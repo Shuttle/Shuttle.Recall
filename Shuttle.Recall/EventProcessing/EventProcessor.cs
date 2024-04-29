@@ -278,7 +278,6 @@ namespace Shuttle.Recall
                 return this;
             }
 
-            Started = true;
             Asynchronous = !sync;
 
             foreach (var projectionAggregation in _projectionAggregations.Values)
@@ -286,31 +285,25 @@ namespace Shuttle.Recall
                 projectionAggregation.AddEventTypes();
             }
 
-            try
+            var startupPipeline = _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>();
+
+            if (sync)
             {
-                var startupPipeline = _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>();
-
-                if (sync)
-                {
-                    startupPipeline.Execute();
-                }
-                else
-                {
-                    await startupPipeline.ExecuteAsync().ConfigureAwait(false);
-                }
-
-                _cancellationTokenSource = new CancellationTokenSource();
-                _cancellationToken = _cancellationTokenSource.Token;
-
-                _eventProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool");
-
-                _sequenceNumberTailThread.Start();
+                startupPipeline.Execute();
             }
-            catch
+            else
             {
-                Started = false;
-                throw;
+                await startupPipeline.ExecuteAsync().ConfigureAwait(false);
             }
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
+
+            _eventProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool");
+
+            _sequenceNumberTailThread.Start();
+
+            Started = true;
 
             return this;
         }

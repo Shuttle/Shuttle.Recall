@@ -24,12 +24,12 @@ namespace Shuttle.Recall
             _eventStoreConfiguration = Guard.AgainstNull(eventStoreConfiguration, nameof(eventStoreConfiguration));
         }
 
-        public void Execute(OnStartEventProcessingEvent pipelineEvent)
+        public void Execute(OnStartEventProcessing pipelineEvent)
         {
             ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
         }
 
-        public async Task ExecuteAsync(OnStartEventProcessingEvent pipelineEvent)
+        public async Task ExecuteAsync(OnStartEventProcessing pipelineEvent)
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
@@ -91,7 +91,7 @@ namespace Shuttle.Recall
     }
 
     public interface IStartupEventProcessingObserver : 
-        IPipelineObserver<OnStartEventProcessingEvent>,
+        IPipelineObserver<OnStartEventProcessing>,
         IPipelineObserver<OnConfigureThreadPools>,
         IPipelineObserver<OnStartThreadPools>
     {
