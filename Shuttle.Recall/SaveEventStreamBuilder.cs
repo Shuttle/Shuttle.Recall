@@ -4,9 +4,9 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
 {
-    public class EventEnvelopeBuilder
+    public class SaveEventStreamBuilder : EventStreamBuilder
     {
-        public EventEnvelopeBuilder()
+        public SaveEventStreamBuilder()
         {
             Headers = new List<EnvelopeHeader>();
         }

@@ -17,12 +17,12 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_use_provider()
         {
-            var projection = new Projection("projection", 15);
+            var projection = new Projection(new EventStoreOptions(), "projection", 15);
 
             projection.AddEventHandler(this);
 
             var eventProcessor = new Mock<IEventProcessor>();
-            var projectionAggregation = new ProjectionAggregation(100);
+            var projectionAggregation = new ProjectionAggregation(100, CancellationToken.None);
 
             projectionAggregation.Add(projection);
 

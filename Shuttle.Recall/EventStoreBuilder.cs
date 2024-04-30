@@ -31,8 +31,7 @@ namespace Shuttle.Recall
         public IServiceCollection Services { get; }
         public bool SuppressEventProcessorHostedService { get; set; }
 
-        public EventStoreBuilder AddEventHandler<TEventHandler>(string projectionName)
-            where TEventHandler : class
+        public EventStoreBuilder AddEventHandler<TEventHandler>(string projectionName) where TEventHandler : class
         {
             Guard.AgainstNullOrEmptyString(projectionName, nameof(projectionName));
 
@@ -45,8 +44,7 @@ namespace Shuttle.Recall
             return this;
         }
 
-        public EventStoreBuilder AddEventHandler<TEventHandler>(Projection projection)
-            where TEventHandler : class
+        public EventStoreBuilder AddEventHandler<TEventHandler>(Projection projection) where TEventHandler : class
         {
             Guard.AgainstNull(projection, nameof(projection));
 

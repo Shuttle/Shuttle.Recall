@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Specification;
 
@@ -9,17 +10,20 @@ namespace Shuttle.Recall
 {
     public class ProjectionAggregation : ISpecification<Projection>
     {
+        private readonly SemaphoreSlim _externalLock = new SemaphoreSlim(1, 1);
         private readonly object _lock = new object();
 
         private readonly SortedDictionary<long, PrimitiveEvent> _primitiveEvents = new SortedDictionary<long, PrimitiveEvent>();
 
         private readonly int _projectionAggregationTolerance;
+        private readonly CancellationToken _cancellationToken;
         private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
         private long _sequenceNumberTolerance = long.MinValue;
 
-        public ProjectionAggregation(int projectionAggregationTolerance)
+        public ProjectionAggregation(int projectionAggregationTolerance, CancellationToken cancellationToken)
         {
             _projectionAggregationTolerance = projectionAggregationTolerance;
+            _cancellationToken = cancellationToken;
         }
 
         public long SequenceNumberTail { get; private set; } = long.MaxValue;
@@ -91,6 +95,7 @@ namespace Shuttle.Recall
             {
                 SequenceNumberTail = _projections
                     .Min(pair => pair.Value.SequenceNumber);
+
                 var keys = _primitiveEvents
                     .Where(pair => pair.Value.SequenceNumber <= SequenceNumberTail)
                     .Select(pair => pair.Key)
@@ -126,6 +131,16 @@ namespace Shuttle.Recall
         public PrimitiveEvent GetNextPrimitiveEvent(long sequenceNumber)
         {
             return _primitiveEvents.FirstOrDefault(entry => entry.Key > sequenceNumber).Value;
+        }
+
+        public async Task LockAsync()
+        {
+            await _externalLock.WaitAsync(_cancellationToken).ConfigureAwait(false);
+        }
+
+        public void Release()
+        {
+            _externalLock.Release();
         }
     }
 }

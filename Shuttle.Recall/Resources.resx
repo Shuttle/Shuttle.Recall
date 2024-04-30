@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddProjectionEventProcessorStartedException" xml:space="preserve">
+    <value>Cannot add projections after the event processor has been started.</value>
+  </data>
   <data name="AggregateConstructorException" xml:space="preserve">
     <value>Could not create an aggregate of type '{0}'.  Ensure that there is a constructor that takes only the `Guid` identifier as a parameter.</value>
     <comment>{0} = type of the aggregate</comment>
@@ -125,7 +128,11 @@
     <value>{0} '{1}' has no default constructor.</value>
     <comment>{0} = name of required instance, {1} = full type name</comment>
   </data>
-  <data name="DuplicateHandlerEventTypeException" xml:space="preserve">
+  <data name="DuplicateAsyncEventHandlerEventTypeException" xml:space="preserve">
+    <value>Async event handler '{0}' is already registered for event type '{1}'.</value>
+    <comment>{0} = handler type full name, {1} = event type full name</comment>
+  </data>
+  <data name="DuplicateEventHandlerEventTypeException" xml:space="preserve">
     <value>Event handler '{0}' is already registered for event type '{1}'.</value>
     <comment>{0} = handler type full name, {1} = event type full name</comment>
   </data>
@@ -137,12 +144,21 @@
     <value>A projection with name '{0}' has already been added.</value>
     <comment>{0} = name of the projection</comment>
   </data>
+  <data name="EventProcessorAddProjectionAsynchronousException" xml:space="preserve">
+    <value>The event store options asynchronous value is 'true'.  Cannot add a synchronous projection.  Please call the `AddProjectionAsync()` method.</value>
+  </data>
+  <data name="EventProcessorAddProjectionSynchronousException" xml:space="preserve">
+    <value>The event store options asynchronous value is 'false'.  Cannot add an asynchronous projection.  Please call the `AddProjection()` method.</value>
+  </data>
+  <data name="EventProcessorStartAsynchronousException" xml:space="preserve">
+    <value>The event store options asynchronous value is 'true'.  Cannot start the event processor synchronously.  Please call the `StartAsync()` method.</value>
+  </data>
+  <data name="EventProcessorStartSynchronousException" xml:space="preserve">
+    <value>The event store options asynchronous value is 'false'.  Cannot start the event processor asynchronously.  Please call the `Start()` method.</value>
+  </data>
   <data name="EventStreamConcurrencyException" xml:space="preserve">
     <value>The event stream for id '{0}' already at version '{1}' and cannot insert the new event.  The event will be ignored and be added to the event stream again as a newer version.</value>
     <comment>{0} = event stream id, {1} = existing version</comment>
-  </data>
-  <data name="ExceptionEventProcessorStarted" xml:space="preserve">
-    <value>The event processor has already been started.</value>
   </data>
   <data name="ExceptionInvalidProjectionRelease" xml:space="preserve">
     <value>Cannot release the projection since it either has not been assigned for processing or it has been assigned using another queue identifier.</value>
@@ -155,7 +171,11 @@
     <value>Projection '{0}' is either not active or does not belong to this endpoint and will not be processed.</value>
     <comment>{0} = projection name</comment>
   </data>
-  <data name="InvalidEventHandlerType" xml:space="preserve">
+  <data name="InvalidAsyncEventHandlerTypeExpection" xml:space="preserve">
+    <value>Type '{0}' does not implement IAsyncEventHandler&lt;T&gt;.</value>
+    <comment>{0} = full name of invalid type</comment>
+  </data>
+  <data name="InvalidEventHandlerTypeExpection" xml:space="preserve">
     <value>Type '{0}' does not implement IEventHandler&lt;T&gt;.</value>
     <comment>{0} = full name of invalid type</comment>
   </data>
@@ -179,6 +199,15 @@
     <value>Module could not be instantiated: {0}</value>
     <comment>{0} = full type name of module type to be instanced</comment>
   </data>
+  <data name="NotImplementedPrimitiveEventQuery" xml:space="preserve">
+    <value>No implementation of the `IPrimitiveEventQuery` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventStorage(), before calling `ServiceCollection.AddEventStore()`.</value>
+  </data>
+  <data name="NotImplementedPrimitiveEventRepository" xml:space="preserve">
+    <value>No implementation of the `IPrimitiveEventRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventStorage(), before calling `ServiceCollection.AddEventStore()`.</value>
+  </data>
+  <data name="NotImplementedProjectionRepository" xml:space="preserve">
+    <value>No implementation of the `IProjectionRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`.</value>
+  </data>
   <data name="NullResolverException" xml:space="preserve">
     <value>No `IComponentResolver` instance has been assigned to the configuration.</value>
   </data>
@@ -193,6 +222,12 @@
   <data name="ProcessEventMethodMissingException" xml:space="preserve">
     <value>Handler type '{0}' does not have the required ProcessEvent method that handles domain event type '{1}'.</value>
     <comment>{0} = handler full type name, {1} = domain event full type name</comment>
+  </data>
+  <data name="ProjectionAddEventHandlerAsynchronousException" xml:space="preserve">
+    <value>The event store options asynchronous value is 'true'.  Cannot add a synchronous event handler.  Please call the `AddAsyncEventHandler()` method.</value>
+  </data>
+  <data name="ProjectionAddEventHandlerSynchronousException" xml:space="preserve">
+    <value>The event store options asynchronous value is 'false'.  Cannot add an asynchronous event handler.  Please call the `AddEventHandler()` method.</value>
   </data>
   <data name="ProjectionAggregationAlreadyAssignedException" xml:space="preserve">
     <value>Projection '{0}' has already been assigned to an projectionAggregation.</value>

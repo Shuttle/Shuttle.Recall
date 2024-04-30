@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
@@ -26,7 +27,17 @@ namespace Shuttle.Recall
 
         public void Execute(OnGetStreamEvents pipelineEvent)
         {
-            var state = pipelineEvent.Pipeline.State;
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(OnGetStreamEvents pipelineEvent)
+        {
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
+        }
+
+        public async Task ExecuteAsync(OnGetStreamEvents pipelineEvent, bool sync)
+        {
+            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
             var events = new List<DomainEvent>();
             var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
 
@@ -42,7 +53,14 @@ namespace Shuttle.Recall
                             primitiveEvent.Version, version));
                     }
 
-                    pipeline.Execute(primitiveEvent);
+                    if (sync)
+                    {
+                        pipeline.Execute(primitiveEvent);
+                    }
+                    else
+                    {
+                        await pipeline.ExecuteAsync(primitiveEvent).ConfigureAwait(false);
+                    }
 
                     events.Add(pipeline.State.GetEvent());
 

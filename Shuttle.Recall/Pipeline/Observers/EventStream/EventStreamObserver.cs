@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Contract;
+﻿using System.Threading.Tasks;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
@@ -11,12 +12,19 @@ namespace Shuttle.Recall
     {
         public void Execute(OnCommitEventStream pipelineEvent)
         {
-            var state = pipelineEvent.Pipeline.State;
+            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(OnCommitEventStream pipelineEvent)
+        {
+            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
             var eventStream = state.GetEventStream();
 
             Guard.AgainstNull(eventStream, nameof(eventStream));
 
             eventStream.Commit();
+
+            await Task.CompletedTask;
         }
     }
 }

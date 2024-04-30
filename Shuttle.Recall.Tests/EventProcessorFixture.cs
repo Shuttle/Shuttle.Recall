@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -17,6 +19,30 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_process_sequence_number_tail()
         {
+            Should_be_able_process_sequence_number_tail_async(true).GetAwaiter().GetResult();
+        }
+
+        [Test]
+        public async Task Should_be_able_process_sequence_number_tail_async()
+        {
+            await Should_be_able_process_sequence_number_tail_async(false);
+        }
+
+        private async Task Should_be_able_process_sequence_number_tail_async(bool sync)
+        {
+            var eventStoreOptions = Options.Create(new EventStoreOptions
+            {
+                Asynchronous = !sync,
+                ProjectionEventFetchCount = 100,
+                SequenceNumberTailThreadWorkerInterval = TimeSpan.FromMilliseconds(100),
+                ProjectionThreadCount = 1
+            });
+
+            var projectionRepository = new Mock<IProjectionRepository>();
+
+            projectionRepository.Setup(m => m.Find("projection-1")).Returns(new Projection(eventStoreOptions.Value, "projection-1", 200));
+            projectionRepository.Setup(m => m.FindAsync("projection-1")).Returns(Task.FromResult(new Projection(eventStoreOptions.Value, "projection-1", 200)));
+
             var pipelineFactory = new Mock<IPipelineFactory>();
 
             pipelineFactory.Setup(m => m.GetPipeline<EventProcessingPipeline>()).Returns(
@@ -32,19 +58,12 @@ namespace Shuttle.Recall.Tests
                 new EventProcessorStartupPipeline(new Mock<IStartupEventProcessingObserver>().Object)
             );
 
-            var projectionRepository = new Mock<IProjectionRepository>();
+            pipelineFactory.Setup(m => m.GetPipeline<AddProjectionPipeline>()).Returns(
+                new AddProjectionPipeline(new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
+            );
 
-            projectionRepository.Setup(m => m.Find("projection-1")).Returns(new Projection("projection-1", 200));
-
-            var eventStoreOptions = Options.Create(new EventStoreOptions
-            {
-                ProjectionEventFetchCount = 100,
-                SequenceNumberTailThreadWorkerInterval = TimeSpan.FromMilliseconds(100),
-                ProjectionThreadCount = 1
-            });
-
-            var processor = new EventProcessor(eventStoreOptions, pipelineFactory.Object, projectionRepository.Object);
-            var projection = processor.AddProjection("projection-1");
+            var processor = new EventProcessor(eventStoreOptions, pipelineFactory.Object);
+            var projection = sync ? processor.AddProjection("projection-1") : await processor.AddProjectionAsync("projection-1");
             var projectionAggregation = processor.GetProjectionAggregation(projection.AggregationId);
 
             for (var i = 50; i < 101; i++)
@@ -60,7 +79,14 @@ namespace Shuttle.Recall.Tests
 
             try
             {
-                processor.Start();
+                if (sync)
+                {
+                    processor.Start();
+                }
+                else
+                {
+                    await processor.StartAsync();
+                }
 
                 var timeout = DateTime.Now.AddSeconds(60);
 
@@ -81,8 +107,19 @@ namespace Shuttle.Recall.Tests
         [Test]
         public void Should_be_able_to_get_round_robin_projections()
         {
-            var processor = new EventProcessor(Options.Create(new EventStoreOptions()),
-                new Mock<IPipelineFactory>().Object, new Mock<IProjectionRepository>().Object);
+            var eventStoreOptions = Options.Create(new EventStoreOptions());
+            var projectionRepository = new Mock<IProjectionRepository>();
+
+            projectionRepository.Setup(m => m.Find("projection-1")).Returns(new Projection(eventStoreOptions.Value, "projection-1", 0));
+            projectionRepository.Setup(m => m.Find("projection-2")).Returns(new Projection(eventStoreOptions.Value, "projection-2", 0));
+
+            var pipelineFactory = new Mock<IPipelineFactory>();
+
+            pipelineFactory.Setup(m => m.GetPipeline<AddProjectionPipeline>()).Returns(
+                new AddProjectionPipeline(new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
+            );
+
+            var processor = new EventProcessor(Options.Create(new EventStoreOptions()), pipelineFactory.Object);
 
             processor.AddProjection("projection-1");
             processor.AddProjection("projection-2");
@@ -107,8 +144,7 @@ namespace Shuttle.Recall.Tests
             Assert.That(processor.GetProjection(), Is.Not.Null);
             Assert.That(processor.GetProjection(), Is.Null);
 
-            Assert.That(() => processor.ReleaseProjection(new Projection("fail", 1)),
-                Throws.TypeOf<InvalidOperationException>());
+            Assert.That(() => processor.ReleaseProjection(new Projection(new EventStoreOptions(), "fail", 1)), Throws.TypeOf<InvalidOperationException>());
         }
 
         [Test]
@@ -121,13 +157,18 @@ namespace Shuttle.Recall.Tests
 
             var projectionRepository = new Mock<IProjectionRepository>();
 
-            projectionRepository.Setup(m => m.Find("projection-1")).Returns(new Projection("projection-1", 1));
-            projectionRepository.Setup(m => m.Find("projection-2")).Returns(new Projection("projection-2", 300));
-            projectionRepository.Setup(m => m.Find("projection-3")).Returns(new Projection("projection-3", 301));
-            projectionRepository.Setup(m => m.Find("projection-4")).Returns(new Projection("projection-4", 600));
+            projectionRepository.Setup(m => m.Find("projection-1")).Returns(new Projection(eventStoreOptions.Value, "projection-1", 1));
+            projectionRepository.Setup(m => m.Find("projection-2")).Returns(new Projection(eventStoreOptions.Value, "projection-2", 300));
+            projectionRepository.Setup(m => m.Find("projection-3")).Returns(new Projection(eventStoreOptions.Value, "projection-3", 301));
+            projectionRepository.Setup(m => m.Find("projection-4")).Returns(new Projection(eventStoreOptions.Value, "projection-4", 600));
 
-            var processor = new EventProcessor(eventStoreOptions, new Mock<IPipelineFactory>().Object,
-                projectionRepository.Object);
+            var pipelineFactory = new Mock<IPipelineFactory>();
+
+            pipelineFactory.Setup(m => m.GetPipeline<AddProjectionPipeline>()).Returns(
+                new AddProjectionPipeline(new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
+            );
+
+            var processor = new EventProcessor(Options.Create(new EventStoreOptions()), pipelineFactory.Object);
 
             var projection1 = processor.AddProjection("projection-1");
             var projection2 = processor.AddProjection("projection-2");
@@ -140,28 +181,36 @@ namespace Shuttle.Recall.Tests
         }
 
         [Test]
-        public void Should_be_able_to_process_projections_timeously()
+        public void Should_be_able_to_process_projections_with_optimal_performance()
         {
-            const int projectionEventCount = 10000;
+            Should_be_able_to_process_projections_with_optimal_performance_async(true).GetAwaiter().GetResult();
+        }
+
+        [Test]
+        public async Task Should_be_able_to_process_projections_with_optimal_performance_async()
+        {
+            await Should_be_able_to_process_projections_with_optimal_performance_async(false);
+        }
+        
+        private async Task Should_be_able_to_process_projections_with_optimal_performance_async(bool sync)
+        {
+            const int projectionEventCount = 4000;
             const string projectionName = "projection-1";
+            
             var id = Guid.NewGuid();
-
             var serializer = new DefaultSerializer();
-
-            var eventStoreOptions = Options.Create(new EventStoreOptions
+            var services = new ServiceCollection();
+            var projectionEventProvider = new Mock<IProjectionEventProvider>();
+            var entry = 1;
+            var eventStoreOptions = new EventStoreOptions()
             {
+                Asynchronous = !sync,
                 ProjectionEventFetchCount = 100,
                 SequenceNumberTailThreadWorkerInterval = TimeSpan.FromMilliseconds(100),
                 ProjectionThreadCount = 1
-            });
+            };
 
-            var services = new ServiceCollection();
-
-            var projectionEventProvider = new Mock<IProjectionEventProvider>();
-
-            var entry = 1;
-
-            projectionEventProvider.Setup(m => m.Get(It.IsAny<Projection>())).Returns(() =>
+            ProjectionEvent GetProjectionEvent()
             {
                 if (entry > projectionEventCount)
                 {
@@ -169,14 +218,8 @@ namespace Shuttle.Recall.Tests
                 }
 
                 var primitiveEvent = entry % 2 == 0
-                    ? new PrimitiveEvent
-                    {
-                        EventType = typeof(EventA).FullName
-                    }
-                    : new PrimitiveEvent
-                    {
-                        EventType = typeof(EventB).FullName
-                    };
+                    ? new PrimitiveEvent { EventType = typeof(EventA).FullName }
+                    : new PrimitiveEvent { EventType = typeof(EventB).FullName };
 
                 var eventEnvelope = new EventEnvelope
                 {
@@ -184,8 +227,7 @@ namespace Shuttle.Recall.Tests
                     AssemblyQualifiedName = entry % 2 == 0
                         ? typeof(EventA).AssemblyQualifiedName
                         : typeof(EventB).AssemblyQualifiedName,
-                    Event = serializer
-                        .Serialize(entry % 2 == 0 ? new EventA { Entry = entry } : new EventB { Entry = entry })
+                    Event = serializer.Serialize(entry % 2 == 0 ? new EventA { Entry = entry } : new EventB { Entry = entry })
                         .ToBytes(),
                     EventId = Guid.NewGuid(),
                     Version = entry,
@@ -202,41 +244,65 @@ namespace Shuttle.Recall.Tests
                 entry++;
 
                 return new ProjectionEvent(primitiveEvent);
-            });
+            }
+
+            projectionEventProvider.Setup(m => m.Get(It.IsAny<Projection>())).Returns(GetProjectionEvent);
+            projectionEventProvider.Setup(m => m.GetAsync(It.IsAny<Projection>())).Returns(() => Task.FromResult(GetProjectionEvent()));
 
             var projectionRepository = new Mock<IProjectionRepository>();
 
-            projectionRepository.Setup(m => m.Find(projectionName)).Returns(new Projection(projectionName, 0));
+            projectionRepository.Setup(m => m.Find(projectionName)).Returns(new Projection(eventStoreOptions, projectionName, 0));
+            projectionRepository.Setup(m => m.FindAsync(projectionName)).Returns(Task.FromResult(new Projection(eventStoreOptions, projectionName, 0)));
 
             services.AddSingleton(projectionRepository.Object);
             services.AddSingleton(projectionEventProvider.Object);
 
-            services.AddEventStore();
+            services.AddEventStore(builder =>
+            {
+                builder.Options = eventStoreOptions;
+            });
 
             var serviceProvider = services.BuildServiceProvider();
 
             var processor = serviceProvider.GetRequiredService<IEventProcessor>();
-
-            var projection = processor.AddProjection(projectionName);
+            var projection = sync ? processor.AddProjection(projectionName) : await processor.AddProjectionAsync(projectionName);
             var projectionAggregation = processor.GetProjectionAggregation(projection.AggregationId);
-
             var eventHandler = new EventHandler();
 
-            projection.AddEventHandler(eventHandler);
+            if (sync)
+            {
+                projection.AddEventHandler(eventHandler);
+            }
+            else
+            {
+                await projection.AddEventHandlerAsync(eventHandler).ConfigureAwait(false);
+            }
 
             try
             {
-                processor.Start();
+                if (sync)
+                {
+                    processor.Start();
+                }
+                else
+                {
+                    await processor.StartAsync().ConfigureAwait(false);
+                }   
 
-                var now = DateTime.Now;
-                var timeout = now.AddSeconds(5);
+                var sw = new Stopwatch();
 
-                while (eventHandler.Entry < projectionEventCount && DateTime.Now < timeout)
+                sw.Start();
+
+                while (eventHandler.Entry < projectionEventCount && sw.ElapsedMilliseconds < 5000)
                 {
                     Thread.Sleep(100);
                 }
 
-                Assert.That((DateTime.Now - now).TotalMilliseconds, Is.LessThan(2000));
+                sw.Stop();
+
+                Console.WriteLine($@"[event-handler] : entry = {eventHandler.Entry} / elapsed ms = {sw.ElapsedMilliseconds}");
+
+                Assert.That(sw.ElapsedMilliseconds, Is.LessThan(2000));
                 Assert.That(projectionAggregation.IsEmpty, Is.True);
                 Assert.That(eventHandler.Entry, Is.EqualTo(projectionEventCount));
             }

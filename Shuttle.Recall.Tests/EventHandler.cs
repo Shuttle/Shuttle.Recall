@@ -1,8 +1,12 @@
-﻿namespace Shuttle.Recall.Tests
+﻿using System.Threading.Tasks;
+
+namespace Shuttle.Recall.Tests
 {
     public class EventHandler :
         IEventHandler<EventA>,
-        IEventHandler<EventB>
+        IEventHandler<EventB>,
+        IAsyncEventHandler<EventA>,
+        IAsyncEventHandler<EventB>
     {
         private static readonly object Lock = new();
         public int Entry { get; private set; }
@@ -28,6 +32,20 @@
 
                 Entry = entry;
             }
+        }
+
+        public async Task ProcessEventAsync(IEventHandlerContext<EventA> context)
+        {
+            Apply(context.Event.Entry);
+
+            await Task.CompletedTask;
+        }
+
+        public async Task ProcessEventAsync(IEventHandlerContext<EventB> context)
+        {
+            Apply(context.Event.Entry);
+
+            await Task.CompletedTask;
         }
     }
 

@@ -13,11 +13,15 @@ namespace Shuttle.Recall
             RegisterStage("Process")
                 .WithEvent<OnStartTransactionScope>()
                 .WithEvent<OnAfterStartTransactionScope>()
-                .WithEvent<OnBeforeStartEventProcessingEvent>()
-                .WithEvent<OnStartEventProcessingEvent>()
-                .WithEvent<OnAfterStartEventProcessingEvent>()
+                .WithEvent<OnBeforeStartEventProcessing>()
+                .WithEvent<OnStartEventProcessing>()
+                .WithEvent<OnAfterStartEventProcessing>()
                 .WithEvent<OnCompleteTransactionScope>()
-                .WithEvent<OnDisposeTransactionScope>();
+                .WithEvent<OnDisposeTransactionScope>()
+                .WithEvent<OnConfigureThreadPools>()
+                .WithEvent<OnAfterConfigureThreadPools>()
+                .WithEvent<OnStartThreadPools>()
+                .WithEvent<OnAfterStartThreadPools>();
 
             RegisterObserver(startupEventProcessingObserver);
         }

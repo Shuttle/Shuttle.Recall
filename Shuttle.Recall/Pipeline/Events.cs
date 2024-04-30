@@ -2,6 +2,18 @@
 
 namespace Shuttle.Recall
 {
+    public class OnBeforeAddProjection: PipelineEvent
+    {
+    }
+
+    public class OnAddProjection: PipelineEvent
+    {
+    }
+
+    public class OnAfterAddProjection: PipelineEvent
+    {
+    }
+
     public class OnGetProjectionEventEnvelope : PipelineEvent
     {
     }
@@ -15,6 +27,10 @@ namespace Shuttle.Recall
     }
 
     public class OnAfterAssembleEventEnvelopes : PipelineEvent
+    {
+    }
+
+    public class OnBeforeSavePrimitiveEvents : PipelineEvent
     {
     }
 
@@ -34,6 +50,10 @@ namespace Shuttle.Recall
     {
     }
 
+    public class OnBeforeGetStreamEvents : PipelineEvent
+    {
+    }
+
     public class OnGetStreamEvents : PipelineEvent
     {
     }
@@ -47,6 +67,10 @@ namespace Shuttle.Recall
     }
 
     public class OnAfterAssembleEventStream : PipelineEvent
+    {
+    }
+
+    public class OnBeforeRemoveEventStream : PipelineEvent
     {
     }
 
@@ -146,15 +170,32 @@ namespace Shuttle.Recall
     {
     }
 
-    public class OnBeforeStartEventProcessingEvent : PipelineEvent
+    public class OnBeforeStartEventProcessing : PipelineEvent
     {
     }
 
-    public class OnStartEventProcessingEvent : PipelineEvent
+    public class OnStartEventProcessing : PipelineEvent
     {
     }
 
-    public class OnAfterStartEventProcessingEvent : PipelineEvent
+    public class OnAfterStartEventProcessing : PipelineEvent
     {
     }
+
+    public class OnConfigureThreadPools : PipelineEvent
+    {
+    }
+
+    public class OnAfterConfigureThreadPools : PipelineEvent
+    {
+    }
+
+    public class OnStartThreadPools : PipelineEvent
+    {
+    }
+
+    public class OnAfterStartThreadPools : PipelineEvent
+    {
+    }
+
 }

@@ -1,4 +1,6 @@
-﻿using Shuttle.Core.Contract;
+﻿using System;
+using System.Threading.Tasks;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Serialization;
 using Shuttle.Core.Streams;
@@ -22,10 +24,22 @@ namespace Shuttle.Recall
 
         public void Execute(OnSerializeEvent pipelineEvent)
         {
-            var state = pipelineEvent.Pipeline.State;
-            var domainEvent = state.GetDomainEvent();
-            var eventEnvelope = state.GetEventEnvelope();
-            var bytes = _serializer.Serialize(domainEvent.Event).ToBytes();
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(OnSerializeEvent pipelineEvent)
+        {
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteAsync(OnSerializeEvent pipelineEvent, bool sync)
+        {
+            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
+            var domainEvent = Guard.AgainstNull(state.GetDomainEvent(), StateKeys.DomainEvent);
+            var eventEnvelope = Guard.AgainstNull(state.GetEventEnvelope(), StateKeys.EventEnvelope);
+            var bytes = sync
+                ? _serializer.Serialize(domainEvent.Event).ToBytes()
+                : await (await _serializer.SerializeAsync(domainEvent.Event).ConfigureAwait(false)).ToBytesAsync().ConfigureAwait(false);
 
             state.SetEventBytes(bytes);
 

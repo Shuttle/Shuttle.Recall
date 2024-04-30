@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Contract;
+﻿using System.Threading.Tasks;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
@@ -20,10 +21,18 @@ namespace Shuttle.Recall
 
         public void Execute(OnGetProjectionEventEnvelope pipelineEvent)
         {
-            var state = pipelineEvent.Pipeline.State;
-            var projectionEvent = state.GetProjectionEvent();
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
+        }
 
-            Guard.AgainstNull(projectionEvent, nameof(projectionEvent));
+        public async Task ExecuteAsync(OnGetProjectionEventEnvelope pipelineEvent)
+        {
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
+        }
+
+        public async Task ExecuteAsync(OnGetProjectionEventEnvelope pipelineEvent, bool sync)
+        {
+            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
+            var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent(), StateKeys.ProjectionEvent);
 
             if (!projectionEvent.HasPrimitiveEvent)
             {
@@ -34,7 +43,14 @@ namespace Shuttle.Recall
 
             try
             {
-                pipeline.Execute(projectionEvent.PrimitiveEvent);
+                if (sync)
+                {
+                    pipeline.Execute(projectionEvent.PrimitiveEvent);
+                }
+                else
+                {
+                    await pipeline.ExecuteAsync(projectionEvent.PrimitiveEvent);
+                }
 
                 state.SetEventEnvelope(pipeline.State.GetEventEnvelope());
                 state.SetEvent(pipeline.State.GetEvent());

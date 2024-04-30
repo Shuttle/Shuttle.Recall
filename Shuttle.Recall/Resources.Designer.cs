@@ -61,6 +61,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot add projections after the event processor has been started..
+        /// </summary>
+        public static string AddProjectionEventProcessorStartedException {
+            get {
+                return ResourceManager.GetString("AddProjectionEventProcessorStartedException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not create an aggregate of type &apos;{0}&apos;.  Ensure that there is a constructor that takes only the `Guid` identifier as a parameter..
         /// </summary>
         public static string AggregateConstructorException {
@@ -79,11 +88,20 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Async event handler &apos;{0}&apos; is already registered for event type &apos;{1}&apos;..
+        /// </summary>
+        public static string DuplicateAsyncEventHandlerEventTypeException {
+            get {
+                return ResourceManager.GetString("DuplicateAsyncEventHandlerEventTypeException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Event handler &apos;{0}&apos; is already registered for event type &apos;{1}&apos;..
         /// </summary>
-        public static string DuplicateHandlerEventTypeException {
+        public static string DuplicateEventHandlerEventTypeException {
             get {
-                return ResourceManager.GetString("DuplicateHandlerEventTypeException", resourceCulture);
+                return ResourceManager.GetString("DuplicateEventHandlerEventTypeException", resourceCulture);
             }
         }
         
@@ -106,20 +124,47 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;true&apos;.  Cannot add a synchronous projection.  Please call the `AddProjectionAsync()` method..
+        /// </summary>
+        public static string EventProcessorAddProjectionAsynchronousException {
+            get {
+                return ResourceManager.GetString("EventProcessorAddProjectionAsynchronousException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;false&apos;.  Cannot add an asynchronous projection.  Please call the `AddProjection()` method..
+        /// </summary>
+        public static string EventProcessorAddProjectionSynchronousException {
+            get {
+                return ResourceManager.GetString("EventProcessorAddProjectionSynchronousException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;true&apos;.  Cannot start the event processor synchronously.  Please call the `StartAsync()` method..
+        /// </summary>
+        public static string EventProcessorStartAsynchronousException {
+            get {
+                return ResourceManager.GetString("EventProcessorStartAsynchronousException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;false&apos;.  Cannot start the event processor asynchronously.  Please call the `Start()` method..
+        /// </summary>
+        public static string EventProcessorStartSynchronousException {
+            get {
+                return ResourceManager.GetString("EventProcessorStartSynchronousException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The event stream for id &apos;{0}&apos; already at version &apos;{1}&apos; and cannot insert the new event.  The event will be ignored and be added to the event stream again as a newer version..
         /// </summary>
         public static string EventStreamConcurrencyException {
             get {
                 return ResourceManager.GetString("EventStreamConcurrencyException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The event processor has already been started..
-        /// </summary>
-        public static string ExceptionEventProcessorStarted {
-            get {
-                return ResourceManager.GetString("ExceptionEventProcessorStarted", resourceCulture);
             }
         }
         
@@ -151,11 +196,20 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; does not implement IAsyncEventHandler&lt;T&gt;..
+        /// </summary>
+        public static string InvalidAsyncEventHandlerTypeExpection {
+            get {
+                return ResourceManager.GetString("InvalidAsyncEventHandlerTypeExpection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; does not implement IEventHandler&lt;T&gt;..
         /// </summary>
-        public static string InvalidEventHandlerType {
+        public static string InvalidEventHandlerTypeExpection {
             get {
-                return ResourceManager.GetString("InvalidEventHandlerType", resourceCulture);
+                return ResourceManager.GetString("InvalidEventHandlerTypeExpection", resourceCulture);
             }
         }
         
@@ -205,6 +259,33 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No implementation of the `IPrimitiveEventQuery` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventStorage(), before calling `ServiceCollection.AddEventStore()`..
+        /// </summary>
+        public static string NotImplementedPrimitiveEventQuery {
+            get {
+                return ResourceManager.GetString("NotImplementedPrimitiveEventQuery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No implementation of the `IPrimitiveEventRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventStorage(), before calling `ServiceCollection.AddEventStore()`..
+        /// </summary>
+        public static string NotImplementedPrimitiveEventRepository {
+            get {
+                return ResourceManager.GetString("NotImplementedPrimitiveEventRepository", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No implementation of the `IProjectionRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`..
+        /// </summary>
+        public static string NotImplementedProjectionRepository {
+            get {
+                return ResourceManager.GetString("NotImplementedProjectionRepository", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No `IComponentResolver` instance has been assigned to the configuration..
         /// </summary>
         public static string NullResolverException {
@@ -241,6 +322,24 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;true&apos;.  Cannot add a synchronous event handler.  Please call the `AddAsyncEventHandler()` method..
+        /// </summary>
+        public static string ProjectionAddEventHandlerAsynchronousException {
+            get {
+                return ResourceManager.GetString("ProjectionAddEventHandlerAsynchronousException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event store options asynchronous value is &apos;false&apos;.  Cannot add an asynchronous event handler.  Please call the `AddEventHandler()` method..
+        /// </summary>
+        public static string ProjectionAddEventHandlerSynchronousException {
+            get {
+                return ResourceManager.GetString("ProjectionAddEventHandlerSynchronousException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Projection &apos;{0}&apos; has already been assigned to an projectionAggregation..
         /// </summary>
         public static string ProjectionAggregationAlreadyAssignedException {
@@ -273,15 +372,6 @@ namespace Shuttle.Recall {
         public static string SerializerUnknownTypeExcption {
             get {
                 return ResourceManager.GetString("SerializerUnknownTypeExcption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Projection &apos;{0}&apos; does not handle type &apos;{1}&apos;..
-        /// </summary>
-        public static string TraceTypeNotHandled {
-            get {
-                return ResourceManager.GetString("TraceTypeNotHandled", resourceCulture);
             }
         }
         

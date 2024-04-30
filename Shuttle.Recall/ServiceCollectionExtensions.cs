@@ -53,6 +53,8 @@ namespace Shuttle.Recall
 
             services.AddOptions<EventStoreOptions>().Configure(options =>
             {
+                options.Asynchronous = eventStoreBuilder.Options.Asynchronous;
+
                 options.SequenceNumberTailThreadWorkerInterval = eventStoreBuilder.Options.SequenceNumberTailThreadWorkerInterval.TotalMilliseconds > 100
                     ? eventStoreBuilder.Options.SequenceNumberTailThreadWorkerInterval
                     : TimeSpan.FromMilliseconds(100);

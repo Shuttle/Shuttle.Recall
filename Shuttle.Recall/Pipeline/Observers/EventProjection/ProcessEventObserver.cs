@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Contract;
+﻿using System.Threading.Tasks;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall
@@ -11,24 +12,36 @@ namespace Shuttle.Recall
     {
         public void Execute(OnProcessEvent pipelineEvent)
         {
-            var state = pipelineEvent.Pipeline.State;
-            var projectionEvent = state.GetProjectionEvent();
-            var eventEnvelope = state.GetEventEnvelope();
-            var projection = state.GetProjection();
-            var domainEvent = state.GetEvent();
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
+        }
 
-            Guard.AgainstNull(projectionEvent, nameof(projectionEvent));
+        public async Task ExecuteAsync(OnProcessEvent pipelineEvent)
+        {
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteAsync(OnProcessEvent pipelineEvent, bool sync)
+        {
+            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
+            var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent(), StateKeys.ProjectionEvent);
 
             if (!projectionEvent.HasPrimitiveEvent)
             {
                 return;
             }
 
-            Guard.AgainstNull(eventEnvelope, nameof(eventEnvelope));
-            Guard.AgainstNull(projection, nameof(projection));
-            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+            var eventEnvelope = Guard.AgainstNull(state.GetEventEnvelope(), StateKeys.EventEnvelopes);
+            var projection = Guard.AgainstNull(state.GetProjection(), StateKeys.Projection);
+            var domainEvent = Guard.AgainstNull(state.GetEvent(), StateKeys.Event);
 
-            projection.Process(eventEnvelope, domainEvent.Event, projectionEvent.PrimitiveEvent, state.GetCancellationToken());
+            if (sync)
+            {
+                projection.Process(eventEnvelope, domainEvent.Event, projectionEvent.PrimitiveEvent, state.GetCancellationToken());
+            }
+            else
+            {
+                await projection.ProcessAsync(eventEnvelope, domainEvent.Event, projectionEvent.PrimitiveEvent, state.GetCancellationToken());
+            }
         }
     }
 }

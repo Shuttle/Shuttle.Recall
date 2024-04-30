@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Shuttle.Core.Compression;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
@@ -22,7 +23,17 @@ namespace Shuttle.Recall
 
         public void Execute(OnDecompressEvent pipelineEvent)
         {
-            var state = pipelineEvent.Pipeline.State;
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult(); 
+        }
+
+        public async Task ExecuteAsync(OnDecompressEvent pipelineEvent)
+        {
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteAsync(OnDecompressEvent pipelineEvent, bool sync)
+        {
+            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
             var eventEnvelope = state.GetEventEnvelope();
 
             if (!eventEnvelope.CompressionEnabled())
@@ -38,7 +49,9 @@ namespace Shuttle.Recall
                     Resources.MissingCompressionAlgorithmException, eventEnvelope.CompressionAlgorithm));
             }
 
-            eventEnvelope.Event = algorithm.Decompress(eventEnvelope.Event);
+            eventEnvelope.Event = sync
+            ? algorithm.Decompress(eventEnvelope.Event)
+            : await algorithm.DecompressAsync(eventEnvelope.Event);
         }
     }
 }
