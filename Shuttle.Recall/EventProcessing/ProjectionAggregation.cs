@@ -19,6 +19,8 @@ namespace Shuttle.Recall
         private readonly CancellationToken _cancellationToken;
         private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
         private long _sequenceNumberTolerance = long.MinValue;
+        private readonly List<Type> _eventTypes = new List<Type>();
+        private bool _initialized;
 
         public ProjectionAggregation(int projectionAggregationTolerance, CancellationToken cancellationToken)
         {
@@ -27,7 +29,21 @@ namespace Shuttle.Recall
         }
 
         public long SequenceNumberTail { get; private set; } = long.MaxValue;
-        public IEnumerable<Type> EventTypes { get; private set; } = new List<Type>();
+
+        public IEnumerable<Type> GetEventTypes()
+        {
+            lock(_lock)
+            {
+                if (!_initialized)
+                {
+                    _eventTypes.AddRange(_projections.Values.SelectMany(projection => projection.EventTypes));
+
+                    _initialized = true;
+                }
+            }
+
+            return _eventTypes;
+        }
 
         public Guid Id { get; } = Guid.NewGuid();
 
@@ -72,21 +88,6 @@ namespace Shuttle.Recall
             }
 
             projection.Aggregate(Id);
-        }
-
-        public void AddEventTypes()
-        {
-            lock (_lock)
-            {
-                var eventTypes = new List<Type>(EventTypes);
-
-                foreach (var type in from projection in _projections.Values from type in projection.EventTypes where !eventTypes.Contains(type) select type)
-                {
-                    eventTypes.Add(type);
-                }
-
-                EventTypes = eventTypes.AsReadOnly();
-            }
         }
 
         public void ProcessSequenceNumberTail()

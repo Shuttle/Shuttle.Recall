@@ -8,14 +8,14 @@ namespace Shuttle.Recall
 {
     public class ProjectionProcessor : IProcessor
     {
-        private readonly IPipelineFactory _pipelineFactory;
         private readonly IEventProcessor _eventProcessor;
+        private readonly IPipelineFactory _pipelineFactory;
         private readonly IThreadActivity _threadActivity;
 
         public ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory, IEventProcessor eventProcessor)
         {
             _pipelineFactory = Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-            _eventProcessor = Guard.AgainstNull(eventProcessor, nameof(eventProcessor)); 
+            _eventProcessor = Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
             _threadActivity = new ThreadActivity(Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions)).DurationToSleepWhenIdle);
         }
 
@@ -51,7 +51,7 @@ namespace Shuttle.Recall
                     else
                     {
                         await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-                    }   
+                    }
 
                     if (pipeline.State.GetWorking())
                     {

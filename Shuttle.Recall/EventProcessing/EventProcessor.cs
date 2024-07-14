@@ -280,11 +280,6 @@ namespace Shuttle.Recall
 
             Asynchronous = !sync;
 
-            foreach (var projectionAggregation in _projectionAggregations.Values)
-            {
-                projectionAggregation.AddEventTypes();
-            }
-
             var startupPipeline = _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>();
 
             if (sync)

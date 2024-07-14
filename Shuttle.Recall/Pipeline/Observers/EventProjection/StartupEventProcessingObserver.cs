@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
@@ -9,11 +10,11 @@ namespace Shuttle.Recall
 {
     public class StartupEventProcessingObserver : IStartupEventProcessingObserver
     {
-        private readonly IPipelineFactory _pipelineFactory;
         private readonly IEventStoreConfiguration _eventStoreConfiguration;
+        private readonly EventStoreOptions _eventStoreOptions;
+        private readonly IPipelineFactory _pipelineFactory;
         private readonly IEventProcessor _processor;
         private readonly IServiceProvider _serviceProvider;
-        private readonly EventStoreOptions _eventStoreOptions;
 
         public StartupEventProcessingObserver(IOptions<EventStoreOptions> eventStoreOptions, IServiceProvider serviceProvider, IEventProcessor processor, IEventStoreConfiguration eventStoreConfiguration, IPipelineFactory pipelineFactory)
         {
@@ -26,31 +27,21 @@ namespace Shuttle.Recall
 
         public void Execute(OnStartEventProcessing pipelineEvent)
         {
-            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
         }
 
         public async Task ExecuteAsync(OnStartEventProcessing pipelineEvent)
         {
-            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
-
-            foreach (var projectionName in _eventStoreConfiguration.GetProjectionNames())
-            {
-                var projection = _processor.AddProjection(projectionName);
-
-                foreach (var type in _eventStoreConfiguration.GetEventHandlerTypes(projectionName))
-                {
-                    projection.AddEventHandler(_serviceProvider.GetService(type));
-                }
-            }
-
-            await Task.CompletedTask;
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
         }
 
         public void Execute(OnConfigureThreadPools pipelineEvent)
         {
+            var projectionCount = _eventStoreConfiguration.GetProjectionNames().Count();
+
             pipelineEvent.Pipeline.State.Add("EventProcessorThreadPool", new ProcessorThreadPool(
-                "EventProcessorThreadPool ",
-                _eventStoreOptions.ProjectionThreadCount,
+                "EventProcessorThreadPool",
+                _eventStoreOptions.ProjectionThreadCount > projectionCount ? projectionCount : _eventStoreOptions.ProjectionThreadCount,
                 new ProjectionProcessorFactory(_eventStoreOptions, _pipelineFactory, _processor),
                 _eventStoreOptions.ProcessorThread));
         }
@@ -72,6 +63,32 @@ namespace Shuttle.Recall
             await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
         }
 
+        private async Task ExecuteAsync(OnStartEventProcessing pipelineEvent, bool sync)
+        {
+            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
+
+            foreach (var projectionName in _eventStoreConfiguration.GetProjectionNames())
+            {
+                var projection = sync
+                    ? _processor.AddProjection(projectionName)
+                    : await _processor.AddProjectionAsync(projectionName);
+
+                foreach (var type in _eventStoreConfiguration.GetEventHandlerTypes(projectionName))
+                {
+                    if (sync)
+                    {
+                        projection.AddEventHandler(_serviceProvider.GetService(type));
+                    }
+                    else
+                    {
+                        await projection.AddEventHandlerAsync(_serviceProvider.GetService(type));
+                    }
+                }
+            }
+
+            await Task.CompletedTask;
+        }
+
         private async Task ExecuteAsync(OnStartThreadPools pipelineEvent, bool sync)
         {
             var state = Guard.AgainstNull(pipelineEvent?.Pipeline?.State, nameof(pipelineEvent.Pipeline.State));
@@ -87,10 +104,9 @@ namespace Shuttle.Recall
                 await eventProcessorThreadPool.StartAsync();
             }
         }
-
     }
 
-    public interface IStartupEventProcessingObserver : 
+    public interface IStartupEventProcessingObserver :
         IPipelineObserver<OnStartEventProcessing>,
         IPipelineObserver<OnConfigureThreadPools>,
         IPipelineObserver<OnStartThreadPools>
