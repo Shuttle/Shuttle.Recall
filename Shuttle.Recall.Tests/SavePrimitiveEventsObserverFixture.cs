@@ -16,7 +16,7 @@ namespace Shuttle.Recall.Tests
             var specification = new Mock<IConcurrencyExceptionSpecification>();
             var repository = new Mock<IPrimitiveEventRepository>();
 
-            repository.Setup(m => m.Save(It.IsAny<PrimitiveEvent>())).Throws<Exception>();
+            repository.Setup(m => m.SaveAsync(It.IsAny<PrimitiveEvent>())).Throws<Exception>();
 
             var observer = new SavePrimitiveEventsObserver(
                 repository.Object,
@@ -28,7 +28,7 @@ namespace Shuttle.Recall.Tests
             pipeline.State.SetEventStream(new EventStream(Guid.NewGuid(), new Mock<IEventMethodInvoker>().Object));
             pipeline.State.SetEventEnvelopes(new List<EventEnvelope>
             {
-                new EventEnvelope()
+                new()
             });
 
             var pipelineEvent = new OnSavePrimitiveEvents();

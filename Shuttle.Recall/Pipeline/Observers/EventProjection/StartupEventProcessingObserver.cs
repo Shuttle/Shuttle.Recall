@@ -39,6 +39,11 @@ namespace Shuttle.Recall
         {
             var projectionCount = _eventStoreConfiguration.GetProjectionNames().Count();
 
+            if (projectionCount < 1)
+            {
+                projectionCount = 1;
+            }
+
             pipelineEvent.Pipeline.State.Add("EventProcessorThreadPool", new ProcessorThreadPool(
                 "EventProcessorThreadPool",
                 _eventStoreOptions.ProjectionThreadCount > projectionCount ? projectionCount : _eventStoreOptions.ProjectionThreadCount,

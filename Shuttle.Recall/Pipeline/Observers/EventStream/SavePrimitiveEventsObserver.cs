@@ -60,14 +60,9 @@ namespace Shuttle.Recall
                         DateRegistered = eventEnvelope.EventDate
                     };
 
-                    if (sync)
-                    {
-                        sequenceNumber = _primitiveEventRepository.Save(primitiveEvent);
-                    }
-                    else
-                    {
-                        sequenceNumber = await _primitiveEventRepository.SaveAsync(primitiveEvent).ConfigureAwait(false);
-                    }
+                    sequenceNumber = sync
+                        ? _primitiveEventRepository.SaveAsync(primitiveEvent).GetAwaiter().GetResult()
+                        : await _primitiveEventRepository.SaveAsync(primitiveEvent).ConfigureAwait(false);
 
                     if (sequenceNumber > 0)
                     {
@@ -77,7 +72,9 @@ namespace Shuttle.Recall
 
                 if (sequenceNumber < 1)
                 {
-                    state.SetSequenceNumber(sync ? _primitiveEventRepository.GetSequenceNumber(eventStream.Id) : await _primitiveEventRepository.GetSequenceNumberAsync(eventStream.Id).ConfigureAwait(false));
+                    state.SetSequenceNumber(sync 
+                        ? _primitiveEventRepository.GetSequenceNumberAsync(eventStream.Id).GetAwaiter().GetResult()
+                        : await _primitiveEventRepository.GetSequenceNumberAsync(eventStream.Id).ConfigureAwait(false));
                 }
             }
             catch (Exception ex)

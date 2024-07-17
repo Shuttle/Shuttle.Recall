@@ -34,7 +34,7 @@ namespace Shuttle.Recall
         {
             var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
             var domainEvent = Guard.AgainstNull(state.GetDomainEvent(), StateKeys.DomainEvent);
-            var configurator = state.GetSaveEventStreamBuilder();
+            var builder = state.GetEventStreamBuilder();
 
             var eventEnvelope = new EventEnvelope
             {
@@ -47,9 +47,9 @@ namespace Shuttle.Recall
                 CompressionAlgorithm = _eventStoreOptions.CompressionAlgorithm
             };
 
-            if (configurator != null)
+            if (builder != null)
             {
-                eventEnvelope.Headers = configurator.Headers;
+                eventEnvelope.Headers = builder.Headers;
             }
 
             state.SetEventEnvelope(eventEnvelope);

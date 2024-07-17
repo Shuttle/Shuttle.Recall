@@ -27,20 +27,20 @@ namespace Shuttle.Recall
             RegisterObserver(eventStreamObserver);
         }
 
-        public void Execute(EventStream eventStream, SaveEventStreamBuilder builder)
+        public void Execute(EventStream eventStream, EventStreamBuilder builder)
         {
             ExecuteAsync(eventStream, builder, true).GetAwaiter().GetResult();
         }
 
-        public async Task ExecuteAsync(EventStream eventStream, SaveEventStreamBuilder builder)
+        public async Task ExecuteAsync(EventStream eventStream, EventStreamBuilder builder)
         {
             await ExecuteAsync(eventStream, builder, false).ConfigureAwait(false);
         }
 
-        private async Task ExecuteAsync(EventStream eventStream, SaveEventStreamBuilder builder, bool sync)
+        private async Task ExecuteAsync(EventStream eventStream, EventStreamBuilder builder, bool sync)
         {
             State.SetEventStream(Guard.AgainstNull(eventStream, nameof(eventStream)));
-            State.SetSaveEventStreamBuilder(builder);
+            State.SetEventStreamBuilder(builder);
 
             if (sync)
             {

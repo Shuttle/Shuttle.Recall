@@ -45,7 +45,11 @@ namespace Shuttle.Recall
             {
                 var version = 0;
 
-                foreach (var primitiveEvent in _primitiveEventRepository.Get(state.GetId()))
+                var primitiveEvents = sync
+                    ? _primitiveEventRepository.GetAsync(state.GetId()).GetAwaiter().GetResult()
+                    : await _primitiveEventRepository.GetAsync(state.GetId()).ConfigureAwait(false);
+
+                foreach (var primitiveEvent in primitiveEvents)
                 {
                     if (primitiveEvent.Version < version)
                     {

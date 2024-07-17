@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
@@ -70,9 +72,9 @@ namespace Shuttle.Recall.Tests
                 });
             }
 
-            query.SetupSequence(m => m.Search(It.IsAny<PrimitiveEvent.Specification>()))
-                .Returns(events)
-                .Returns(new List<PrimitiveEvent>());
+            query.SetupSequence(m => m.SearchAsync(It.IsAny<PrimitiveEvent.Specification>()))
+                .Returns(Task.FromResult(events.AsEnumerable()))
+                .Returns(Task.FromResult(new List<PrimitiveEvent>().AsEnumerable()));
 
             return query.Object;
         }

@@ -19,15 +19,27 @@ namespace Shuttle.Recall
 
         public void Execute(OnRemoveEventStream pipelineEvent)
         {
-            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
         }
 
         public async Task ExecuteAsync(OnRemoveEventStream pipelineEvent)
         {
+            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
+        }
+
+        private async Task ExecuteAsync(OnRemoveEventStream pipelineEvent, bool sync)
+        {
             var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
 
-            _primitiveEventRepository.Remove(state.GetId());
-
+            if (sync)
+            {
+                _primitiveEventRepository.RemoveAsync(state.GetId()).GetAwaiter().GetResult();
+            }
+            else
+            {
+                await _primitiveEventRepository.RemoveAsync(state.GetId()).ConfigureAwait(false);
+            }
+            
             await Task.CompletedTask;
         }
     }

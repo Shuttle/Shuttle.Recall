@@ -51,9 +51,13 @@ namespace Shuttle.Recall
 
                 if (!projectionAggregation.ContainsPrimitiveEvent(sequenceNumber))
                 {
+                    var specification = new PrimitiveEvent.Specification()
+                        .WithRange(sequenceNumber, _eventStoreOptions.ProjectionEventFetchCount)
+                        .AddEventTypes(projectionAggregation.GetEventTypes());
+
                     var primitiveEvents = sync
-                        ? _query.Search(new PrimitiveEvent.Specification().WithRange(sequenceNumber, _eventStoreOptions.ProjectionEventFetchCount).AddEventTypes(projectionAggregation.GetEventTypes()))
-                        : await _query.SearchAsync(new PrimitiveEvent.Specification().WithRange(sequenceNumber, _eventStoreOptions.ProjectionEventFetchCount).AddEventTypes(projectionAggregation.GetEventTypes())).ConfigureAwait(false);
+                        ? _query.SearchAsync(specification).GetAwaiter().GetResult()
+                        : await _query.SearchAsync(specification).ConfigureAwait(false);
 
                     foreach (var primitiveEvent in primitiveEvents)
                     {

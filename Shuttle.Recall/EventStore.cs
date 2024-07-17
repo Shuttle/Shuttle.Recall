@@ -29,12 +29,12 @@ namespace Shuttle.Recall
             return await GetAsync(id, builder, false).ConfigureAwait(false);
         }
 
-        public long Save(EventStream eventStream, Action<SaveEventStreamBuilder> builder = null)
+        public long Save(EventStream eventStream, Action<EventStreamBuilder> builder = null)
         {
             return SaveAsync(eventStream, builder, true).GetAwaiter().GetResult();
         }
 
-        public async ValueTask<long> SaveAsync(EventStream eventStream, Action<SaveEventStreamBuilder> builder = null)
+        public async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventStreamBuilder> builder = null)
         {
             return await SaveAsync(eventStream, builder, false).ConfigureAwait(false);
         }
@@ -99,7 +99,7 @@ namespace Shuttle.Recall
             }
         }
 
-        private async ValueTask<long> SaveAsync(EventStream eventStream, Action<SaveEventStreamBuilder> builder, bool sync)
+        private async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventStreamBuilder> builder, bool sync)
         {
             Guard.AgainstNull(eventStream, nameof(eventStream));
 
@@ -107,11 +107,11 @@ namespace Shuttle.Recall
             {
                 if (sync)
                 {
-                    Remove(eventStream.Id, (Action<EventStreamBuilder>)builder);
+                    Remove(eventStream.Id, builder);
                 }
                 else
                 {
-                    await RemoveAsync(eventStream.Id, (Action<EventStreamBuilder>)builder).ConfigureAwait(false);
+                    await RemoveAsync(eventStream.Id, builder).ConfigureAwait(false);
                 }
 
                 return -1;
@@ -126,7 +126,7 @@ namespace Shuttle.Recall
 
             try
             {
-                var eventStreamBuilder = new SaveEventStreamBuilder();
+                var eventStreamBuilder = new EventStreamBuilder();
 
                 builder?.Invoke(eventStreamBuilder);
 
