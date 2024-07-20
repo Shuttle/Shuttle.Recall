@@ -5,7 +5,7 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall
 {
-    public class EventStoreConfiguration : IEventStoreConfiguration
+    public class ProjectionConfiguration : IProjectionConfiguration
     {
         private readonly Dictionary<string, List<Type>> _projectionNameEventHandlerTypes = new Dictionary<string, List<Type>>();
 

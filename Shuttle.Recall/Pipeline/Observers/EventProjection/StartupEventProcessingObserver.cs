@@ -10,19 +10,19 @@ namespace Shuttle.Recall
 {
     public class StartupEventProcessingObserver : IStartupEventProcessingObserver
     {
-        private readonly IEventStoreConfiguration _eventStoreConfiguration;
+        private readonly IProjectionConfiguration _projectionConfiguration;
         private readonly EventStoreOptions _eventStoreOptions;
         private readonly IPipelineFactory _pipelineFactory;
         private readonly IEventProcessor _processor;
         private readonly IServiceProvider _serviceProvider;
 
-        public StartupEventProcessingObserver(IOptions<EventStoreOptions> eventStoreOptions, IServiceProvider serviceProvider, IEventProcessor processor, IEventStoreConfiguration eventStoreConfiguration, IPipelineFactory pipelineFactory)
+        public StartupEventProcessingObserver(IOptions<EventStoreOptions> eventStoreOptions, IServiceProvider serviceProvider, IEventProcessor processor, IProjectionConfiguration projectionConfiguration, IPipelineFactory pipelineFactory)
         {
             _pipelineFactory = Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
             _eventStoreOptions = Guard.AgainstNull(Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions)).Value, nameof(eventStoreOptions.Value));
             _serviceProvider = Guard.AgainstNull(serviceProvider, nameof(serviceProvider));
             _processor = Guard.AgainstNull(processor, nameof(processor));
-            _eventStoreConfiguration = Guard.AgainstNull(eventStoreConfiguration, nameof(eventStoreConfiguration));
+            _projectionConfiguration = Guard.AgainstNull(projectionConfiguration, nameof(projectionConfiguration));
         }
 
         public void Execute(OnStartEventProcessing pipelineEvent)
@@ -37,7 +37,7 @@ namespace Shuttle.Recall
 
         public void Execute(OnConfigureThreadPools pipelineEvent)
         {
-            var projectionCount = _eventStoreConfiguration.GetProjectionNames().Count();
+            var projectionCount = _projectionConfiguration.GetProjectionNames().Count();
 
             if (projectionCount < 1)
             {
@@ -72,13 +72,13 @@ namespace Shuttle.Recall
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            foreach (var projectionName in _eventStoreConfiguration.GetProjectionNames())
+            foreach (var projectionName in _projectionConfiguration.GetProjectionNames())
             {
                 var projection = sync
                     ? _processor.AddProjection(projectionName)
                     : await _processor.AddProjectionAsync(projectionName);
 
-                foreach (var type in _eventStoreConfiguration.GetEventHandlerTypes(projectionName))
+                foreach (var type in _projectionConfiguration.GetEventHandlerTypes(projectionName))
                 {
                     if (sync)
                     {
