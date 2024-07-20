@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.PipelineTransaction;
 using Shuttle.Core.Serialization;
 using Shuttle.Core.Streams;
 
@@ -50,8 +49,7 @@ namespace Shuttle.Recall.Tests
                     new Mock<IProjectionEventObserver>().Object,
                     new Mock<IProjectionEventEnvelopeObserver>().Object,
                     new Mock<IProcessEventObserver>().Object,
-                    new Mock<IAcknowledgeEventObserver>().Object,
-                    new Mock<ITransactionScopeObserver>().Object)
+                    new Mock<IAcknowledgeEventObserver>().Object)
             );
 
             pipelineFactory.Setup(m => m.GetPipeline<EventProcessorStartupPipeline>()).Returns(

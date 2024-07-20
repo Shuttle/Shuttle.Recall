@@ -2,14 +2,11 @@
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using Shuttle.Core.Compression;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Encryption;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.PipelineTransaction;
 using Shuttle.Core.Serialization;
-using Shuttle.Core.Transactions;
 
 namespace Shuttle.Recall
 {
@@ -31,18 +28,9 @@ namespace Shuttle.Recall
             services.TryAddSingleton<IEncryptionService, EncryptionService>();
             services.TryAddSingleton<ICompressionService, CompressionService>();
 
-            var transactionScopeFactoryType = typeof(ITransactionScopeFactory);
-
-            if (services.All(item => item.ServiceType != transactionScopeFactoryType))
-            {
-                services.AddTransactionScope();
-            }
-
             services.AddPipelineProcessing(pipelineProcessingBuilder =>
             {
-                pipelineProcessingBuilder
-                    .AddAssembly(typeof(EventStore).Assembly)
-                    .AddTransactions();
+                pipelineProcessingBuilder.AddAssembly(typeof(EventStore).Assembly);
             });
 
             services.TryAddSingleton<IEventStore, EventStore>();
@@ -72,11 +60,11 @@ namespace Shuttle.Recall
                 options.ProcessorThread = eventStoreBuilder.Options.ProcessorThread;
             });
 
-            var eventStoreConfigurationType = typeof(IEventStoreConfiguration);
+            var projectionConfigurationType = typeof(IProjectionConfiguration);
 
-            if (services.All(item => item.ServiceType != eventStoreConfigurationType))
+            if (services.All(item => item.ServiceType != projectionConfigurationType))
             {
-                services.AddSingleton<IEventStoreConfiguration>(eventStoreBuilder.Configuration);
+                services.AddSingleton<IProjectionConfiguration>(eventStoreBuilder.Configuration);
             }
 
             if (!eventStoreBuilder.SuppressEventProcessorHostedService &&

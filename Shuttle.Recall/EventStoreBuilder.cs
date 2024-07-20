@@ -6,7 +6,7 @@ namespace Shuttle.Recall
 {
     public class EventStoreBuilder
     {
-        private EventStoreConfiguration _eventStoreConfiguration = new EventStoreConfiguration();
+        private ProjectionConfiguration _projectionConfiguration = new ProjectionConfiguration();
         private EventStoreOptions _eventStoreOptions = new EventStoreOptions();
 
         public EventStoreBuilder(IServiceCollection services)
@@ -16,10 +16,10 @@ namespace Shuttle.Recall
             Services = services;
         }
 
-        public EventStoreConfiguration Configuration
+        public ProjectionConfiguration Configuration
         {
-            get => _eventStoreConfiguration;
-            set => _eventStoreConfiguration = value ?? throw new ArgumentNullException(nameof(value));
+            get => _projectionConfiguration;
+            set => _projectionConfiguration = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         public EventStoreOptions Options
