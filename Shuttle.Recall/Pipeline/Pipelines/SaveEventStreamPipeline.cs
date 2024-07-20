@@ -6,13 +6,8 @@ namespace Shuttle.Recall
 {
     public class SaveEventStreamPipeline : Pipeline
     {
-        public SaveEventStreamPipeline(IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver,
-            ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver)
+        public SaveEventStreamPipeline(IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver) 
         {
-            Guard.AgainstNull(assembleEventEnvelopesObserver, nameof(assembleEventEnvelopesObserver));
-            Guard.AgainstNull(savePrimitiveEventsObserver, nameof(savePrimitiveEventsObserver));
-            Guard.AgainstNull(eventStreamObserver, nameof(eventStreamObserver));
-
             RegisterStage("Process")
                 .WithEvent<OnAssembleEventEnvelopes>()
                 .WithEvent<OnAfterAssembleEventEnvelopes>()
@@ -22,9 +17,9 @@ namespace Shuttle.Recall
                 .WithEvent<OnCommitEventStream>()
                 .WithEvent<OnAfterCommitEventStream>();
 
-            RegisterObserver(assembleEventEnvelopesObserver);
-            RegisterObserver(savePrimitiveEventsObserver);
-            RegisterObserver(eventStreamObserver);
+            RegisterObserver(Guard.AgainstNull(assembleEventEnvelopesObserver, nameof(assembleEventEnvelopesObserver)));
+            RegisterObserver(Guard.AgainstNull(savePrimitiveEventsObserver, nameof(savePrimitiveEventsObserver)));
+            RegisterObserver(Guard.AgainstNull(eventStreamObserver, nameof(eventStreamObserver)));
         }
 
         public void Execute(EventStream eventStream, EventStreamBuilder builder)

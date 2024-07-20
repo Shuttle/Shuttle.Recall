@@ -10,11 +10,6 @@ namespace Shuttle.Recall
             ICompressEventObserver compressEventObserver, IEncryptEventObserver encryptEventObserver,
             ISerializeEventObserver serializeEventObserver)
         {
-            Guard.AgainstNull(assembleEventEnvelopeObserver, nameof(assembleEventEnvelopeObserver));
-            Guard.AgainstNull(compressEventObserver, nameof(compressEventObserver));
-            Guard.AgainstNull(encryptEventObserver, nameof(encryptEventObserver));
-            Guard.AgainstNull(serializeEventObserver, nameof(serializeEventObserver));
-
             RegisterStage("Get")
                 .WithEvent<OnAssembleEventEnvelope>()
                 .WithEvent<OnAfterAssembleEventEnvelope>()
@@ -25,10 +20,10 @@ namespace Shuttle.Recall
                 .WithEvent<OnCompressEvent>()
                 .WithEvent<OnAfterCompressEvent>();
 
-            RegisterObserver(assembleEventEnvelopeObserver);
-            RegisterObserver(compressEventObserver);
-            RegisterObserver(encryptEventObserver);
-            RegisterObserver(serializeEventObserver);
+            RegisterObserver(Guard.AgainstNull(assembleEventEnvelopeObserver, nameof(assembleEventEnvelopeObserver)));
+            RegisterObserver(Guard.AgainstNull(compressEventObserver, nameof(compressEventObserver)));
+            RegisterObserver(Guard.AgainstNull(encryptEventObserver, nameof(encryptEventObserver)));
+            RegisterObserver(Guard.AgainstNull(serializeEventObserver, nameof(serializeEventObserver)));
         }
 
         public EventEnvelope Execute(DomainEvent domainEvent)

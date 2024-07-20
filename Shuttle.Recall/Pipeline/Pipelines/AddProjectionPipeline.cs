@@ -8,14 +8,12 @@ namespace Shuttle.Recall
     {
         public AddProjectionPipeline(IAddProjectionObserver addProjectionObserver)
         {
-            Guard.AgainstNull(addProjectionObserver, nameof(addProjectionObserver));
-
             RegisterStage("Process")
                 .WithEvent<OnBeforeAddProjection>()
                 .WithEvent<OnAddProjection>()
                 .WithEvent<OnAfterAddProjection>();
 
-            RegisterObserver(addProjectionObserver);
+            RegisterObserver(Guard.AgainstNull(addProjectionObserver, nameof(addProjectionObserver)));
         }
 
         public void Execute(string name)

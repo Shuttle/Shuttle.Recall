@@ -6,15 +6,7 @@ namespace Shuttle.Recall
 {
     public class GetEventEnvelopePipeline : Pipeline
     {
-        public GetEventEnvelopePipeline(IDeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver,
-            IDecompressEventObserver decompressEventObserver, IDecryptEventObserver decryptEventObserver,
-            IDeserializeEventObserver deserializeEventObserver)
-        {
-            Guard.AgainstNull(deserializeEventEnvelopeObserver, nameof(deserializeEventEnvelopeObserver));
-            Guard.AgainstNull(decompressEventObserver, nameof(decompressEventObserver));
-            Guard.AgainstNull(decryptEventObserver, nameof(decryptEventObserver));
-            Guard.AgainstNull(deserializeEventObserver, nameof(deserializeEventObserver));
-
+        public GetEventEnvelopePipeline(IDeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver, IDecompressEventObserver decompressEventObserver, IDecryptEventObserver decryptEventObserver, IDeserializeEventObserver deserializeEventObserver) {
             RegisterStage("Get")
                 .WithEvent<OnDeserializeEventEnvelope>()
                 .WithEvent<OnAfterDeserializeEventEnvelope>()
@@ -25,10 +17,10 @@ namespace Shuttle.Recall
                 .WithEvent<OnDeserializeEvent>()
                 .WithEvent<OnAfterDeserializeEvent>();
 
-            RegisterObserver(deserializeEventEnvelopeObserver);
-            RegisterObserver(decompressEventObserver);
-            RegisterObserver(decryptEventObserver);
-            RegisterObserver(deserializeEventObserver);
+            RegisterObserver(Guard.AgainstNull(deserializeEventEnvelopeObserver, nameof(deserializeEventEnvelopeObserver)));
+            RegisterObserver(Guard.AgainstNull(decompressEventObserver, nameof(decompressEventObserver)));
+            RegisterObserver(Guard.AgainstNull(decryptEventObserver, nameof(decryptEventObserver)));
+            RegisterObserver(Guard.AgainstNull(deserializeEventObserver, nameof(deserializeEventObserver)));
         }
 
         public void Execute(PrimitiveEvent primitiveEvent)

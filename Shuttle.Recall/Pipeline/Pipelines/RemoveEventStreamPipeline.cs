@@ -9,14 +9,12 @@ namespace Shuttle.Recall
     {
         public RemoveEventStreamPipeline(IRemoveEventStreamObserver removeEventStreamObserver)
         {
-            Guard.AgainstNull(removeEventStreamObserver, nameof(removeEventStreamObserver));
-
             RegisterStage("Process")
                 .WithEvent<OnBeforeRemoveEventStream>()
                 .WithEvent<OnRemoveEventStream>()
                 .WithEvent<OnAfterRemoveEventStream>();
 
-            RegisterObserver(removeEventStreamObserver);
+            RegisterObserver(Guard.AgainstNull(removeEventStreamObserver, nameof(removeEventStreamObserver)));
         }
 
         public EventStream Execute(Guid id, EventStreamBuilder builder)
