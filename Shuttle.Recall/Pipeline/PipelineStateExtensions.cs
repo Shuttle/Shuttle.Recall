@@ -24,7 +24,7 @@ namespace Shuttle.Recall
 
         public static bool GetWorking(this IState state)
         {
-            return state.Get<bool>(StateKeys.Working);
+            return state.Contains(StateKeys.Working) && state.Get<bool>(StateKeys.Working);
         }
 
         public static void SetEventEnvelope(this IState state, EventEnvelope value)

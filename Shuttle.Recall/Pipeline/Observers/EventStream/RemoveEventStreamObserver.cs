@@ -33,7 +33,7 @@ namespace Shuttle.Recall
 
             if (sync)
             {
-                _primitiveEventRepository.RemoveAsync(state.GetId()).GetAwaiter().GetResult();
+                _primitiveEventRepository.Remove(state.GetId());
             }
             else
             {
