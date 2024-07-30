@@ -36,11 +36,11 @@ namespace Shuttle.Recall
 
             if (sync)
             {
-                projection.Process(eventEnvelope, domainEvent.Event, projectionEvent.PrimitiveEvent, state.GetCancellationToken());
+                projection.Process(eventEnvelope, domainEvent.Event, projectionEvent.PrimitiveEvent, pipelineEvent.Pipeline.CancellationToken);
             }
             else
             {
-                await projection.ProcessAsync(eventEnvelope, domainEvent.Event, projectionEvent.PrimitiveEvent, state.GetCancellationToken());
+                await projection.ProcessAsync(eventEnvelope, domainEvent.Event, projectionEvent.PrimitiveEvent, pipelineEvent.Pipeline.CancellationToken);
             }
         }
     }

@@ -7,16 +7,6 @@ namespace Shuttle.Recall
 {
     public static class PipelineStateExtensions
     {
-        public static CancellationToken GetCancellationToken(this IState state)
-        {
-            return state.Get<CancellationToken>(StateKeys.CancellationToken);
-        }
-
-        public static void SetCancellationToken(this IState state, CancellationToken cancellationToken)
-        {
-            state.Replace(StateKeys.CancellationToken, cancellationToken);
-        }
-
         public static void SetWorking(this IState state)
         {
             state.Replace(StateKeys.Working, true);

@@ -9,7 +9,7 @@ namespace Shuttle.Recall
     {
         public GetEventStreamPipeline(IGetStreamEventsObserver getStreamEventsObserver, IAssembleEventStreamObserver assembleEventStreamObserver)
         {
-            RegisterStage("Process")
+            RegisterStage("GetEventStream")
                 .WithEvent<OnBeforeGetStreamEvents>()
                 .WithEvent<OnGetStreamEvents>()
                 .WithEvent<OnAfterGetStreamEvents>()

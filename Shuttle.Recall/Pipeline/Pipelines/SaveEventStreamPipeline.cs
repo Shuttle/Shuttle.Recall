@@ -8,7 +8,7 @@ namespace Shuttle.Recall
     {
         public SaveEventStreamPipeline(IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver) 
         {
-            RegisterStage("Process")
+            RegisterStage("SaveEventStream")
                 .WithEvent<OnAssembleEventEnvelopes>()
                 .WithEvent<OnAfterAssembleEventEnvelopes>()
                 .WithEvent<OnBeforeSavePrimitiveEvents>()

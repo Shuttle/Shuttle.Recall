@@ -42,7 +42,6 @@ namespace Shuttle.Recall
                 {
                     pipeline.State.Clear();
                     pipeline.State.SetProjection(projection);
-                    pipeline.State.SetCancellationToken(cancellationToken);
 
                     if (sync)
                     {

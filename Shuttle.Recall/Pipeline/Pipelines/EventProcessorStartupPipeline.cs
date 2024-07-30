@@ -7,7 +7,7 @@ namespace Shuttle.Recall
     {
         public EventProcessorStartupPipeline(IStartupEventProcessingObserver startupEventProcessingObserver)
         {
-            RegisterStage("Process")
+            RegisterStage("Startup")
                 .WithEvent<OnStartEventProcessing>()
                 .WithEvent<OnAfterStartEventProcessing>()
                 .WithEvent<OnConfigureThreadPools>()

@@ -7,11 +7,13 @@ namespace Shuttle.Recall
     {
         public EventProcessingPipeline(IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IProcessEventObserver processEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver) 
         {
-            RegisterStage("Process")
+            RegisterStage("EventProcessing.Read")
                 .WithEvent<OnGetProjectionEvent>()
                 .WithEvent<OnAfterGetProjectionEvent>()
                 .WithEvent<OnGetProjectionEventEnvelope>()
-                .WithEvent<OnAfterGetProjectionEventEnvelope>()
+                .WithEvent<OnAfterGetProjectionEventEnvelope>();
+
+            RegisterStage("EventProcessing.Handle")
                 .WithEvent<OnProcessEvent>()
                 .WithEvent<OnAfterProcessEvent>()
                 .WithEvent<OnAcknowledgeEvent>()

@@ -7,7 +7,7 @@ namespace Shuttle.Recall
     public class GetEventEnvelopePipeline : Pipeline
     {
         public GetEventEnvelopePipeline(IDeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver, IDecompressEventObserver decompressEventObserver, IDecryptEventObserver decryptEventObserver, IDeserializeEventObserver deserializeEventObserver) {
-            RegisterStage("Get")
+            RegisterStage("GetEventEnvelope")
                 .WithEvent<OnDeserializeEventEnvelope>()
                 .WithEvent<OnAfterDeserializeEventEnvelope>()
                 .WithEvent<OnDecompressEvent>()

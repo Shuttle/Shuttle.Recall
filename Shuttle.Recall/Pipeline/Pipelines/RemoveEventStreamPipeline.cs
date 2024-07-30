@@ -9,7 +9,7 @@ namespace Shuttle.Recall
     {
         public RemoveEventStreamPipeline(IRemoveEventStreamObserver removeEventStreamObserver)
         {
-            RegisterStage("Process")
+            RegisterStage("RemoveEventStream")
                 .WithEvent<OnBeforeRemoveEventStream>()
                 .WithEvent<OnRemoveEventStream>()
                 .WithEvent<OnAfterRemoveEventStream>();

@@ -10,19 +10,21 @@ namespace Shuttle.Recall
 {
     public class StartupEventProcessingObserver : IStartupEventProcessingObserver
     {
+        private readonly IProcessorThreadPoolFactory _processorThreadPoolFactory;
         private readonly IProjectionConfiguration _projectionConfiguration;
         private readonly EventStoreOptions _eventStoreOptions;
         private readonly IPipelineFactory _pipelineFactory;
         private readonly IEventProcessor _processor;
         private readonly IServiceProvider _serviceProvider;
 
-        public StartupEventProcessingObserver(IOptions<EventStoreOptions> eventStoreOptions, IServiceProvider serviceProvider, IEventProcessor processor, IProjectionConfiguration projectionConfiguration, IPipelineFactory pipelineFactory)
+        public StartupEventProcessingObserver(IOptions<EventStoreOptions> eventStoreOptions, IServiceProvider serviceProvider, IEventProcessor processor, IProjectionConfiguration projectionConfiguration, IPipelineFactory pipelineFactory, IProcessorThreadPoolFactory processorThreadPoolFactory)
         {
             _pipelineFactory = Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
             _eventStoreOptions = Guard.AgainstNull(Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions)).Value, nameof(eventStoreOptions.Value));
             _serviceProvider = Guard.AgainstNull(serviceProvider, nameof(serviceProvider));
             _processor = Guard.AgainstNull(processor, nameof(processor));
             _projectionConfiguration = Guard.AgainstNull(projectionConfiguration, nameof(projectionConfiguration));
+            _processorThreadPoolFactory = Guard.AgainstNull(processorThreadPoolFactory, nameof(processorThreadPoolFactory));
         }
 
         public void Execute(OnStartEventProcessing pipelineEvent)
@@ -44,7 +46,7 @@ namespace Shuttle.Recall
                 projectionCount = 1;
             }
 
-            pipelineEvent.Pipeline.State.Add("EventProcessorThreadPool", new ProcessorThreadPool(
+            pipelineEvent.Pipeline.State.Add("EventProcessorThreadPool", _processorThreadPoolFactory.Create(
                 "EventProcessorThreadPool",
                 _eventStoreOptions.ProjectionThreadCount > projectionCount ? projectionCount : _eventStoreOptions.ProjectionThreadCount,
                 new ProjectionProcessorFactory(_eventStoreOptions, _pipelineFactory, _processor),

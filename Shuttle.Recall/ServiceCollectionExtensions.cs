@@ -6,7 +6,10 @@ using Shuttle.Core.Compression;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Encryption;
 using Shuttle.Core.Pipelines;
+using Shuttle.Core.PipelineTransactionScope;
 using Shuttle.Core.Serialization;
+using Shuttle.Core.Threading;
+using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall
 {
@@ -33,11 +36,25 @@ namespace Shuttle.Recall
                 pipelineProcessingBuilder.AddAssembly(typeof(EventStore).Assembly);
             });
 
+            var transactionScopeFactoryType = typeof(ITransactionScopeFactory);
+
+            if (services.All(item => item.ServiceType != transactionScopeFactoryType))
+            {
+                services.AddTransactionScope();
+            }
+
+            services.AddPipelineTransactionScope(transactionScopeBuilder =>
+            {
+                transactionScopeBuilder.AddStage<EventProcessingPipeline>("EventProcessing.Handle");
+                transactionScopeBuilder.AddStage<SaveEventStreamPipeline>("SaveEventStream");
+            });
+            
             services.TryAddSingleton<IEventStore, EventStore>();
             services.TryAddSingleton<IEventProcessor, EventProcessor>();
             services.TryAddSingleton<IProjectionRepository, NotImplementedProjectionRepository>();
             services.TryAddSingleton<IPrimitiveEventQuery, NotImplementedPrimitiveEventQuery>();
             services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
+            services.TryAddSingleton<IProcessorThreadPoolFactory, ProcessorThreadPoolFactory>();
 
             services.AddOptions<EventStoreOptions>().Configure(options =>
             {
