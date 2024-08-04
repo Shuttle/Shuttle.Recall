@@ -52,7 +52,7 @@ namespace Shuttle.Recall
                     var primitiveEvent = new PrimitiveEvent
                     {
                         Id = eventStream.Id,
-                        EventEnvelope = _serializer.Serialize(eventEnvelope).ToBytes(),
+                        EventEnvelope = sync ? _serializer.Serialize(eventEnvelope).ToBytes() : await (await _serializer.SerializeAsync(eventEnvelope)).ToBytesAsync(),
                         EventId = eventEnvelope.EventId,
                         EventType = eventEnvelope.EventType,
                         IsSnapshot = eventEnvelope.IsSnapshot,
