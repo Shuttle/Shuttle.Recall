@@ -3,35 +3,32 @@ using System.Collections.Generic;
 using System.Linq;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class ProjectionConfiguration : IProjectionConfiguration
 {
-    public class ProjectionConfiguration : IProjectionConfiguration
+    private readonly Dictionary<string, List<Type>> _projectionNameEventHandlerTypes = new();
+
+    public void AddProjectionEventHandlerType(string projectionName, Type eventHandlerType)
     {
-        private readonly Dictionary<string, List<Type>> _projectionNameEventHandlerTypes = new Dictionary<string, List<Type>>();
+        Guard.AgainstNullOrEmptyString(projectionName);
+        Guard.AgainstNull(eventHandlerType);
 
-        public void AddProjectionEventHandlerType(string projectionName, Type eventHandlerType)
+        if (!_projectionNameEventHandlerTypes.ContainsKey(projectionName))
         {
-            Guard.AgainstNullOrEmptyString(projectionName, nameof(projectionName));
-            Guard.AgainstNull(eventHandlerType, nameof(eventHandlerType));
-
-            if (!_projectionNameEventHandlerTypes.ContainsKey(projectionName))
-            {
-                _projectionNameEventHandlerTypes.Add(projectionName, new List<Type>());
-            }
-
-            _projectionNameEventHandlerTypes[projectionName].Add(eventHandlerType);
+            _projectionNameEventHandlerTypes.Add(projectionName, new());
         }
 
-        public IEnumerable<string> GetProjectionNames()
-        {
-            return _projectionNameEventHandlerTypes.Keys;
-        }
+        _projectionNameEventHandlerTypes[projectionName].Add(eventHandlerType);
+    }
 
-        public IEnumerable<Type> GetEventHandlerTypes(string projectionName)
-        {
-            Guard.AgainstNullOrEmptyString(projectionName, nameof(projectionName));
+    public IEnumerable<string> GetProjectionNames()
+    {
+        return _projectionNameEventHandlerTypes.Keys;
+    }
 
-            return _projectionNameEventHandlerTypes[projectionName] ?? Enumerable.Empty<Type>();
-        }
+    public IEnumerable<Type> GetEventHandlerTypes(string projectionName)
+    {
+        return _projectionNameEventHandlerTypes[Guard.AgainstNullOrEmptyString(projectionName)];
     }
 }

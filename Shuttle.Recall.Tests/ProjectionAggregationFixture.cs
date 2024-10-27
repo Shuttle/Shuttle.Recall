@@ -1,49 +1,44 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
-using Shuttle.Core.Threading;
 
-namespace Shuttle.Recall.Tests
+namespace Shuttle.Recall.Tests;
+
+[TestFixture]
+public class ProjectionAggregationFixture : IAsyncEventHandler<object>
 {
-    [TestFixture]
-    public class ProjectionAggregationFixture : IEventHandler<object>
+    [Test]
+    public async Task Should_be_able_to_trim_sequence_number_tail_async()
     {
-        public void ProcessEvent(IEventHandlerContext<object> context)
-        {
-        }
+        var aggregation = new ProjectionAggregation(100, CancellationToken.None);
 
-        [Test]
-        public void Should_be_able_to_trim_sequence_number_tail()
-        {
-            var aggregation = new ProjectionAggregation(100, CancellationToken.None);
+        var projection1 = await new Projection("projection-1", 10).AddEventHandlerAsync(this);
+        var projection2 = await new Projection("projection-2", 15).AddEventHandlerAsync(this);
 
-            var projection1 =
-                new Projection(new EventStoreOptions(), "projection-1", 10)
-                    .AddEventHandler(this);
-            var projection2 =
-                new Projection(new EventStoreOptions(), "projection-2", 15)
-                    .AddEventHandler(this);
+        aggregation.Add(projection1);
+        aggregation.Add(projection2);
 
-            aggregation.Add(projection1);
-            aggregation.Add(projection2);
+        Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(10));
 
-            Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(10));
+        await projection1.ProcessAsync(new() { AssemblyQualifiedName = typeof(object).AssemblyQualifiedName! }, new(), new() { SequenceNumber = 12 }, new(false));
 
-            projection1.Process(new EventEnvelope {AssemblyQualifiedName = typeof(object).AssemblyQualifiedName}, new object(), new PrimitiveEvent {SequenceNumber = 12}, new CancellationToken(false));
+        Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(10));
 
-            Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(10));
+        aggregation.ProcessSequenceNumberTail();
 
-            aggregation.ProcessSequenceNumberTail();
+        Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(12));
 
-            Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(12));
+        await projection1.ProcessAsync(new() { AssemblyQualifiedName = typeof(object).AssemblyQualifiedName! }, new(), new() { SequenceNumber = 18 }, new(false));
 
-            projection1.Process(new EventEnvelope {AssemblyQualifiedName = typeof(object).AssemblyQualifiedName}, new object(), new PrimitiveEvent {SequenceNumber = 18}, new CancellationToken(false));
+        Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(12));
 
-            Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(12));
+        aggregation.ProcessSequenceNumberTail();
 
-            aggregation.ProcessSequenceNumberTail();
-            
-            Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(15));
-        }
+        Assert.That(aggregation.SequenceNumberTail, Is.EqualTo(15));
+    }
+
+    public async Task ProcessEventAsync(IEventHandlerContext<object> context)
+    {
+        await Task.CompletedTask;
     }
 }

@@ -1,9 +1,8 @@
 ﻿using System.Threading.Tasks;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IAsyncEventHandler<in T> where T : class
 {
-    public interface IAsyncEventHandler<in T> where T : class
-    {
-        Task ProcessEventAsync(IEventHandlerContext<T> context);
-    }
+    Task ProcessEventAsync(IEventHandlerContext<T> context);
 }

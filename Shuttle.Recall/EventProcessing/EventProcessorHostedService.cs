@@ -1,48 +1,26 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class EventProcessorHostedService : IHostedService
 {
-    public class EventProcessorHostedService : IHostedService
+    private readonly IEventProcessor _eventProcessor;
+
+    public EventProcessorHostedService(IEventProcessor eventProcessor)
     {
-        private readonly EventStoreOptions _eventStoreOptions;
-        private readonly IEventProcessor _eventProcessor;
+        _eventProcessor = Guard.AgainstNull(eventProcessor);
+    }
 
-        public EventProcessorHostedService(IOptions<EventStoreOptions> eventStoreOptions, IEventProcessor eventProcessor)
-        {
-            Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await _eventProcessor.StartAsync();
+    }
 
-            _eventStoreOptions = Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
-            _eventProcessor = Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
-        }
-
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            if (_eventStoreOptions.Asynchronous)
-            {
-                await _eventProcessor.StartAsync();
-            }
-            else
-            {
-                _eventProcessor.Start();
-            }
-        }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            if (_eventStoreOptions.Asynchronous)
-            {
-                await _eventProcessor.StopAsync();
-            }
-            else
-            {
-                _eventProcessor.Stop();
-            }
-
-            await Task.CompletedTask;
-        }
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        await _eventProcessor.StopAsync();
     }
 }

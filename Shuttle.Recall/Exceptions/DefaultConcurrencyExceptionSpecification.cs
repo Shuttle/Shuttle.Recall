@@ -1,12 +1,11 @@
 using System;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class DefaultConcurrencyExceptionSpecification : IConcurrencyExceptionSpecification
 {
-    public class DefaultConcurrencyExceptionSpecification : IConcurrencyExceptionSpecification
+    public bool IsSatisfiedBy(Exception exception)
     {
-        public bool IsSatisfiedBy(Exception exception)
-        {
-            return false;
-        }
+        return false;
     }
 }

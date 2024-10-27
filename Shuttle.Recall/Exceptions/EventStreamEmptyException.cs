@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class EventStreamEmptyException : Exception
 {
-    public class EventStreamEmptyException : Exception
-    {
-    }
 }

@@ -2,59 +2,56 @@
 using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class EventStoreBuilder
 {
-    public class EventStoreBuilder
+    private EventStoreOptions _eventStoreOptions = new();
+    private ProjectionConfiguration _projectionConfiguration = new();
+
+    public EventStoreBuilder(IServiceCollection services)
     {
-        private ProjectionConfiguration _projectionConfiguration = new ProjectionConfiguration();
-        private EventStoreOptions _eventStoreOptions = new EventStoreOptions();
+        Services = Guard.AgainstNull(services);
+    }
 
-        public EventStoreBuilder(IServiceCollection services)
-        {
-            Guard.AgainstNull(services, nameof(services));
+    public ProjectionConfiguration Configuration
+    {
+        get => _projectionConfiguration;
+        set => _projectionConfiguration = Guard.AgainstNull(value);
+    }
 
-            Services = services;
-        }
+    public EventStoreOptions Options
+    {
+        get => _eventStoreOptions;
+        set => _eventStoreOptions = Guard.AgainstNull(value);
+    }
 
-        public ProjectionConfiguration Configuration
-        {
-            get => _projectionConfiguration;
-            set => _projectionConfiguration = value ?? throw new ArgumentNullException(nameof(value));
-        }
+    public IServiceCollection Services { get; }
+    public bool SuppressEventProcessorHostedService { get; set; }
 
-        public EventStoreOptions Options
-        {
-            get => _eventStoreOptions;
-            set => _eventStoreOptions = value ?? throw new ArgumentNullException(nameof(value));
-        }
+    public EventStoreBuilder AddEventHandler<TEventHandler>(string projectionName) where TEventHandler : class
+    {
+        Guard.AgainstNullOrEmptyString(projectionName);
 
-        public IServiceCollection Services { get; }
-        public bool SuppressEventProcessorHostedService { get; set; }
+        var type = typeof(TEventHandler);
 
-        public EventStoreBuilder AddEventHandler<TEventHandler>(string projectionName) where TEventHandler : class
-        {
-            Guard.AgainstNullOrEmptyString(projectionName, nameof(projectionName));
+        Services.AddTransient(type, type);
 
-            var type = typeof(TEventHandler);
+        Configuration.AddProjectionEventHandlerType(projectionName, type);
 
-            Services.AddTransient(type, type);
+        return this;
+    }
 
-            Configuration.AddProjectionEventHandlerType(projectionName, type);
+    public EventStoreBuilder AddEventHandler<TEventHandler>(Projection projection) where TEventHandler : class
+    {
+        Guard.AgainstNull(projection);
 
-            return this;
-        }
+        var type = typeof(TEventHandler);
 
-        public EventStoreBuilder AddEventHandler<TEventHandler>(Projection projection) where TEventHandler : class
-        {
-            Guard.AgainstNull(projection, nameof(projection));
+        Services.AddTransient(type, type);
 
-            var type = typeof(TEventHandler);
+        Configuration.AddProjectionEventHandlerType(projection.Name, type);
 
-            Services.AddTransient(type, type);
-
-            Configuration.AddProjectionEventHandlerType(projection.Name, type);
-
-            return this;
-        }
+        return this;
     }
 }

@@ -8,299 +8,230 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class EventProcessor : IEventProcessor
 {
-    public class EventProcessor : IEventProcessor
+    private readonly EventStoreOptions _eventStoreOptions;
+    private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly IPipelineFactory _pipelineFactory;
+
+    private readonly Dictionary<Guid, ProjectionAggregation> _projectionAggregations = new();
+
+    private readonly Dictionary<string, Projection> _projections = new();
+    private readonly ConcurrentQueue<Projection> _projectionsQueue = new();
+    private readonly Guid _projectionsQueueId = Guid.NewGuid();
+
+    private readonly Thread _sequenceNumberTailThread;
+    private CancellationToken _cancellationToken;
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private IProcessorThreadPool? _eventProcessorThreadPool;
+
+    public EventProcessor(IOptions<EventStoreOptions> eventStoreOptions, IPipelineFactory pipelineFactory)
     {
-        private readonly EventStoreOptions _eventStoreOptions;
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
-        private readonly IPipelineFactory _pipelineFactory;
+        _eventStoreOptions = Guard.AgainstNull(Guard.AgainstNull(eventStoreOptions).Value);
+        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
 
-        private readonly Dictionary<Guid, ProjectionAggregation> _projectionAggregations =
-            new Dictionary<Guid, ProjectionAggregation>();
+        _sequenceNumberTailThread = new(SequenceNumberTailThreadWorker);
+    }
 
-        private readonly Dictionary<string, Projection> _projections = new Dictionary<string, Projection>();
-        private readonly ConcurrentQueue<Projection> _projectionsQueue = new ConcurrentQueue<Projection>();
-        private readonly Guid _projectionsQueueId = Guid.NewGuid();
+    public void Dispose()
+    {
+        StopAsync().GetAwaiter().GetResult();
+    }
 
-        private readonly Thread _sequenceNumberTailThread;
-        private CancellationToken _cancellationToken;
-        private CancellationTokenSource _cancellationTokenSource;
-        private IProcessorThreadPool _eventProcessorThreadPool;
+    public bool Started { get; private set; }
 
-        public EventProcessor(IOptions<EventStoreOptions> eventStoreOptions, IPipelineFactory pipelineFactory)
+    public Projection GetProjection(string name)
+    {
+        var key = Guard.AgainstNullOrEmptyString(name).ToLowerInvariant();
+
+        if (!_projections.TryGetValue(key, out var projection))
         {
-            Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
-
-            _eventStoreOptions = Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
-            _pipelineFactory = Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-
-            _sequenceNumberTailThread = new Thread(SequenceNumberTailThreadWorker);
+            throw new EventProcessingException(string.Format(Resources.ProjectionNotRegisteredException, name));
         }
 
-        public bool Asynchronous { get; private set; }
+        return projection;
+    }
 
-        public void Dispose()
+    public Projection? GetProjection()
+    {
+        if (!_projectionsQueue.TryDequeue(out var result))
         {
-            this.Stop();
+            return null;
         }
 
-        public IEventProcessor Start()
+        result.Assigned(_projectionsQueueId);
+
+        return result;
+    }
+
+    public ProjectionAggregation GetProjectionAggregation(Guid id)
+    {
+        var result = _projectionAggregations.TryGetValue(id, out var projectionAggregation)
+            ? projectionAggregation
+            : null;
+
+        if (result == null)
         {
-            if (_eventStoreOptions.Asynchronous)
-            {
-                throw new ApplicationException(Resources.EventProcessorStartAsynchronousException);
-            }
-
-            StartAsync(true).GetAwaiter().GetResult();
-
-            return this;
+            throw new InvalidOperationException(string.Format(Resources.MissingProjectionAggregationException, id));
         }
 
-        public bool Started { get; private set; }
+        return result;
+    }
 
-        public Projection AddProjection(string name)
+    public async Task StopAsync()
+    {
+        if (!Started)
         {
-            if (_eventStoreOptions.Asynchronous)
-            {
-                throw new EventProcessingException(Resources.EventProcessorAddProjectionAsynchronousException);
-            }
-
-            return AddProjectionAsync(name, true).GetAwaiter().GetResult();
+            return;
         }
 
-        public async Task<Projection> AddProjectionAsync(string name)
-        {
-            if (!_eventStoreOptions.Asynchronous)
-            {
-                throw new EventProcessingException(Resources.EventProcessorAddProjectionSynchronousException);
-            }
+        _cancellationTokenSource.Cancel();
 
-            return await AddProjectionAsync(name, false).ConfigureAwait(false);
+        _eventProcessorThreadPool?.Dispose();
+
+        Started = false;
+
+        _sequenceNumberTailThread.Join();
+
+        await Task.CompletedTask;
+    }
+
+    public void ReleaseProjection(Projection projection)
+    {
+        Guard.AgainstNull(projection);
+
+        projection.Release(_projectionsQueueId);
+
+        _projectionsQueue.Enqueue(projection);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await StopAsync().ConfigureAwait(false);
+    }
+
+    public async Task<Projection?> AddProjectionAsync(string name)
+    {
+        Guard.AgainstNullOrEmptyString(name);
+
+        if (Started)
+        {
+            throw new EventProcessingException(Resources.AddProjectionEventProcessorStartedException);
         }
 
-        public Projection GetProjection(string name)
+        if (_projections.ContainsKey(name))
         {
-            Guard.AgainstNullOrEmptyString(name, nameof(name));
-
-            var key = name.ToLowerInvariant();
-
-            if (!_projections.ContainsKey(key))
-            {
-                throw new EventProcessingException(string.Format(Resources.ProjectionNotRegisteredException, name));
-            }
-
-            return _projections[key];
+            throw new EventProcessingException(string.Format(Resources.DuplicateProjectionName, name));
         }
 
-        public Projection GetProjection()
+        if (!_eventStoreOptions.HasActiveProjection(name))
         {
-            if (!_projectionsQueue.TryDequeue(out var result))
-            {
-                return null;
-            }
-
-            result.Assigned(_projectionsQueueId);
-
-            return result;
+            return null;
         }
 
-        public ProjectionAggregation GetProjectionAggregation(Guid id)
+        var pipeline = _pipelineFactory.GetPipeline<AddProjectionPipeline>();
+
+        try
         {
-            var result = _projectionAggregations.ContainsKey(id)
-                ? _projectionAggregations[id]
-                : null;
-
-            if (result == null)
-            {
-                throw new InvalidOperationException(string.Format(Resources.MissingProjectionAggregationException, id));
-            }
-
-            return result;
+            await pipeline.ExecuteAsync(name).ConfigureAwait(false);
+        }
+        finally
+        {
+            _pipelineFactory.ReleasePipeline(pipeline);
         }
 
-        public async Task<IEventProcessor> StartAsync()
+        var projection = pipeline.State.GetProjection();
+
+        await _lock.WaitAsync(_cancellationToken).ConfigureAwait(false);
+
+        try
         {
-            if (!_eventStoreOptions.Asynchronous)
-            {
-                throw new ApplicationException(Resources.EventProcessorStartSynchronousException);
-            }
+            AssignToAggregation(projection);
 
-            await StartAsync(false).ConfigureAwait(false);
-
-            return this;
-        }
-
-        public async Task StopAsync()
-        {
-            if (!Started)
-            {
-                return;
-            }
-
-            _cancellationTokenSource.Cancel();
-
-            _eventProcessorThreadPool?.Dispose();
-
-            Started = false;
-
-            _sequenceNumberTailThread?.Join();
-
-            await Task.CompletedTask;
-        }
-
-        public void ReleaseProjection(Projection projection)
-        {
-            Guard.AgainstNull(projection, nameof(projection));
-
-            projection.Release(_projectionsQueueId);
-
+            _projections.Add(projection.Name.ToLowerInvariant(), projection);
             _projectionsQueue.Enqueue(projection);
         }
-
-        public async ValueTask DisposeAsync()
+        finally
         {
-            await StopAsync().ConfigureAwait(false);
+            _lock.Release();
         }
 
-        private async Task<Projection> AddProjectionAsync(string name, bool sync)
+        return projection;
+    }
+
+    private void AssignToAggregation(Projection projection)
+    {
+        ProjectionAggregation? result = null;
+
+        foreach (var projectionAggregation in _projectionAggregations.Values)
         {
-            Guard.AgainstNullOrEmptyString(name, nameof(name));
-
-            if (Started)
+            if (!projectionAggregation.IsSatisfiedBy(projection))
             {
-                throw new EventProcessingException(Resources.AddProjectionEventProcessorStartedException);
+                continue;
             }
 
-            if (_projections.ContainsKey(name))
-            {
-                throw new EventProcessingException(string.Format(Resources.DuplicateProjectionName, name));
-            }
+            result = projectionAggregation;
 
-            if (!_eventStoreOptions.HasActiveProjection(name))
-            {
-                return null;
-            }
+            break;
+        }
 
-            var pipeline = _pipelineFactory.GetPipeline<AddProjectionPipeline>();
+        if (result == null)
+        {
+            result = new(_eventStoreOptions.ProjectionEventFetchCount * 3, _cancellationToken);
 
+            _projectionAggregations.Add(result.Id, result);
+        }
+
+        result.Add(projection);
+    }
+
+    private void SequenceNumberTailThreadWorker()
+    {
+        while (Started)
+        {
             try
             {
-                if (sync)
+                _lock.Wait(CancellationToken.None);
+
+                foreach (var projectionAggregation in _projectionAggregations)
                 {
-                    pipeline.Execute(name);
+                    projectionAggregation.Value.ProcessSequenceNumberTail();
                 }
-                else
-                {
-                    await pipeline.ExecuteAsync(name).ConfigureAwait(false);
-                }
+
+                Task.Delay(_eventStoreOptions.SequenceNumberTailThreadWorkerInterval, _cancellationToken)
+                    .Wait(_cancellationToken);
             }
-            finally
+            catch (OperationCanceledException)
             {
-                _pipelineFactory.ReleasePipeline(pipeline);
-            }
-
-            var projection = pipeline.State.GetProjection();
-
-            await _lock.WaitAsync(_cancellationToken).ConfigureAwait(false);
-
-            try
-            {
-                AssignToAggregation(projection);
-
-                _projections.Add(projection.Name.ToLowerInvariant(), projection);
-                _projectionsQueue.Enqueue(projection);
             }
             finally
             {
                 _lock.Release();
             }
-
-            return projection;
         }
+    }
 
-        private void AssignToAggregation(Projection projection)
+    public async Task<IEventProcessor> StartAsync()
+    {
+        if (Started)
         {
-            ProjectionAggregation result = null;
-
-            foreach (var projectionAggregation in _projectionAggregations.Values)
-            {
-                if (!projectionAggregation.IsSatisfiedBy(projection))
-                {
-                    continue;
-                }
-
-                result = projectionAggregation;
-
-                break;
-            }
-
-            if (result == null)
-            {
-                result = new ProjectionAggregation(_eventStoreOptions.ProjectionEventFetchCount * 3, _cancellationToken);
-
-                _projectionAggregations.Add(result.Id, result);
-            }
-
-            result.Add(projection);
-        }
-
-        private void SequenceNumberTailThreadWorker()
-        {
-            while (Started)
-            {
-                try
-                {
-                    _lock.Wait(CancellationToken.None);
-
-                    foreach (var projectionAggregation in _projectionAggregations)
-                    {
-                        projectionAggregation.Value.ProcessSequenceNumberTail();
-                    }
-
-                    Task.Delay(_eventStoreOptions.SequenceNumberTailThreadWorkerInterval, _cancellationToken)
-                        .Wait(_cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                finally
-                {
-                    _lock.Release();
-                }
-            }
-        }
-
-        private async Task<IEventProcessor> StartAsync(bool sync)
-        {
-            if (Started)
-            {
-                return this;
-            }
-
-            Asynchronous = !sync;
-
-            var startupPipeline = _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>();
-
-            if (sync)
-            {
-                startupPipeline.Execute();
-            }
-            else
-            {
-                await startupPipeline.ExecuteAsync().ConfigureAwait(false);
-            }
-
-            _cancellationTokenSource = new CancellationTokenSource();
-            _cancellationToken = _cancellationTokenSource.Token;
-
-            _eventProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool");
-
-            _sequenceNumberTailThread.Start();
-
-            Started = true;
-
             return this;
         }
+
+        var startupPipeline = _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>();
+
+        await startupPipeline.ExecuteAsync(_cancellationToken).ConfigureAwait(false);
+
+        _cancellationToken = _cancellationTokenSource.Token;
+
+        _eventProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool");
+
+        _sequenceNumberTailThread.Start();
+
+        Started = true;
+
+        return this;
     }
 }

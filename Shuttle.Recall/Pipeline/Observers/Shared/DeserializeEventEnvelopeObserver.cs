@@ -1,65 +1,39 @@
 ﻿using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Serialization;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IDeserializeEventEnvelopeObserver : IPipelineObserver<OnDeserializeEventEnvelope>
 {
-    public interface IDeserializeEventEnvelopeObserver : IPipelineObserver<OnDeserializeEventEnvelope>
+}
+
+public class DeserializeEventEnvelopeObserver : IDeserializeEventEnvelopeObserver
+{
+    private readonly ISerializer _serializer;
+
+    public DeserializeEventEnvelopeObserver(ISerializer serializer)
     {
+        _serializer = Guard.AgainstNull(serializer);
     }
 
-    public class DeserializeEventEnvelopeObserver : IDeserializeEventEnvelopeObserver
+    public async Task ExecuteAsync(IPipelineContext<OnDeserializeEventEnvelope> pipelineContext)
     {
-        private readonly ISerializer _serializer;
+        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
+        var primitiveEvent = state.GetPrimitiveEvent();
 
-        public DeserializeEventEnvelopeObserver(ISerializer serializer)
+        EventEnvelope eventEnvelope;
+
+        using (var stream = new MemoryStream(primitiveEvent.EventEnvelope))
         {
-            Guard.AgainstNull(serializer, nameof(serializer));
-
-            _serializer = serializer;
+            eventEnvelope = (EventEnvelope)await _serializer.DeserializeAsync(typeof(EventEnvelope), stream).ConfigureAwait(false);
         }
 
-        public void Execute(OnDeserializeEventEnvelope pipelineEvent)
-        {
-            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
-        }
+        state.SetEventEnvelope(eventEnvelope);
+        state.SetEventBytes(eventEnvelope.Event);
 
-        public async Task ExecuteAsync(OnDeserializeEventEnvelope pipelineEvent)
-        {
-            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
-        }
-
-        private async Task ExecuteAsync(OnDeserializeEventEnvelope pipelineEvent, bool sync)
-        {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var primitiveEvent = state.GetPrimitiveEvent();
-
-            Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
-
-            EventEnvelope eventEnvelope;
-
-            if (sync)
-            {
-                using (var stream = new MemoryStream(primitiveEvent.EventEnvelope))
-                {
-                    eventEnvelope = (EventEnvelope)_serializer.Deserialize(typeof(EventEnvelope), stream);
-                }
-            }
-            else
-            {
-                using (var stream = new MemoryStream(primitiveEvent.EventEnvelope))
-                {
-                    eventEnvelope = (EventEnvelope)await _serializer.DeserializeAsync(typeof(EventEnvelope), stream).ConfigureAwait(false);
-                }
-            }
-
-            state.SetEventEnvelope(eventEnvelope);
-            state.SetEventBytes(eventEnvelope.Event);
-
-            eventEnvelope.AcceptInvariants();
-        }
+        eventEnvelope.AcceptInvariants();
     }
 }

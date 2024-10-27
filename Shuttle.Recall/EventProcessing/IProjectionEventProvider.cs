@@ -1,10 +1,8 @@
 ﻿using System.Threading.Tasks;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IProjectionEventProvider
 {
-    public interface IProjectionEventProvider
-    {
-        ProjectionEvent Get(Projection projection);
-        Task<ProjectionEvent> GetAsync(Projection projection);
-    }
+    Task<ProjectionEvent> GetAsync(Projection projection);
 }

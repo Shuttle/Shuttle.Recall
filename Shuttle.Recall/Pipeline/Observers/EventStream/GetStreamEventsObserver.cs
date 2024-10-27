@@ -4,80 +4,56 @@ using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IGetStreamEventsObserver : IPipelineObserver<OnGetStreamEvents>
 {
-    public interface IGetStreamEventsObserver : IPipelineObserver<OnGetStreamEvents>
+}
+
+public class GetStreamEventsObserver : IGetStreamEventsObserver
+{
+    private readonly IPipelineFactory _pipelineFactory;
+    private readonly IPrimitiveEventRepository _primitiveEventRepository;
+
+    public GetStreamEventsObserver(IPipelineFactory pipelineFactory, IPrimitiveEventRepository primitiveEventRepository)
     {
+        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
+        _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
     }
 
-    public class GetStreamEventsObserver : IGetStreamEventsObserver
+    public async Task ExecuteAsync(IPipelineContext<OnGetStreamEvents> pipelineContext)
     {
-        private readonly IPipelineFactory _pipelineFactory;
-        private readonly IPrimitiveEventRepository _primitiveEventRepository;
+        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
+        var events = new List<DomainEvent>();
+        var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
 
-        public GetStreamEventsObserver(IPipelineFactory pipelineFactory,
-            IPrimitiveEventRepository primitiveEventRepository)
+        try
         {
-            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-            Guard.AgainstNull(primitiveEventRepository, nameof(primitiveEventRepository));
+            var version = 0;
 
-            _pipelineFactory = pipelineFactory;
-            _primitiveEventRepository = primitiveEventRepository;
-        }
+            var primitiveEvents = await _primitiveEventRepository.GetAsync(state.GetId()).ConfigureAwait(false);
 
-        public void Execute(OnGetStreamEvents pipelineEvent)
-        {
-            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
-        }
-
-        public async Task ExecuteAsync(OnGetStreamEvents pipelineEvent)
-        {
-            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
-        }
-
-        public async Task ExecuteAsync(OnGetStreamEvents pipelineEvent, bool sync)
-        {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var events = new List<DomainEvent>();
-            var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
-
-            try
+            foreach (var primitiveEvent in primitiveEvents)
             {
-                var version = 0;
-
-                var primitiveEvents = sync
-                    ? _primitiveEventRepository.Get(state.GetId())
-                    : await _primitiveEventRepository.GetAsync(state.GetId()).ConfigureAwait(false);
-
-                foreach (var primitiveEvent in primitiveEvents)
+                if (primitiveEvent.Version < version)
                 {
-                    if (primitiveEvent.Version < version)
-                    {
-                        throw new InvalidOperationException(string.Format(Resources.InvalidEventOrderingException,
-                            primitiveEvent.Version, version));
-                    }
-
-                    if (sync)
-                    {
-                        pipeline.Execute(primitiveEvent);
-                    }
-                    else
-                    {
-                        await pipeline.ExecuteAsync(primitiveEvent).ConfigureAwait(false);
-                    }
-
-                    events.Add(pipeline.State.GetEvent());
-
-                    version = primitiveEvent.Version;
+                    throw new InvalidOperationException(string.Format(Resources.InvalidEventOrderingException,
+                        primitiveEvent.Version, version));
                 }
 
-                state.SetEvents(events);
-                state.SetVersion(version);
+                await pipeline.ExecuteAsync(primitiveEvent).ConfigureAwait(false);
+
+                events.Add(pipeline.State.GetEvent());
+
+                version = primitiveEvent.Version;
             }
-            finally
-            {
-                _pipelineFactory.ReleasePipeline(pipeline);
-            }
+
+            state.SetEvents(events);
+            state.SetVersion(version);
+        }
+        finally
+        {
+            _pipelineFactory.ReleasePipeline(pipeline);
         }
     }
 }

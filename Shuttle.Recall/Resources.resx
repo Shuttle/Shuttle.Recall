@@ -273,4 +273,8 @@
     <value>TransactionScope ('{0}') created with isolation level '{1}' and timeout of '{2}'.</value>
     <comment>{0} = transaction scope name, {1} = isolation level, {2} = timeout</comment>
   </data>
+  <data name="EventStreamCorrelationIdAlreadySetException" xml:space="preserve">
+    <value>Event stream with id '{0}' already has a correlation id '{1}'.</value>
+    <comment>0 = event stream id, 1 = correlation id</comment>
+  </data>
 </root>

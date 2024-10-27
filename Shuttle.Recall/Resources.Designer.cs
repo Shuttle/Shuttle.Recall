@@ -169,6 +169,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Event stream with id &apos;{0}&apos; already has a correlation id &apos;{1}&apos;..
+        /// </summary>
+        public static string EventStreamCorrelationIdAlreadySetException {
+            get {
+                return ResourceManager.GetString("EventStreamCorrelationIdAlreadySetException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot release the projection since it either has not been assigned for processing or it has been assigned using another queue identifier..
         /// </summary>
         public static string ExceptionInvalidProjectionRelease {

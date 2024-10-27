@@ -2,65 +2,54 @@
 using System.Collections.Generic;
 using System.Linq;
 using Shuttle.Core.Contract;
-using Enumerable = System.Linq.Enumerable;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public static class EventEnvelopeExtensions
 {
-    public static class EventEnvelopeExtensions
+    public static void AcceptInvariants(this EventEnvelope eventEnvelope)
     {
-        public static bool EncryptionEnabled(this EventEnvelope eventEnvelope)
-        {
-            return !string.IsNullOrEmpty(eventEnvelope.EncryptionAlgorithm)
-                   &&
-                   !eventEnvelope.EncryptionAlgorithm.Equals("none", StringComparison.InvariantCultureIgnoreCase);
-        }
+        Guard.AgainstNull(eventEnvelope.EventId);
+        Guard.AgainstNullOrEmptyString(eventEnvelope.AssemblyQualifiedName);
+    }
 
-        public static bool CompressionEnabled(this EventEnvelope eventEnvelope)
-        {
-            return !string.IsNullOrEmpty(eventEnvelope.CompressionAlgorithm)
-                   &&
-                   !eventEnvelope.CompressionAlgorithm.Equals("none", StringComparison.InvariantCultureIgnoreCase);
-        }
+    public static bool CompressionEnabled(this EventEnvelope eventEnvelope)
+    {
+        return !string.IsNullOrEmpty(Guard.AgainstNull(eventEnvelope).CompressionAlgorithm)
+               &&
+               !eventEnvelope.CompressionAlgorithm.Equals("none", StringComparison.InvariantCultureIgnoreCase);
+    }
 
-        public static void AcceptInvariants(this EventEnvelope eventEnvelope)
-        {
-            Guard.AgainstNull(eventEnvelope.EventId, nameof(eventEnvelope.EventId));
-            Guard.AgainstNullOrEmptyString(eventEnvelope.AssemblyQualifiedName, nameof(eventEnvelope.AssemblyQualifiedName));
-        }
+    public static bool Contains(this IEnumerable<EnvelopeHeader> headers, string key)
+    {
+        return Guard.AgainstNull(headers).Any(header => header.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase));
+    }
 
-        public static void Merge(this List<EnvelopeHeader> merge, IEnumerable<EnvelopeHeader> headers)
-        {
-            Guard.AgainstNull(headers, nameof(headers));
+    public static bool EncryptionEnabled(this EventEnvelope eventEnvelope)
+    {
+        return !string.IsNullOrEmpty(Guard.AgainstNull(eventEnvelope).EncryptionAlgorithm)
+               &&
+               !eventEnvelope.EncryptionAlgorithm.Equals("none", StringComparison.InvariantCultureIgnoreCase);
+    }
 
-            foreach (var header in Enumerable.Where(headers, header => !merge.Contains(header.Key)))
+    public static string GetHeaderValue(this List<EnvelopeHeader> headers, string key)
+    {
+        var header = Guard.AgainstNull(headers).FirstOrDefault(candidate => candidate.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase));
+
+        return header == null ? string.Empty : header.Value;
+    }
+
+    public static void Merge(this List<EnvelopeHeader> merge, IEnumerable<EnvelopeHeader> headers)
+    {
+        Guard.AgainstNull(merge);
+
+        foreach (var header in Guard.AgainstNull(headers).Where(header => !merge.Contains(header.Key)))
+        {
+            merge.Add(new()
             {
-                merge.Add(new EnvelopeHeader
-                {
-                    Key = header.Key,
-                    Value = header.Value
-                });
-            }
-        }
-
-        public static string GetHeaderValue(this List<EnvelopeHeader> headers, string key)
-        {
-            if (headers == null)
-            {
-                return string.Empty;
-            }
-
-            var header =
-                headers.FirstOrDefault(
-                    candidate => candidate.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase));
-
-            return header == null ? string.Empty : header.Value;
-        }
-
-        public static bool Contains(this IEnumerable<EnvelopeHeader> headers, string key)
-        {
-            Guard.AgainstNull(headers, nameof(headers));
-
-            return headers.Any(header => header.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase));
+                Key = header.Key,
+                Value = header.Value
+            });
         }
     }
 }

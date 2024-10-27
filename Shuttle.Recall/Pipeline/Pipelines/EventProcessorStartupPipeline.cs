@@ -1,21 +1,20 @@
 ﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
-{
-    public class EventProcessorStartupPipeline : Pipeline
-    {
-        public EventProcessorStartupPipeline(IStartupEventProcessingObserver startupEventProcessingObserver)
-        {
-            RegisterStage("Startup")
-                .WithEvent<OnStartEventProcessing>()
-                .WithEvent<OnAfterStartEventProcessing>()
-                .WithEvent<OnConfigureThreadPools>()
-                .WithEvent<OnAfterConfigureThreadPools>()
-                .WithEvent<OnStartThreadPools>()
-                .WithEvent<OnAfterStartThreadPools>();
+namespace Shuttle.Recall;
 
-            RegisterObserver(Guard.AgainstNull(startupEventProcessingObserver, nameof(startupEventProcessingObserver)));
-        }
+public class EventProcessorStartupPipeline : Pipeline
+{
+    public EventProcessorStartupPipeline(IStartupEventProcessingObserver startupEventProcessingObserver)
+    {
+        RegisterStage("Startup")
+            .WithEvent<OnStartEventProcessing>()
+            .WithEvent<OnAfterStartEventProcessing>()
+            .WithEvent<OnConfigureThreadPools>()
+            .WithEvent<OnAfterConfigureThreadPools>()
+            .WithEvent<OnStartThreadPools>()
+            .WithEvent<OnAfterStartThreadPools>();
+
+        RegisterObserver(Guard.AgainstNull(startupEventProcessingObserver));
     }
 }

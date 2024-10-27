@@ -2,49 +2,31 @@
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class SaveEventStreamPipeline : Pipeline
 {
-    public class SaveEventStreamPipeline : Pipeline
+    public SaveEventStreamPipeline(IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver)
     {
-        public SaveEventStreamPipeline(IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver) 
-        {
-            RegisterStage("SaveEventStream")
-                .WithEvent<OnAssembleEventEnvelopes>()
-                .WithEvent<OnAfterAssembleEventEnvelopes>()
-                .WithEvent<OnBeforeSavePrimitiveEvents>()
-                .WithEvent<OnSavePrimitiveEvents>()
-                .WithEvent<OnAfterSavePrimitiveEvents>()
-                .WithEvent<OnCommitEventStream>()
-                .WithEvent<OnAfterCommitEventStream>();
+        RegisterStage("SaveEventStream")
+            .WithEvent<OnAssembleEventEnvelopes>()
+            .WithEvent<OnAfterAssembleEventEnvelopes>()
+            .WithEvent<OnBeforeSavePrimitiveEvents>()
+            .WithEvent<OnSavePrimitiveEvents>()
+            .WithEvent<OnAfterSavePrimitiveEvents>()
+            .WithEvent<OnCommitEventStream>()
+            .WithEvent<OnAfterCommitEventStream>();
 
-            RegisterObserver(Guard.AgainstNull(assembleEventEnvelopesObserver, nameof(assembleEventEnvelopesObserver)));
-            RegisterObserver(Guard.AgainstNull(savePrimitiveEventsObserver, nameof(savePrimitiveEventsObserver)));
-            RegisterObserver(Guard.AgainstNull(eventStreamObserver, nameof(eventStreamObserver)));
-        }
+        RegisterObserver(Guard.AgainstNull(assembleEventEnvelopesObserver));
+        RegisterObserver(Guard.AgainstNull(savePrimitiveEventsObserver));
+        RegisterObserver(Guard.AgainstNull(eventStreamObserver));
+    }
 
-        public void Execute(EventStream eventStream, EventStreamBuilder builder)
-        {
-            ExecuteAsync(eventStream, builder, true).GetAwaiter().GetResult();
-        }
+    public async Task ExecuteAsync(EventStream eventStream, EventStreamBuilder builder)
+    {
+        State.SetEventStream(Guard.AgainstNull(eventStream));
+        State.SetEventStreamBuilder(builder);
 
-        public async Task ExecuteAsync(EventStream eventStream, EventStreamBuilder builder)
-        {
-            await ExecuteAsync(eventStream, builder, false).ConfigureAwait(false);
-        }
-
-        private async Task ExecuteAsync(EventStream eventStream, EventStreamBuilder builder, bool sync)
-        {
-            State.SetEventStream(Guard.AgainstNull(eventStream, nameof(eventStream)));
-            State.SetEventStreamBuilder(builder);
-
-            if (sync)
-            {
-                Execute();
-            }
-            else
-            {
-                await ExecuteAsync().ConfigureAwait(false);
-            }
-        }
+        await ExecuteAsync().ConfigureAwait(false);
     }
 }

@@ -2,41 +2,40 @@
 using NUnit.Framework;
 using Shuttle.Recall.Tests.Implementation;
 
-namespace Shuttle.Recall.Tests
+namespace Shuttle.Recall.Tests;
+
+[TestFixture]
+public class DefaultEventMethodInvokerFixture
 {
-    [TestFixture]
-    public class DefaultEventMethodInvokerFixture
+    [Test]
+    public void Should_be_able_to_invoke_public_methods()
     {
-        [Test]
-        public void Should_be_able_to_invoke_public_methods()
+        var invoker = new DefaultEventMethodInvoker(new EventMethodInvokerConfiguration());
+
+        var events = new List<object>
         {
-            var invoker = new DefaultEventMethodInvoker(new EventMethodInvokerConfiguration());
+            new ThisHappened { ThisValue = "this" },
+            new ThatHappened { ThatValue = "that" }
+        };
 
-            var events = new List<object>
-            {
-                new ThisHappened {ThisValue = "this"},
-                new ThatHappened {ThatValue = "that"}
-            };
+        var aggregateOne = new AggregateOne();
 
-            var aggregateOne = new AggregateOne();
+        Assert.That(aggregateOne.ThisValue, Is.Null);
+        Assert.That(aggregateOne.ThatValue, Is.Null);
 
-            Assert.IsNull(aggregateOne.ThisValue);
-            Assert.IsNull(aggregateOne.ThatValue);
+        invoker.Apply(aggregateOne, events);
 
-            invoker.Apply(aggregateOne, events);
+        Assert.That(aggregateOne.ThisValue, Is.EqualTo("this"));
+        Assert.That(aggregateOne.ThatValue, Is.EqualTo("that"));
 
-            Assert.AreEqual("this", aggregateOne.ThisValue);
-            Assert.AreEqual("that", aggregateOne.ThatValue);
+        var aggregateTwo = new AggregateTwo();
 
-            var aggregateTwo = new AggregateTwo();
+        Assert.That(aggregateTwo.ThisValue, Is.Null);
+        Assert.That(aggregateTwo.ThatValue, Is.Null);
 
-            Assert.IsNull(aggregateTwo.ThisValue);
-            Assert.IsNull(aggregateTwo.ThatValue);
+        invoker.Apply(aggregateTwo, events);
 
-            invoker.Apply(aggregateTwo, events);
-
-            Assert.AreEqual("this", aggregateTwo.ThisValue);
-            Assert.AreEqual("that", aggregateTwo.ThatValue);
-        }
+        Assert.That(aggregateTwo.ThisValue, Is.EqualTo("this"));
+        Assert.That(aggregateTwo.ThatValue, Is.EqualTo("that"));
     }
 }

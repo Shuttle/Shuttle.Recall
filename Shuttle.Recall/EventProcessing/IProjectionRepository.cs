@@ -1,16 +1,11 @@
 ﻿using System.Threading.Tasks;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IProjectionRepository
 {
-    public interface IProjectionRepository
-    {
-        Projection Find(string name);
-        Task<Projection> FindAsync(string name);
-        void Save(Projection projection);
-        Task SaveAsync(Projection projection);
-        void SetSequenceNumber(string projectionName, long sequenceNumber);
-        Task SetSequenceNumberAsync(string projectionName, long sequenceNumber);
-        long GetSequenceNumber(string projectionName);
-        ValueTask<long> GetSequenceNumberAsync(string projectionName);
-    }
+    Task<Projection?> FindAsync(string name);
+    ValueTask<long> GetSequenceNumberAsync(string projectionName);
+    Task SaveAsync(Projection projection);
+    Task SetSequenceNumberAsync(string projectionName, long sequenceNumber);
 }

@@ -3,66 +3,46 @@ using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IAssembleEventEnvelopesObserver : IPipelineObserver<OnAssembleEventEnvelopes>
 {
-    public interface IAssembleEventEnvelopesObserver : IPipelineObserver<OnAssembleEventEnvelopes>
+}
+
+public class AssembleEventEnvelopesObserver : IAssembleEventEnvelopesObserver
+{
+    private readonly IPipelineFactory _pipelineFactory;
+
+    public AssembleEventEnvelopesObserver(IPipelineFactory pipelineFactory)
     {
+        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
     }
 
-    public class AssembleEventEnvelopesObserver : IAssembleEventEnvelopesObserver
+    public async Task ExecuteAsync(IPipelineContext<OnAssembleEventEnvelopes> pipelineContext)
     {
-        private readonly IPipelineFactory _pipelineFactory;
+        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
+        var eventStream = Guard.AgainstNull(state.GetEventStream());
+        var builder = Guard.AgainstNull(state.GetEventStreamBuilder());
+        var eventEnvelopes = new List<EventEnvelope>();
 
-        public AssembleEventEnvelopesObserver(IPipelineFactory pipelineFactory)
+        var pipeline = _pipelineFactory.GetPipeline<AssembleEventEnvelopePipeline>();
+
+        pipeline.State.SetEventStreamBuilder(builder);
+
+        try
         {
-            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-
-            _pipelineFactory = pipelineFactory;
-        }
-
-        public void Execute(OnAssembleEventEnvelopes pipelineEvent)
-        {
-            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
-        }
-
-        public async Task ExecuteAsync(OnAssembleEventEnvelopes pipelineEvent)
-        {
-            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
-        }
-
-        private async Task ExecuteAsync(OnAssembleEventEnvelopes pipelineEvent, bool sync)
-        {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var eventStream = Guard.AgainstNull(state.GetEventStream(), StateKeys.EventStream);
-            var builder = Guard.AgainstNull(state.GetEventStreamBuilder(), StateKeys.SaveEventStreamBuilder);
-            var eventEnvelopes = new List<EventEnvelope>();
-
-            var pipeline = _pipelineFactory.GetPipeline<AssembleEventEnvelopePipeline>();
-
-            pipeline.State.SetEventStreamBuilder(builder);
-
-            try
+            foreach (var appendedEvent in eventStream.GetEvents())
             {
-                foreach (var appendedEvent in eventStream.GetEvents())
-                {
-                    if (sync)
-                    {
-                        eventEnvelopes.Add(pipeline.Execute(appendedEvent));
-                    }
-                    else
-                    {
-                        eventEnvelopes.Add(await pipeline.ExecuteAsync(appendedEvent).ConfigureAwait(false));
-                    }
-                }
-
-                state.SetEventEnvelopes(eventEnvelopes);
-            }
-            finally
-            {
-                _pipelineFactory.ReleasePipeline(pipeline);
+                eventEnvelopes.Add(await pipeline.ExecuteAsync(appendedEvent).ConfigureAwait(false));
             }
 
             state.SetEventEnvelopes(eventEnvelopes);
         }
+        finally
+        {
+            _pipelineFactory.ReleasePipeline(pipeline);
+        }
+
+        state.SetEventEnvelopes(eventEnvelopes);
     }
 }

@@ -1,11 +1,10 @@
 using System;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class ProcessEventMethodMissingException : Exception
 {
-    public class ProcessEventMethodMissingException : Exception
+    public ProcessEventMethodMissingException(string message)
     {
-        public ProcessEventMethodMissingException(string message)
-        {
-        }
     }
 }

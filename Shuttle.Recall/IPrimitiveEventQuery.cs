@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IPrimitiveEventQuery
 {
-    public interface IPrimitiveEventQuery
-    {
-        IEnumerable<PrimitiveEvent> Search(PrimitiveEvent.Specification specification);
-        Task<IEnumerable<PrimitiveEvent>> SearchAsync(PrimitiveEvent.Specification specification);
-    }
+    IEnumerable<PrimitiveEvent> Search(PrimitiveEvent.Specification specification);
+    Task<IEnumerable<PrimitiveEvent>> SearchAsync(PrimitiveEvent.Specification specification);
 }

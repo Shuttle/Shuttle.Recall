@@ -1,10 +1,9 @@
-﻿namespace Shuttle.Recall
+﻿namespace Shuttle.Recall;
+
+public static class ProjectionConfigurationExtensions
 {
-    public static class ProjectionConfigurationExtensions
+    public static void AddProjectionEventHandlerType<T>(this IProjectionConfiguration configuration, string projectionName)
     {
-        public static void AddProjectionEventHandlerType<T>(this IProjectionConfiguration configuration, string projectionName)
-        {
-            configuration.AddProjectionEventHandlerType(projectionName, typeof(T));
-        }
+        configuration.AddProjectionEventHandlerType(projectionName, typeof(T));
     }
 }

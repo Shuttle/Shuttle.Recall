@@ -4,70 +4,52 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class ProjectionProcessor : IProcessor
 {
-    public class ProjectionProcessor : IProcessor
+    private readonly IEventProcessor _eventProcessor;
+    private readonly IPipelineFactory _pipelineFactory;
+    private readonly IThreadActivity _threadActivity;
+
+    public ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory, IEventProcessor eventProcessor)
     {
-        private readonly IEventProcessor _eventProcessor;
-        private readonly IPipelineFactory _pipelineFactory;
-        private readonly IThreadActivity _threadActivity;
+        _threadActivity = new ThreadActivity(Guard.AgainstNull(eventStoreOptions).DurationToSleepWhenIdle);
+        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
+        _eventProcessor = Guard.AgainstNull(eventProcessor);
+    }
 
-        public ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory, IEventProcessor eventProcessor)
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        var pipeline = _pipelineFactory.GetPipeline<EventProcessingPipeline>();
+
+        while (!cancellationToken.IsCancellationRequested)
         {
-            _pipelineFactory = Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-            _eventProcessor = Guard.AgainstNull(eventProcessor, nameof(eventProcessor));
-            _threadActivity = new ThreadActivity(Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions)).DurationToSleepWhenIdle);
-        }
+            var projection = _eventProcessor.GetProjection();
+            var waiting = true;
 
-        public void Execute(CancellationToken cancellationToken)
-        {
-            ExecuteAsync(cancellationToken, true).GetAwaiter().GetResult();
-        }
-
-        public async Task ExecuteAsync(CancellationToken cancellationToken)
-        {
-            await ExecuteAsync(cancellationToken, false).ConfigureAwait(false);
-        }
-
-        private async Task ExecuteAsync(CancellationToken cancellationToken, bool sync)
-        {
-            var pipeline = _pipelineFactory.GetPipeline<EventProcessingPipeline>();
-
-            while (!cancellationToken.IsCancellationRequested)
+            if (projection != null)
             {
-                var projection = _eventProcessor.GetProjection();
-                var waiting = true;
+                pipeline.State.Clear();
+                pipeline.State.SetProjection(projection);
 
-                if (projection != null)
+                await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+
+                if (pipeline.State.GetWorking())
                 {
-                    pipeline.State.Clear();
-                    pipeline.State.SetProjection(projection);
-
-                    if (sync)
-                    {
-                        pipeline.Execute(cancellationToken);
-                    }
-                    else
-                    {
-                        await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-                    }
-
-                    if (pipeline.State.GetWorking())
-                    {
-                        _threadActivity.Working();
-                        waiting = false;
-                    }
-
-                    _eventProcessor.ReleaseProjection(projection);
+                    _threadActivity.Working();
+                    waiting = false;
                 }
 
-                if (waiting)
-                {
-                    _threadActivity.Waiting(cancellationToken);
-                }
+                _eventProcessor.ReleaseProjection(projection);
             }
 
-            _pipelineFactory.ReleasePipeline(pipeline);
+            if (waiting)
+            {
+                await _threadActivity.WaitingAsync(cancellationToken);
+            }
         }
+
+        _pipelineFactory.ReleasePipeline(pipeline);
     }
 }

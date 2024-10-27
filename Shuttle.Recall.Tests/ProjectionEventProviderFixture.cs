@@ -7,80 +7,80 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 
-namespace Shuttle.Recall.Tests
+namespace Shuttle.Recall.Tests;
+
+public class TestEvent
 {
-    public class TestEvent
+}
+
+[TestFixture]
+public class ProjectionEventProviderFixture : IAsyncEventHandler<TestEvent>
+{
+    [Test]
+    public async Task Should_be_able_to_use_provider()
     {
+        var projection = new Projection("projection", 15);
+
+        await projection.AddEventHandlerAsync(this);
+
+        var eventProcessor = new Mock<IEventProcessor>();
+        var projectionAggregation = new ProjectionAggregation(100, CancellationToken.None);
+
+        projectionAggregation.Add(projection);
+
+        eventProcessor.Setup(m => m.GetProjectionAggregation(It.IsAny<Guid>())).Returns(projectionAggregation);
+
+        var provider = new ProjectionEventProvider(Options.Create(new EventStoreOptions()), eventProcessor.Object, GetQuery());
+
+        ProjectionEvent projectionEvent;
+
+        var eventEnvelope = new EventEnvelope
+        {
+            AssemblyQualifiedName = typeof(TestEvent).AssemblyQualifiedName!
+        };
+
+        Assert.That(projectionAggregation.IsEmpty, Is.True);
+
+        for (var i = 0; i < 10; i++)
+        {
+            projectionEvent = await provider.GetAsync(projection);
+
+            Assert.That(projectionEvent, Is.Not.Null);
+            Assert.That(projectionAggregation.IsEmpty, Is.False);
+
+            await projection.ProcessAsync(eventEnvelope, new TestEvent(), projectionEvent.PrimitiveEvent!, new(false));
+
+            projectionAggregation.ProcessSequenceNumberTail();
+        }
+
+        projectionEvent = await provider.GetAsync(projection);
+
+        Assert.That(projectionEvent.HasPrimitiveEvent, Is.False);
+        Assert.That(projectionAggregation.IsEmpty, Is.True);
     }
 
-    [TestFixture]
-    public class ProjectionEventProviderFixture : IEventHandler<TestEvent>
+    private IPrimitiveEventQuery GetQuery()
     {
-        [Test]
-        public void Should_be_able_to_use_provider()
+        var query = new Mock<IPrimitiveEventQuery>();
+        var events = new List<PrimitiveEvent>();
+
+        for (var i = 0; i < 10; i++)
         {
-            var projection = new Projection(new EventStoreOptions(), "projection", 15);
-
-            projection.AddEventHandler(this);
-
-            var eventProcessor = new Mock<IEventProcessor>();
-            var projectionAggregation = new ProjectionAggregation(100, CancellationToken.None);
-
-            projectionAggregation.Add(projection);
-
-            eventProcessor.Setup(m => m.GetProjectionAggregation(It.IsAny<Guid>())).Returns(projectionAggregation);
-
-            var provider = new ProjectionEventProvider(Options.Create(new EventStoreOptions()), eventProcessor.Object, GetQuery());
-
-            ProjectionEvent projectionEvent;
-
-            var eventEnvelope = new EventEnvelope
+            events.Add(new()
             {
-                AssemblyQualifiedName = typeof(TestEvent).AssemblyQualifiedName
-            };
-
-            Assert.That(projectionAggregation.IsEmpty, Is.True);
-
-            for (var i = 0; i < 10; i++)
-            {
-                projectionEvent = provider.Get(projection);
-
-                Assert.That(projectionEvent, Is.Not.Null);
-                Assert.That(projectionAggregation.IsEmpty, Is.False);
-
-                projection.Process(eventEnvelope, new TestEvent(), projectionEvent.PrimitiveEvent, new CancellationToken(false));
-
-                projectionAggregation.ProcessSequenceNumberTail();
-            }
-
-            projectionEvent = provider.Get(projection);
-
-            Assert.That(projectionEvent.HasPrimitiveEvent, Is.False);
-            Assert.That(projectionAggregation.IsEmpty, Is.True);
+                SequenceNumber = i + 16
+            });
         }
 
-        private IPrimitiveEventQuery GetQuery()
-        {
-            var query = new Mock<IPrimitiveEventQuery>();
-            var events = new List<PrimitiveEvent>();
+        query.SetupSequence(m => m.SearchAsync(It.IsAny<PrimitiveEvent.Specification>()))
+            .Returns(Task.FromResult(events.AsEnumerable()))
+            .Returns(Task.FromResult(new List<PrimitiveEvent>().AsEnumerable()));
 
-            for (int i = 0; i < 10; i++)
-            {
-                events.Add(new PrimitiveEvent
-                {
-                    SequenceNumber = i + 16
-                });
-            }
+        return query.Object;
+    }
 
-            query.SetupSequence(m => m.SearchAsync(It.IsAny<PrimitiveEvent.Specification>()))
-                .Returns(Task.FromResult(events.AsEnumerable()))
-                .Returns(Task.FromResult(new List<PrimitiveEvent>().AsEnumerable()));
-
-            return query.Object;
-        }
-
-        public void ProcessEvent(IEventHandlerContext<TestEvent> context)
-        {
-        }
+    public async Task ProcessEventAsync(IEventHandlerContext<TestEvent> context)
+    {
+        await Task.CompletedTask;
     }
 }

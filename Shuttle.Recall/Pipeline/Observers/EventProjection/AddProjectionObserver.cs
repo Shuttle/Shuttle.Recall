@@ -1,60 +1,39 @@
 ﻿using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IAddProjectionObserver : IPipelineObserver<OnAddProjection>
 {
-    public interface IAddProjectionObserver : IPipelineObserver<OnAddProjection>
+}
+
+public class AddProjectionObserver : IAddProjectionObserver
+{
+    private readonly EventStoreOptions _eventStoreOptions;
+    private readonly IProjectionRepository _repository;
+
+    public AddProjectionObserver(IOptions<EventStoreOptions> eventStoreOptions, IProjectionRepository projectionRepository)
     {
+        _eventStoreOptions = Guard.AgainstNull(Guard.AgainstNull(eventStoreOptions).Value);
+        _repository = Guard.AgainstNull(projectionRepository);
     }
 
-    public class AddProjectionObserver : IAddProjectionObserver
+    public async Task ExecuteAsync(IPipelineContext<OnAddProjection> pipelineContext)
     {
-        private readonly EventStoreOptions _eventStoreOptions;
-        private readonly IProjectionRepository _repository;
+        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
+        var name = Guard.AgainstNullOrEmptyString(state.GetProjectionName());
 
-        public AddProjectionObserver(IOptions<EventStoreOptions> eventStoreOptions, IProjectionRepository projectionRepository)
+        var projection = await _repository.FindAsync(name).ConfigureAwait(false);
+
+        if (projection == null)
         {
-            _eventStoreOptions = Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions)).Value;
-            _repository = Guard.AgainstNull(projectionRepository, nameof(projectionRepository));    
+            projection = new(name, 0);
+
+            await _repository.SaveAsync(projection).ConfigureAwait(false);
         }
 
-        public void Execute(OnAddProjection pipelineEvent)
-        {
-            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
-        }
-
-        public async Task ExecuteAsync(OnAddProjection pipelineEvent)
-        {
-            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
-        }
-
-        private async Task ExecuteAsync(OnAddProjection pipelineEvent, bool sync)
-        {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var name = Guard.AgainstNullOrEmptyString(state.GetProjectionName(), StateKeys.ProjectionName);
-
-            var projection = sync
-                ? _repository.Find(name)
-                : await _repository.FindAsync(name).ConfigureAwait(false);
-
-            if (projection == null)
-            {
-                projection = new Projection(_eventStoreOptions, name, 0);
-
-                if (sync)
-                {
-                    _repository.Save(projection);
-                }
-                else
-                {
-                    await _repository.SaveAsync(projection).ConfigureAwait(false);
-                }
-            }
-
-            state.SetProjection(projection);
-        }
+        state.SetProjection(projection);
     }
 }
