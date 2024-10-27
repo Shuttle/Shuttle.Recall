@@ -13,7 +13,7 @@ namespace Shuttle.Recall;
 public class Projection
 {
     private static readonly Type HandlerContextType = typeof(EventHandlerContext<>);
-    private static readonly Type AsyncEventHandlerType = typeof(IAsyncEventHandler<>);
+    private static readonly Type AsyncEventHandlerType = typeof(IEventHandler<>);
     private readonly Dictionary<Type, object> _asyncEventHandlers = new();
     private readonly Dictionary<Type, ContextConstructorInvoker> _constructorCache = new();
     private readonly Dictionary<Type, object> _eventHandlers = new();

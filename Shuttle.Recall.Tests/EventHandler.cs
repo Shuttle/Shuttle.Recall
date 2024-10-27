@@ -3,8 +3,8 @@
 namespace Shuttle.Recall.Tests;
 
 public class EventHandler :
-    IAsyncEventHandler<EventA>,
-    IAsyncEventHandler<EventB>
+    IEventHandler<EventA>,
+    IEventHandler<EventB>
 {
     private static readonly object Lock = new();
     public int Entry { get; private set; }

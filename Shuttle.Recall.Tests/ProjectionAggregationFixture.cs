@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Shuttle.Recall.Tests;
 
 [TestFixture]
-public class ProjectionAggregationFixture : IAsyncEventHandler<object>
+public class ProjectionAggregationFixture : IEventHandler<object>
 {
     [Test]
     public async Task Should_be_able_to_trim_sequence_number_tail_async()

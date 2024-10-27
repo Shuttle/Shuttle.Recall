@@ -14,7 +14,7 @@ public class TestEvent
 }
 
 [TestFixture]
-public class ProjectionEventProviderFixture : IAsyncEventHandler<TestEvent>
+public class ProjectionEventProviderFixture : IEventHandler<TestEvent>
 {
     [Test]
     public async Task Should_be_able_to_use_provider()
