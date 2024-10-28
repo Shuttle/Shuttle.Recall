@@ -39,17 +39,13 @@ public class EventStore : IEventStore
         }
     }
 
-    public async Task RemoveAsync(Guid id, Action<EventStreamBuilder>? builder = null)
+    public async Task RemoveAsync(Guid id)
     {
-        var eventStreamBuilder = new EventStreamBuilder();
-
-        builder?.Invoke(eventStreamBuilder);
-
         var pipeline = _pipelineFactory.GetPipeline<RemoveEventStreamPipeline>();
 
         try
         {
-            await pipeline.ExecuteAsync(id, eventStreamBuilder).ConfigureAwait(false);
+            await pipeline.ExecuteAsync(id).ConfigureAwait(false);
         }
         finally
         {
@@ -61,7 +57,7 @@ public class EventStore : IEventStore
     {
         if (Guard.AgainstNull(eventStream).Removed)
         {
-            await RemoveAsync(eventStream.Id, builder).ConfigureAwait(false);
+            await RemoveAsync(eventStream.Id).ConfigureAwait(false);
 
             return -1;
         }

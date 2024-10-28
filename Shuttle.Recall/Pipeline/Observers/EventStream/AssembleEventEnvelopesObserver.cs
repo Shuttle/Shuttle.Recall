@@ -21,8 +21,8 @@ public class AssembleEventEnvelopesObserver : IAssembleEventEnvelopesObserver
     public async Task ExecuteAsync(IPipelineContext<OnAssembleEventEnvelopes> pipelineContext)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var eventStream = Guard.AgainstNull(state.GetEventStream());
-        var builder = Guard.AgainstNull(state.GetEventStreamBuilder());
+        var eventStream = state.GetEventStream();
+        var builder = state.GetEventStreamBuilder();
         var eventEnvelopes = new List<EventEnvelope>();
 
         var pipeline = _pipelineFactory.GetPipeline<AssembleEventEnvelopePipeline>();

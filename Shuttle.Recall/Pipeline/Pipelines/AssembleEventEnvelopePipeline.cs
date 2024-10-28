@@ -6,24 +6,22 @@ namespace Shuttle.Recall;
 
 public class AssembleEventEnvelopePipeline : Pipeline
 {
-    public AssembleEventEnvelopePipeline(IAssembleEventEnvelopeObserver assembleEventEnvelopeObserver,
-        ICompressEventObserver compressEventObserver, IEncryptEventObserver encryptEventObserver,
-        ISerializeEventObserver serializeEventObserver)
+    public AssembleEventEnvelopePipeline(IAssembleEventEnvelopeObserver assembleEventEnvelopeObserver, ICompressEventObserver compressEventObserver, IEncryptEventObserver encryptEventObserver, ISerializeEventObserver serializeEventObserver)
     {
         RegisterStage("Get")
-            .WithEvent<OnAssembleEventEnvelope>()
-            .WithEvent<OnAfterAssembleEventEnvelope>()
             .WithEvent<OnSerializeEvent>()
             .WithEvent<OnAfterSerializeEvent>()
+            .WithEvent<OnAssembleEventEnvelope>()
+            .WithEvent<OnAfterAssembleEventEnvelope>()
             .WithEvent<OnEncryptEvent>()
             .WithEvent<OnAfterEncryptEvent>()
             .WithEvent<OnCompressEvent>()
             .WithEvent<OnAfterCompressEvent>();
 
-        RegisterObserver(Guard.AgainstNull(assembleEventEnvelopeObserver));
-        RegisterObserver(Guard.AgainstNull(compressEventObserver));
-        RegisterObserver(Guard.AgainstNull(encryptEventObserver));
         RegisterObserver(Guard.AgainstNull(serializeEventObserver));
+        RegisterObserver(Guard.AgainstNull(encryptEventObserver));
+        RegisterObserver(Guard.AgainstNull(compressEventObserver));
+        RegisterObserver(Guard.AgainstNull(assembleEventEnvelopeObserver));
     }
 
     public async Task<EventEnvelope> ExecuteAsync(DomainEvent domainEvent)
@@ -32,6 +30,6 @@ public class AssembleEventEnvelopePipeline : Pipeline
 
         await ExecuteAsync().ConfigureAwait(false);
 
-        return Guard.AgainstNull(State.GetEventEnvelope());
+        return State.GetEventEnvelope();
     }
 }

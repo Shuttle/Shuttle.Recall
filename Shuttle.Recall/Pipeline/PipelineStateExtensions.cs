@@ -7,9 +7,9 @@ namespace Shuttle.Recall;
 
 public static class PipelineStateExtensions
 {
-    public static DomainEvent? GetDomainEvent(this IState state)
+    public static DomainEvent GetDomainEvent(this IState state)
     {
-        return state.Get<DomainEvent>(StateKeys.DomainEvent);
+        return Guard.AgainstNull(state.Get<DomainEvent>(StateKeys.DomainEvent));
     }
 
     public static DomainEvent GetEvent(this IState state)
@@ -17,9 +17,9 @@ public static class PipelineStateExtensions
         return Guard.AgainstNull(state.Get<DomainEvent>(StateKeys.Event));
     }
 
-    public static byte[]? GetEventBytes(this IState state)
+    public static byte[] GetEventBytes(this IState state)
     {
-        return state.Get<byte[]>(StateKeys.EventBytes);
+        return Guard.AgainstNull(state.Get<byte[]>(StateKeys.EventBytes));
     }
 
     public static EventEnvelope GetEventEnvelope(this IState state)
@@ -42,9 +42,9 @@ public static class PipelineStateExtensions
         return Guard.AgainstNull(state.Get<EventStream>(StateKeys.EventStream));
     }
 
-    public static EventStreamBuilder? GetEventStreamBuilder(this IState state)
+    public static EventStreamBuilder GetEventStreamBuilder(this IState state)
     {
-        return state.Get<EventStreamBuilder>(StateKeys.EventStreamBuilder);
+        return Guard.AgainstNull(state.Get<EventStreamBuilder>(StateKeys.EventStreamBuilder));
     }
 
     public static Guid GetId(this IState state)
@@ -99,7 +99,7 @@ public static class PipelineStateExtensions
 
     public static void SetEventBytes(this IState state, byte[] bytes)
     {
-        state.Replace(StateKeys.EventBytes, bytes);
+        state.Replace(StateKeys.EventBytes, Guard.AgainstNull(bytes));
     }
 
     public static void SetEventEnvelope(this IState state, EventEnvelope value)

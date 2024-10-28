@@ -21,25 +21,20 @@ public class AssembleEventEnvelopeObserver : IAssembleEventEnvelopeObserver
     public async Task ExecuteAsync(IPipelineContext<OnAssembleEventEnvelope> pipelineContext)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var domainEvent = Guard.AgainstNull(state.GetDomainEvent());
-        var domainEventType = domainEvent.Event.GetType();
+        var domainEvent = state.GetDomainEvent();
+        var domainEventType = Guard.AgainstNull(domainEvent.Event.GetType());
         var builder = state.GetEventStreamBuilder();
 
         var eventEnvelope = new EventEnvelope
         {
-            Event = Guard.AgainstNull(state.GetEventBytes()),
+            Event = state.GetEventBytes(),
             EventType = Guard.AgainstNullOrEmptyString(domainEventType.FullName),
-            IsSnapshot = domainEvent.IsSnapshot,
             Version = domainEvent.Version,
             AssemblyQualifiedName = Guard.AgainstNullOrEmptyString(domainEventType.AssemblyQualifiedName),
             EncryptionAlgorithm = _eventStoreOptions.EncryptionAlgorithm,
-            CompressionAlgorithm = _eventStoreOptions.CompressionAlgorithm
+            CompressionAlgorithm = _eventStoreOptions.CompressionAlgorithm,
+            Headers = builder.Headers
         };
-
-        if (builder != null)
-        {
-            eventEnvelope.Headers = builder.Headers;
-        }
 
         state.SetEventEnvelope(eventEnvelope);
 

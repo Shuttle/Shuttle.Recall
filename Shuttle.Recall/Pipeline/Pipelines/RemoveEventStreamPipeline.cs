@@ -17,13 +17,10 @@ public class RemoveEventStreamPipeline : Pipeline
         RegisterObserver(Guard.AgainstNull(removeEventStreamObserver));
     }
 
-    public async Task<EventStream> ExecuteAsync(Guid id, EventStreamBuilder builder)
+    public async Task ExecuteAsync(Guid id)
     {
         State.SetId(id);
-        State.SetEventStreamBuilder(builder);
 
         await ExecuteAsync().ConfigureAwait(false);
-
-        return State.GetEventStream();
     }
 }

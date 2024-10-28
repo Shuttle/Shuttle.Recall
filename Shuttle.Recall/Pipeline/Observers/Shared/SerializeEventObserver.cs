@@ -22,12 +22,9 @@ public class SerializeEventObserver : ISerializeEventObserver
     public async Task ExecuteAsync(IPipelineContext<OnSerializeEvent> pipelineContext)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var domainEvent = Guard.AgainstNull(state.GetDomainEvent());
-        var eventEnvelope = Guard.AgainstNull(state.GetEventEnvelope());
+        var domainEvent = state.GetDomainEvent();
         var bytes = await (await _serializer.SerializeAsync(domainEvent.Event).ConfigureAwait(false)).ToBytesAsync().ConfigureAwait(false);
 
         state.SetEventBytes(bytes);
-
-        eventEnvelope.Event = bytes;
     }
 }

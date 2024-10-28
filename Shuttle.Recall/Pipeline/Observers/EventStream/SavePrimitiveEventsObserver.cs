@@ -27,7 +27,7 @@ public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
     public async Task ExecuteAsync(IPipelineContext<OnSavePrimitiveEvents> pipelineContext)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var eventStream = Guard.AgainstNull(state.GetEventStream());
+        var eventStream = state.GetEventStream();
         var eventEnvelopes = Guard.AgainstNull(state.GetEventEnvelopes());
 
         var version = -1;
@@ -45,7 +45,6 @@ public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
                     EventEnvelope = await (await _serializer.SerializeAsync(eventEnvelope)).ToBytesAsync(),
                     EventId = eventEnvelope.EventId,
                     EventType = eventEnvelope.EventType,
-                    IsSnapshot = eventEnvelope.IsSnapshot,
                     Version = version,
                     DateRegistered = eventEnvelope.EventDate
                 };
