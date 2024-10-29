@@ -42,10 +42,11 @@ public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
                 var primitiveEvent = new PrimitiveEvent
                 {
                     Id = eventStream.Id,
+                    Version = version,
+                    CorrelationId = eventStream.CorrelationId,
                     EventEnvelope = await (await _serializer.SerializeAsync(eventEnvelope)).ToBytesAsync(),
                     EventId = eventEnvelope.EventId,
                     EventType = eventEnvelope.EventType,
-                    Version = version,
                     DateRegistered = eventEnvelope.EventDate
                 };
 

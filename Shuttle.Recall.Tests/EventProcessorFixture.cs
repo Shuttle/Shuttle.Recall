@@ -202,6 +202,7 @@ public class EventProcessorFixture
             };
 
             primitiveEvent.Id = id;
+            primitiveEvent.CorrelationId = id;
             primitiveEvent.DateRegistered = DateTime.Now;
             primitiveEvent.EventId = Guid.NewGuid();
             primitiveEvent.SequenceNumber = entry;
