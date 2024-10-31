@@ -41,11 +41,14 @@ public static class ServiceCollectionExtensions
             services.AddTransactionScope();
         }
 
-        services.AddPipelineTransactionScope(transactionScopeBuilder =>
+        if (!eventStoreBuilder.ShouldSuppressPipelineTransactionScope)
         {
-            transactionScopeBuilder.AddStage<EventProcessingPipeline>("EventProcessing.Handle");
-            transactionScopeBuilder.AddStage<SaveEventStreamPipeline>("SaveEventStream");
-        });
+            services.AddPipelineTransactionScope(transactionScopeBuilder =>
+            {
+                transactionScopeBuilder.AddStage<EventProcessingPipeline>("EventProcessing.Handle");
+                transactionScopeBuilder.AddStage<SaveEventStreamPipeline>("SaveEventStream");
+            });
+        }
 
         services.TryAddSingleton<IEventStore, EventStore>();
         services.TryAddSingleton<IEventProcessor, EventProcessor>();
@@ -80,7 +83,7 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IProjectionConfiguration>(eventStoreBuilder.Configuration);
         }
 
-        if (!eventStoreBuilder.SuppressEventProcessorHostedService &&
+        if (!eventStoreBuilder.ShouldSuppressEventProcessorHostedService &&
             eventStoreBuilder.Configuration.GetProjectionNames().Any())
         {
             services.AddHostedService<EventProcessorHostedService>();

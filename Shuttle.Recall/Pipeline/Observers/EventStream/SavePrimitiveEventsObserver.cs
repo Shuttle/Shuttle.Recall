@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
@@ -35,6 +36,8 @@ public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
 
         try
         {
+            var primitiveEvents = new List<PrimitiveEvent>();
+
             foreach (var eventEnvelope in eventEnvelopes)
             {
                 version = eventEnvelope.Version;
@@ -50,12 +53,14 @@ public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
                     DateRegistered = eventEnvelope.EventDate
                 };
 
-                sequenceNumber = await _primitiveEventRepository.SaveAsync(primitiveEvent).ConfigureAwait(false);
+                primitiveEvents.Add(primitiveEvent);
+            }
 
-                if (sequenceNumber > 0)
-                {
-                    state.SetSequenceNumber(sequenceNumber);
-                }
+            sequenceNumber = await _primitiveEventRepository.SaveAsync(primitiveEvents).ConfigureAwait(false);
+
+            if (sequenceNumber > 0)
+            {
+                state.SetSequenceNumber(sequenceNumber);
             }
 
             if (sequenceNumber < 1)

@@ -16,7 +16,7 @@ public class NotImplementedPrimitiveEventRepository : IPrimitiveEventRepository
         throw new NotImplementedException(Resources.NotImplementedPrimitiveEventRepository);
     }
 
-    public ValueTask<long> SaveAsync(PrimitiveEvent primitiveEvent)
+    public ValueTask<long> SaveAsync(IEnumerable<PrimitiveEvent> primitiveEvents)
     {
         throw new NotImplementedException(Resources.NotImplementedPrimitiveEventRepository);
     }

@@ -27,7 +27,23 @@ public class EventStoreBuilder
     }
 
     public IServiceCollection Services { get; }
-    public bool SuppressEventProcessorHostedService { get; set; }
+    public bool ShouldSuppressEventProcessorHostedService { get; private set; }
+
+    public EventStoreBuilder SuppressEventProcessorHostedService()
+    {
+        ShouldSuppressEventProcessorHostedService = true;
+
+        return this;
+    }
+
+    public bool ShouldSuppressPipelineTransactionScope { get; private set; }
+
+    public EventStoreBuilder SuppressPipelineTransactionScope()
+    {
+        ShouldSuppressPipelineTransactionScope = true;
+
+        return this;
+    }
 
     public EventStoreBuilder AddEventHandler<TEventHandler>(string projectionName) where TEventHandler : class
     {

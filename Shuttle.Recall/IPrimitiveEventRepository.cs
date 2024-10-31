@@ -9,5 +9,5 @@ public interface IPrimitiveEventRepository
     Task<IEnumerable<PrimitiveEvent>> GetAsync(Guid id);
     ValueTask<long> GetSequenceNumberAsync(Guid id);
     Task RemoveAsync(Guid id);
-    ValueTask<long> SaveAsync(PrimitiveEvent primitiveEvent);
+    ValueTask<long> SaveAsync(IEnumerable<PrimitiveEvent> primitiveEvents);
 }

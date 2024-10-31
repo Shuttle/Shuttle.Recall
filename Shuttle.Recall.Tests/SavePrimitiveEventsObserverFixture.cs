@@ -16,7 +16,7 @@ public class SavePrimitiveEventsObserverFixture
         var specification = new Mock<IConcurrencyExceptionSpecification>();
         var repository = new Mock<IPrimitiveEventRepository>();
 
-        repository.Setup(m => m.SaveAsync(It.IsAny<PrimitiveEvent>())).Throws<Exception>();
+        repository.Setup(m => m.SaveAsync(It.IsAny<IEnumerable<PrimitiveEvent>>())).Throws<Exception>();
 
         var observer = new SavePrimitiveEventsObserver(
             repository.Object,
