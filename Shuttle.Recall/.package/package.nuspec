@@ -19,6 +19,7 @@
       <dependency id="Shuttle.Core.Compression" version="20.0.0" />
       <dependency id="Shuttle.Core.Encryption" version="20.0.0" />
       <dependency id="Shuttle.Core.Pipelines" version="20.0.0" />
+      <dependency id="Shuttle.Core.PipelineTransactionScope" version="20.0.0" />
       <dependency id="Shuttle.Core.Reflection" version="20.0.0" />
       <dependency id="Shuttle.Core.Serialization" version="20.0.0" />
       <dependency id="Shuttle.Core.Contract" version="20.0.0" />

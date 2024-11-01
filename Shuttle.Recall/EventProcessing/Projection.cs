@@ -13,12 +13,10 @@ namespace Shuttle.Recall;
 public class Projection
 {
     private static readonly Type HandlerContextType = typeof(EventHandlerContext<>);
-    private static readonly Type AsyncEventHandlerType = typeof(IEventHandler<>);
-    private readonly Dictionary<Type, object> _asyncEventHandlers = new();
-    private readonly Dictionary<Type, ContextConstructorInvoker> _constructorCache = new();
+    private static readonly Type EventHandlerType = typeof(IEventHandler<>);
     private readonly Dictionary<Type, object> _eventHandlers = new();
-
-    private readonly Dictionary<Type, AsyncContextMethodInvoker> _methodCacheAsync = new();
+    private readonly Dictionary<Type, ContextConstructorInvoker> _constructorCache = new();
+    private readonly Dictionary<Type, ContextMethodInvoker> _methodCacheAsync = new();
 
     private Guid? _projectionsQueueId;
 
@@ -43,11 +41,11 @@ public class Projection
 
         var typesAddedCount = 0;
 
-        foreach (var interfaceType in handler.GetType().InterfacesCastableTo(AsyncEventHandlerType))
+        foreach (var interfaceType in handler.GetType().InterfacesCastableTo(EventHandlerType))
         {
             var type = interfaceType.GetGenericArguments()[0];
 
-            if (!_asyncEventHandlers.TryAdd(type, handler))
+            if (!_eventHandlers.TryAdd(type, handler))
             {
                 throw new InvalidOperationException(string.Format(Resources.DuplicateAsyncEventHandlerEventTypeException, handler.GetType().FullName, type.FullName));
             }
@@ -95,7 +93,7 @@ public class Projection
 
         try
         {
-            if (!_asyncEventHandlers.TryGetValue(domainEventType, out var eventHandler))
+            if (!_eventHandlers.TryGetValue(domainEventType, out var eventHandler))
             {
                 return;
             }
@@ -107,26 +105,24 @@ public class Projection
                 _constructorCache.Add(domainEventType, contextConstructor);
             }
 
-            if (!_methodCacheAsync.TryGetValue(domainEventType, out var asyncContextMethod))
+            if (!_methodCacheAsync.TryGetValue(domainEventType, out var contextMethod))
             {
-                var interfaceType = AsyncEventHandlerType.MakeGenericType(domainEventType);
+                var interfaceType = EventHandlerType.MakeGenericType(domainEventType);
                 var methodInfo = eventHandler.GetType().GetInterfaceMap(interfaceType).TargetMethods.SingleOrDefault();
 
                 if (methodInfo == null)
                 {
                     throw new ProcessEventMethodMissingException(string.Format(Resources.ProcessEventMethodMissingException, _eventHandlers[domainEventType].GetType().FullName, domainEventType.FullName));
                 }
-
-                //var methodInfo = Guard.AgainstNull(eventHandler.GetType().GetInterfaceMap(AsyncEventHandlerType.MakeGenericType(domainEventType)).TargetMethods.SingleOrDefault());
                 
-                asyncContextMethod = new(methodInfo);
+                contextMethod = new(methodInfo);
 
-                _methodCacheAsync.Add(domainEventType, asyncContextMethod);
+                _methodCacheAsync.Add(domainEventType, contextMethod);
             }
 
             var handlerContext = contextConstructor.CreateHandlerContext(eventEnvelope, domainEvent, primitiveEvent, cancellationToken);
 
-            await asyncContextMethod.InvokeAsync(eventHandler, handlerContext).ConfigureAwait(false);
+            await contextMethod.InvokeAsync(eventHandler, handlerContext).ConfigureAwait(false);
         }
         finally
         {
@@ -146,11 +142,11 @@ public class Projection
         throw new InvalidOperationException(Resources.ExceptionInvalidProjectionRelease);
     }
 
-    internal class AsyncContextMethodInvoker
+    internal class ContextMethodInvoker
     {
         private readonly InvokeHandler _invoker;
 
-        public AsyncContextMethodInvoker(MethodInfo methodInfo)
+        public ContextMethodInvoker(MethodInfo methodInfo)
         {
             var dynamicMethod = new DynamicMethod(string.Empty,
                 typeof(Task), new[] { typeof(object), typeof(object) },
@@ -218,34 +214,5 @@ public class Projection
         }
 
         private delegate object ConstructorInvokeHandler(EventEnvelope eventEnvelope, object message, PrimitiveEvent primitiveEvent, CancellationToken cancellationToken);
-    }
-
-    internal class ContextMethodInvoker
-    {
-        private readonly InvokeHandler _invoker;
-
-        public ContextMethodInvoker(Type messageType, MethodInfo methodInfo)
-        {
-            var dynamicMethod = new DynamicMethod(string.Empty,
-                typeof(void), new[] { typeof(object), typeof(object) },
-                HandlerContextType.Module);
-
-            var il = dynamicMethod.GetILGenerator();
-
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldarg_1);
-
-            il.EmitCall(OpCodes.Callvirt, methodInfo, null);
-            il.Emit(OpCodes.Ret);
-
-            _invoker = (InvokeHandler)dynamicMethod.CreateDelegate(typeof(InvokeHandler));
-        }
-
-        public void Invoke(object handler, object handlerContext)
-        {
-            _invoker.Invoke(handler, handlerContext);
-        }
-
-        private delegate void InvokeHandler(object handler, object handlerContext);
     }
 }
