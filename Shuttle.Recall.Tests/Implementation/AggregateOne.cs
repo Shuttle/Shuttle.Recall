@@ -2,8 +2,8 @@
 
 public class AggregateOne
 {
-    public string ThatValue { get; private set; }
-    public string ThisValue { get; private set; }
+    public string ThatValue { get; private set; } = string.Empty;
+    public string ThisValue { get; private set; } = string.Empty;
 
     public ThatHappened DoThat(string value)
     {

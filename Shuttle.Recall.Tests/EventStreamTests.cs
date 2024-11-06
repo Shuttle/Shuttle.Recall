@@ -21,9 +21,9 @@ public class EventStreamTests
     [Test]
     public void Should_be_able_to_apply_empty_invariant()
     {
-        EventStream stream = null;
+        EventStream? stream = null;
 
-        Assert.Throws<EventStreamEmptyException>(() => stream.EmptyInvariant());
+        Assert.Throws<EventStreamEmptyException>(() => stream!.EmptyInvariant());
 
         stream = new(new(), new Mock<IEventMethodInvoker>().Object);
 

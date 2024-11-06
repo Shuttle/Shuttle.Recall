@@ -79,6 +79,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Mapped delegates have to be async..
+        /// </summary>
+        public static string AsyncDelegateRequiredException {
+            get {
+                return ResourceManager.GetString("AsyncDelegateRequiredException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} &apos;{1}&apos; has no default constructor..
         /// </summary>
         public static string DefaultConstructorRequired {
@@ -117,9 +126,18 @@ namespace Shuttle.Recall {
         /// <summary>
         ///   Looks up a localized string similar to A projection with name &apos;{0}&apos; has already been added..
         /// </summary>
-        public static string DuplicateProjectionName {
+        public static string DuplicateProjectionNameException {
             get {
-                return ResourceManager.GetString("DuplicateProjectionName", resourceCulture);
+                return ResourceManager.GetString("DuplicateProjectionNameException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The delegate must contain a parameter of type `IEventHandlerContext&lt;TMessage&gt;`..
+        /// </summary>
+        public static string EventHandlerTypeException {
+            get {
+                return ResourceManager.GetString("EventHandlerTypeException", resourceCulture);
             }
         }
         
@@ -201,15 +219,6 @@ namespace Shuttle.Recall {
         public static string InformationProjectionIgnored {
             get {
                 return ResourceManager.GetString("InformationProjectionIgnored", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{0}&apos; does not implement IAsyncEventHandler&lt;T&gt;..
-        /// </summary>
-        public static string InvalidAsyncEventHandlerTypeExpection {
-            get {
-                return ResourceManager.GetString("InvalidAsyncEventHandlerTypeExpection", resourceCulture);
             }
         }
         

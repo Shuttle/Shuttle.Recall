@@ -123,7 +123,7 @@ public class EventProcessor : IEventProcessor
 
         if (_projections.ContainsKey(name))
         {
-            throw new EventProcessingException(string.Format(Resources.DuplicateProjectionName, name));
+            throw new EventProcessingException(string.Format(Resources.DuplicateProjectionNameException, name));
         }
 
         if (!_eventStoreOptions.HasActiveProjection(name))

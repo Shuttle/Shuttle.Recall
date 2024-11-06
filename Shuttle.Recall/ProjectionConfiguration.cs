@@ -7,6 +7,7 @@ namespace Shuttle.Recall;
 
 public class ProjectionConfiguration : IProjectionConfiguration
 {
+    private readonly List<ProjectionBuilder> _projectionBuilders = new();
     private readonly Dictionary<string, List<Type>> _projectionNameEventHandlerTypes = new();
 
     public void AddProjectionEventHandlerType(string projectionName, Type eventHandlerType)
@@ -30,5 +31,19 @@ public class ProjectionConfiguration : IProjectionConfiguration
     public IEnumerable<Type> GetEventHandlerTypes(string projectionName)
     {
         return _projectionNameEventHandlerTypes[Guard.AgainstNullOrEmptyString(projectionName)];
+    }
+
+    public ProjectionBuilder AddProjectionBuilder(ProjectionBuilder projectionBuilder)
+    {
+        Guard.AgainstNull(projectionBuilder);
+
+        if (_projectionBuilders.Any(projection => projection.Name.Equals(projectionBuilder.Name)))
+        {
+            throw new InvalidOperationException(string.Format(Resources.DuplicateProjectionNameException, projectionBuilder.Name));
+        }
+
+        _projectionBuilders.Add(projectionBuilder);
+
+        return projectionBuilder;
     }
 }

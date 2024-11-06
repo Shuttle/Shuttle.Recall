@@ -1,11 +1,13 @@
-﻿using Shuttle.Core.Contract;
+﻿using System;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
 public class EventProcessorStartupPipeline : Pipeline
 {
-    public EventProcessorStartupPipeline(IStartupEventProcessingObserver startupEventProcessingObserver)
+    public EventProcessorStartupPipeline(IServiceProvider serviceProvider, IStartupEventProcessingObserver startupEventProcessingObserver) 
+        : base(serviceProvider)
     {
         RegisterStage("Startup")
             .WithEvent<OnStartEventProcessing>()

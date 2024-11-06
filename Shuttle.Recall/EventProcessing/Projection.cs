@@ -55,7 +55,7 @@ public class Projection
 
         if (typesAddedCount == 0)
         {
-            throw new EventProcessingException(string.Format(Resources.InvalidAsyncEventHandlerTypeExpection, handler.GetType().FullName));
+            throw new EventProcessingException(string.Format(Resources.InvalidEventHandlerTypeExpection, handler.GetType().FullName));
         }
 
         return await Task.FromResult(this);

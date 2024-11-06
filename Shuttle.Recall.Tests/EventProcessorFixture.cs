@@ -34,19 +34,15 @@ public class EventProcessorFixture
         var pipelineFactory = new Mock<IPipelineFactory>();
 
         pipelineFactory.Setup(m => m.GetPipeline<EventProcessingPipeline>()).Returns(
-            new EventProcessingPipeline(
-                new Mock<IProjectionEventObserver>().Object,
-                new Mock<IProjectionEventEnvelopeObserver>().Object,
-                new Mock<IProcessEventObserver>().Object,
-                new Mock<IAcknowledgeEventObserver>().Object)
+            new EventProcessingPipeline(new Mock<IServiceProvider>().Object, new Mock<IProjectionEventObserver>().Object, new Mock<IProjectionEventEnvelopeObserver>().Object, new Mock<IProcessEventObserver>().Object, new Mock<IAcknowledgeEventObserver>().Object)
         );
 
         pipelineFactory.Setup(m => m.GetPipeline<EventProcessorStartupPipeline>()).Returns(
-            new EventProcessorStartupPipeline(new Mock<IStartupEventProcessingObserver>().Object)
+            new EventProcessorStartupPipeline(new Mock<IServiceProvider>().Object, new Mock<IStartupEventProcessingObserver>().Object)
         );
 
         pipelineFactory.Setup(m => m.GetPipeline<AddProjectionPipeline>()).Returns(
-            new AddProjectionPipeline(new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
+            new AddProjectionPipeline(new Mock<IServiceProvider>().Object, new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
         );
 
         var processor = new EventProcessor(eventStoreOptions, pipelineFactory.Object);
@@ -96,7 +92,7 @@ public class EventProcessorFixture
         var pipelineFactory = new Mock<IPipelineFactory>();
 
         pipelineFactory.Setup(m => m.GetPipeline<AddProjectionPipeline>()).Returns(
-            new AddProjectionPipeline(new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
+            new AddProjectionPipeline(new Mock<IServiceProvider>().Object, new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
         );
 
         var processor = new EventProcessor(Options.Create(new EventStoreOptions()), pipelineFactory.Object);
@@ -145,7 +141,7 @@ public class EventProcessorFixture
         var pipelineFactory = new Mock<IPipelineFactory>();
 
         pipelineFactory.Setup(m => m.GetPipeline<AddProjectionPipeline>()).Returns(
-            new AddProjectionPipeline(new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
+            new AddProjectionPipeline(new Mock<IServiceProvider>().Object, new AddProjectionObserver(eventStoreOptions, projectionRepository.Object))
         );
 
         var processor = new EventProcessor(Options.Create(new EventStoreOptions()), pipelineFactory.Object);

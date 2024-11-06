@@ -2,5 +2,5 @@
 
 public class ThisHappened
 {
-    public string ThisValue { get; set; }
+    public string ThisValue { get; set; } = string.Empty;
 }

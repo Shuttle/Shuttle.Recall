@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
@@ -6,7 +7,8 @@ namespace Shuttle.Recall;
 
 public class SaveEventStreamPipeline : Pipeline
 {
-    public SaveEventStreamPipeline(IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver)
+    public SaveEventStreamPipeline(IServiceProvider serviceProvider, IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver) 
+        : base(serviceProvider)
     {
         RegisterStage("SaveEventStream")
             .WithEvent<OnAssembleEventEnvelopes>()

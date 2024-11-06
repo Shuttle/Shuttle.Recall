@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall;
@@ -43,6 +42,11 @@ public class EventStoreBuilder
         ShouldSuppressPipelineTransactionScope = true;
 
         return this;
+    }
+
+    public ProjectionBuilder AddProjection(string name)
+    {
+        return _projectionConfiguration.AddProjectionBuilder(new ProjectionBuilder(name));
     }
 
     public EventStoreBuilder AddEventHandler<TEventHandler>(string projectionName) where TEventHandler : class

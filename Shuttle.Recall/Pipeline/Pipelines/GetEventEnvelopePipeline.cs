@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
@@ -6,7 +7,8 @@ namespace Shuttle.Recall;
 
 public class GetEventEnvelopePipeline : Pipeline
 {
-    public GetEventEnvelopePipeline(IDeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver, IDecompressEventObserver decompressEventObserver, IDecryptEventObserver decryptEventObserver, IDeserializeEventObserver deserializeEventObserver)
+    public GetEventEnvelopePipeline(IServiceProvider serviceProvider, IDeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver, IDecompressEventObserver decompressEventObserver, IDecryptEventObserver decryptEventObserver, IDeserializeEventObserver deserializeEventObserver) 
+        : base(serviceProvider)
     {
         RegisterStage("GetEventEnvelope")
             .WithEvent<OnDeserializeEventEnvelope>()

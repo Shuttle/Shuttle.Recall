@@ -7,7 +7,8 @@ namespace Shuttle.Recall;
 
 public class GetEventStreamPipeline : Pipeline
 {
-    public GetEventStreamPipeline(IGetStreamEventsObserver getStreamEventsObserver, IAssembleEventStreamObserver assembleEventStreamObserver)
+    public GetEventStreamPipeline(IServiceProvider serviceProvider, IGetStreamEventsObserver getStreamEventsObserver, IAssembleEventStreamObserver assembleEventStreamObserver) 
+        : base(serviceProvider)
     {
         RegisterStage("GetEventStream")
             .WithEvent<OnBeforeGetStreamEvents>()

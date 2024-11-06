@@ -140,7 +140,7 @@
     <value>Event stream with id '{0}' already has a key '{1}'.</value>
     <comment>0 = event stream id, 1 = key</comment>
   </data>
-  <data name="DuplicateProjectionName" xml:space="preserve">
+  <data name="DuplicateProjectionNameException" xml:space="preserve">
     <value>A projection with name '{0}' has already been added.</value>
     <comment>{0} = name of the projection</comment>
   </data>
@@ -170,10 +170,6 @@
   <data name="InformationProjectionIgnored" xml:space="preserve">
     <value>Projection '{0}' is either not active or does not belong to this endpoint and will not be processed.</value>
     <comment>{0} = projection name</comment>
-  </data>
-  <data name="InvalidAsyncEventHandlerTypeExpection" xml:space="preserve">
-    <value>Type '{0}' does not implement IAsyncEventHandler&lt;T&gt;.</value>
-    <comment>{0} = full name of invalid type</comment>
   </data>
   <data name="InvalidEventHandlerTypeExpection" xml:space="preserve">
     <value>Type '{0}' does not implement IEventHandler&lt;T&gt;.</value>
@@ -276,5 +272,11 @@
   <data name="EventStreamCorrelationIdAlreadySetException" xml:space="preserve">
     <value>Event stream with id '{0}' already has a correlation id '{1}'.</value>
     <comment>0 = event stream id, 1 = correlation id</comment>
+  </data>
+  <data name="AsyncDelegateRequiredException" xml:space="preserve">
+    <value>Mapped delegates have to be async.</value>
+  </data>
+  <data name="EventHandlerTypeException" xml:space="preserve">
+    <value>The delegate must contain a parameter of type `IEventHandlerContext&lt;TMessage&gt;`.</value>
   </data>
 </root>
