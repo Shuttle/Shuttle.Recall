@@ -88,11 +88,11 @@ public class OnAfterGetProjectionEvent
 {
 }
 
-public class OnProcessEvent
+public class OnHandleEvent
 {
 }
 
-public class OnAfterProcessEvent
+public class OnAfterHandleEvent
 {
 }
 

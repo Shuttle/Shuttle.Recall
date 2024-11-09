@@ -128,10 +128,6 @@
     <value>{0} '{1}' has no default constructor.</value>
     <comment>{0} = name of required instance, {1} = full type name</comment>
   </data>
-  <data name="DuplicateAsyncEventHandlerEventTypeException" xml:space="preserve">
-    <value>Async event handler '{0}' is already registered for event type '{1}'.</value>
-    <comment>{0} = handler type full name, {1} = event type full name</comment>
-  </data>
   <data name="DuplicateEventHandlerEventTypeException" xml:space="preserve">
     <value>Event handler '{0}' is already registered for event type '{1}'.</value>
     <comment>{0} = handler type full name, {1} = event type full name</comment>
@@ -216,7 +212,7 @@
     <comment>{0} = section name, {1} = configuration file, {2} = the section type</comment>
   </data>
   <data name="ProcessEventMethodMissingException" xml:space="preserve">
-    <value>Handler type '{0}' does not have the required ProcessEvent method that handles domain event type '{1}'.</value>
+    <value>Event handler type '{0}' does not have the required ProcessEvent method that handles domain event type '{1}'.</value>
     <comment>{0} = handler full type name, {1} = domain event full type name</comment>
   </data>
   <data name="ProjectionAddEventHandlerAsynchronousException" xml:space="preserve">
@@ -278,5 +274,32 @@
   </data>
   <data name="EventHandlerTypeException" xml:space="preserve">
     <value>The delegate must contain a parameter of type `IEventHandlerContext&lt;TMessage&gt;`.</value>
+  </data>
+  <data name="NotImplementedProjectionEventProvider" xml:space="preserve">
+    <value>No implementation of the `ProjectionEventProvider` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`.</value>
+  </data>
+  <data name="DuplicateProjectionEventTypeException" xml:space="preserve">
+    <value>Event type '{0}' has already been registered for projection name '{1}'.</value>
+    <comment>0 = event type name, 1 = projection name</comment>
+  </data>
+  <data name="DuplicateProjectionDelegateException" xml:space="preserve">
+    <value>A delegate that handles event type '{0}' has already been registered for projection name '{1}'.</value>
+    <comment>0 = event type name, 1 = projection name</comment>
+  </data>
+  <data name="DuplicateProjectionEventHandlerServiceException" xml:space="preserve">
+    <value>A service has already been registered for generic type '{0}' as a handler for projection '{1}' using key '{2}'.</value>
+    <comment>0 = generic event handler type, 1 = projection name, 2 = service descriptor key</comment>
+  </data>
+  <data name="ProjectionHandlerEventTypeAlreadyRegisteredException" xml:space="preserve">
+    <value>There is already an event handler registered that handles event type '{0}'.  Cannot register a delegate that handles the same type.</value>
+    <comment>0 = event type name</comment>
+  </data>
+  <data name="ProjectionDelegateEventTypeAlreadyRegisteredException" xml:space="preserve">
+    <value>There is already a delegate registered that handles event type '{0}'.  Cannot register an event handler that handles the same type.</value>
+    <comment>0 = event type name</comment>
+  </data>
+  <data name="ProjectionSequenceNumberException" xml:space="preserve">
+    <value>Projection '{0}' is currently on sequence number '{1}', which is after '{2}'.</value>
+    <comment>0 = projection name, 1 = current sequence number, 2 = new sequence number</comment>
   </data>
 </root>

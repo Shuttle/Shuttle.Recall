@@ -57,19 +57,9 @@ public static class PipelineStateExtensions
         return Guard.AgainstNull(state.Get<PrimitiveEvent>(StateKeys.PrimitiveEvent));
     }
 
-    public static Projection GetProjection(this IState state)
-    {
-        return Guard.AgainstNull(state.Get<Projection>(StateKeys.Projection));
-    }
-
     public static ProjectionEvent GetProjectionEvent(this IState state)
     {
         return Guard.AgainstNull(state.Get<ProjectionEvent>(StateKeys.ProjectionEvent));
-    }
-
-    public static string? GetProjectionName(this IState state)
-    {
-        return state.Get<string>(StateKeys.ProjectionName);
     }
 
     public static long GetSequenceNumber(this IState state)
@@ -137,19 +127,9 @@ public static class PipelineStateExtensions
         state.Replace(StateKeys.PrimitiveEvent, primitiveEvent);
     }
 
-    public static void SetProjection(this IState state, Projection projection)
-    {
-        state.Replace(StateKeys.Projection, projection);
-    }
-
     public static void SetProjectionEvent(this IState state, ProjectionEvent projectionEvent)
     {
         state.Replace(StateKeys.ProjectionEvent, projectionEvent);
-    }
-
-    public static void SetProjectionName(this IState state, string projectionName)
-    {
-        state.Replace(StateKeys.ProjectionName, projectionName);
     }
 
     public static void SetSequenceNumber(this IState state, long sequenceNumber)

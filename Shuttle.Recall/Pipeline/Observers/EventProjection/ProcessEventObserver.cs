@@ -4,22 +4,21 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IProcessEventObserver : IPipelineObserver<OnProcessEvent>
+public interface IHandleEventObserver : IPipelineObserver<OnHandleEvent>
 {
 }
 
-public class ProcessEventObserver : IProcessEventObserver
+public class HandleEventObserver : IHandleEventObserver
 {
-    public async Task ExecuteAsync(IPipelineContext<OnProcessEvent> pipelineContext)
+    private readonly IEventHandlerInvoker _eventMethodInvoker;
+
+    public HandleEventObserver(IEventHandlerInvoker eventMethodInvoker)
     {
-        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var projectionEvent = state.GetProjectionEvent();
+        _eventMethodInvoker = Guard.AgainstNull(eventMethodInvoker);
+    }
 
-        if (!projectionEvent.HasPrimitiveEvent)
-        {
-            return;
-        }
-
-        await state.GetProjection().ProcessAsync(state.GetEventEnvelope(), state.GetEvent().Event, projectionEvent.PrimitiveEvent!, pipelineContext.Pipeline.CancellationToken);
+    public async Task ExecuteAsync(IPipelineContext<OnHandleEvent> pipelineContext)
+    {
+        await _eventMethodInvoker.InvokeAsync(pipelineContext);
     }
 }

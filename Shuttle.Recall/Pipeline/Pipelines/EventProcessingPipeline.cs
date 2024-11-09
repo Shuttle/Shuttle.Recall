@@ -6,7 +6,7 @@ namespace Shuttle.Recall;
 
 public class EventProcessingPipeline : Pipeline
 {
-    public EventProcessingPipeline(IServiceProvider serviceProvider, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IProcessEventObserver processEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver) 
+    public EventProcessingPipeline(IServiceProvider serviceProvider, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver) 
         : base(serviceProvider)
     {
         RegisterStage("EventProcessing.Read")
@@ -16,14 +16,14 @@ public class EventProcessingPipeline : Pipeline
             .WithEvent<OnAfterGetProjectionEventEnvelope>();
 
         RegisterStage("EventProcessing.Handle")
-            .WithEvent<OnProcessEvent>()
-            .WithEvent<OnAfterProcessEvent>()
+            .WithEvent<OnHandleEvent>()
+            .WithEvent<OnAfterHandleEvent>()
             .WithEvent<OnAcknowledgeEvent>()
             .WithEvent<OnAfterAcknowledgeEvent>();
 
         RegisterObserver(Guard.AgainstNull(projectionEventObserver));
         RegisterObserver(Guard.AgainstNull(projectionEventEnvelopeObserver));
-        RegisterObserver(Guard.AgainstNull(processEventObserver));
+        RegisterObserver(Guard.AgainstNull(handleEventObserver));
         RegisterObserver(Guard.AgainstNull(acknowledgeEventObserver));
     }
 }

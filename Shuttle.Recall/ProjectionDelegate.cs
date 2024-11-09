@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Shuttle.Core.Pipelines;
 using Shuttle.Core.Reflection;
 
 namespace Shuttle.Recall;
 
-internal class ProjectionDelegate
+public class ProjectionDelegate
 {
     private readonly IEnumerable<Type> _parameterTypes;
     private readonly Type _eventHandlerContextType = typeof(IEventHandlerContext<>);

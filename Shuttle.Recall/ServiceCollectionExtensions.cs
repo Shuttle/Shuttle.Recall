@@ -22,12 +22,12 @@ public static class ServiceCollectionExtensions
         builder?.Invoke(eventStoreBuilder);
 
         services.TryAddSingleton<IEventMethodInvokerConfiguration, EventMethodInvokerConfiguration>();
-        services.TryAddSingleton<IEventMethodInvoker, DefaultEventMethodInvoker>();
+        services.TryAddSingleton<IEventMethodInvoker, EventMethodInvoker>();
         services.TryAddSingleton<ISerializer, JsonSerializer>();
         services.TryAddSingleton<IConcurrencyExceptionSpecification, DefaultConcurrencyExceptionSpecification>();
-        services.TryAddSingleton<IProjectionEventProvider, ProjectionEventProvider>();
         services.TryAddSingleton<IEncryptionService, EncryptionService>();
         services.TryAddSingleton<ICompressionService, CompressionService>();
+        services.TryAddSingleton<IEventHandlerInvoker, EventHandlerInvoker>();
 
         services.AddPipelineProcessing(pipelineProcessingBuilder =>
         {
@@ -55,18 +55,11 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IProjectionRepository, NotImplementedProjectionRepository>();
         services.TryAddSingleton<IPrimitiveEventQuery, NotImplementedPrimitiveEventQuery>();
         services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
+        services.TryAddSingleton<IProjectionEventProvider, NotImplementedProjectionEventProvider>();
         services.TryAddSingleton<IProcessorThreadPoolFactory, ProcessorThreadPoolFactory>();
 
         services.AddOptions<EventStoreOptions>().Configure(options =>
         {
-            options.SequenceNumberTailThreadWorkerInterval = eventStoreBuilder.Options.SequenceNumberTailThreadWorkerInterval.TotalMilliseconds > 100
-                ? eventStoreBuilder.Options.SequenceNumberTailThreadWorkerInterval
-                : TimeSpan.FromMilliseconds(100);
-
-            options.ProjectionEventFetchCount = eventStoreBuilder.Options.ProjectionEventFetchCount > 25
-                ? eventStoreBuilder.Options.ProjectionEventFetchCount
-                : 25;
-
             options.ProjectionThreadCount = eventStoreBuilder.Options.ProjectionThreadCount > 1
                 ? eventStoreBuilder.Options.ProjectionThreadCount
                 : 1;
@@ -76,15 +69,14 @@ public static class ServiceCollectionExtensions
             options.ProcessorThread = eventStoreBuilder.Options.ProcessorThread;
         });
 
-        var projectionConfigurationType = typeof(IProjectionConfiguration);
+        var projectionConfigurationType = typeof(IEventProcessorConfiguration);
 
         if (services.All(item => item.ServiceType != projectionConfigurationType))
         {
-            services.AddSingleton<IProjectionConfiguration>(eventStoreBuilder.Configuration);
+            services.AddSingleton(eventStoreBuilder.EventProcessorConfiguration);
         }
 
-        if (!eventStoreBuilder.ShouldSuppressEventProcessorHostedService &&
-            eventStoreBuilder.Configuration.GetProjectionNames().Any())
+        if (eventStoreBuilder is { ShouldSuppressEventProcessorHostedService: false, EventProcessorConfiguration.HasProjections: true })
         {
             services.AddHostedService<EventProcessorHostedService>();
         }

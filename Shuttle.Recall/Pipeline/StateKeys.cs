@@ -12,8 +12,6 @@ public class StateKeys
     public const string EventStreamBuilder = "EventStreamBuilder";
     public const string SaveEventStreamBuilder = "SaveEventStreamBuilder";
     public const string EventEnvelopeStream = "EventEnvelopeStream";
-    public const string Projection = "Projection";
-    public const string ProjectionName = "ProjectionName";
     public const string EventStream = "EventStream";
     public const string Id = "Id";
     public const string EventBytes = "EventBytes";

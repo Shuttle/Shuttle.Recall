@@ -20,12 +20,7 @@ public class ProjectionEventEnvelopeObserver : IProjectionEventEnvelopeObserver
     public async Task ExecuteAsync(IPipelineContext<OnGetProjectionEventEnvelope> pipelineContext)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var projectionEvent = state.GetProjectionEvent();
-
-        if (!projectionEvent.HasPrimitiveEvent)
-        {
-            return;
-        }
+        var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent());
 
         var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
 

@@ -4,5 +4,5 @@ namespace Shuttle.Recall;
 
 public interface IProjectionEventProvider
 {
-    Task<ProjectionEvent> GetAsync(Projection projection);
+    Task<ProjectionEvent?> GetAsync();
 }

@@ -6,18 +6,13 @@ namespace Shuttle.Recall;
 public class EventStoreBuilder
 {
     private EventStoreOptions _eventStoreOptions = new();
-    private ProjectionConfiguration _projectionConfiguration = new();
 
     public EventStoreBuilder(IServiceCollection services)
     {
         Services = Guard.AgainstNull(services);
     }
 
-    public ProjectionConfiguration Configuration
-    {
-        get => _projectionConfiguration;
-        set => _projectionConfiguration = Guard.AgainstNull(value);
-    }
+    public IEventProcessorConfiguration EventProcessorConfiguration { get; private set; } = new EventProcessorConfiguration();
 
     public EventStoreOptions Options
     {
@@ -46,32 +41,6 @@ public class EventStoreBuilder
 
     public ProjectionBuilder AddProjection(string name)
     {
-        return _projectionConfiguration.AddProjectionBuilder(new ProjectionBuilder(name));
-    }
-
-    public EventStoreBuilder AddEventHandler<TEventHandler>(string projectionName) where TEventHandler : class
-    {
-        Guard.AgainstNullOrEmptyString(projectionName);
-
-        var type = typeof(TEventHandler);
-
-        Services.AddTransient(type, type);
-
-        Configuration.AddProjectionEventHandlerType(projectionName, type);
-
-        return this;
-    }
-
-    public EventStoreBuilder AddEventHandler<TEventHandler>(Projection projection) where TEventHandler : class
-    {
-        Guard.AgainstNull(projection);
-
-        var type = typeof(TEventHandler);
-
-        Services.AddTransient(type, type);
-
-        Configuration.AddProjectionEventHandlerType(projection.Name, type);
-
-        return this;
+        return new(Services, EventProcessorConfiguration, name);
     }
 }

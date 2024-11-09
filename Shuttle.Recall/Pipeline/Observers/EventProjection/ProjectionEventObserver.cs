@@ -20,14 +20,16 @@ public class ProjectionEventObserver : IProjectionEventObserver
     public async Task ExecuteAsync(IPipelineContext<OnGetProjectionEvent> pipelineContext)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var projection = state.GetProjection();
-        var projectionEvent = await _provider.GetAsync(projection);
+        var projectionEvent = await _provider.GetAsync().ConfigureAwait(false);
 
-        if (projectionEvent.HasPrimitiveEvent)
+        if (projectionEvent == null)
         {
-            state.SetWorking();
+            pipelineContext.Pipeline.Abort();
+
+            return;
         }
 
+        state.SetWorking();
         state.SetProjectionEvent(projectionEvent);
     }
 }

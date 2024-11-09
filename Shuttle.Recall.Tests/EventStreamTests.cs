@@ -36,7 +36,7 @@ public class EventStreamTests
         var aggregate = new AggregateOne();
 
         var stream = new EventStream(Guid.NewGuid(),
-            new DefaultEventMethodInvoker(new EventMethodInvokerConfiguration()));
+            new EventMethodInvoker(new EventMethodInvokerConfiguration()));
 
         stream.Add(new ThisHappened
         {
@@ -45,13 +45,13 @@ public class EventStreamTests
 
         stream.Apply(aggregate);
 
-        Assert.That(aggregate.ThisValue, Is.Null);
-        Assert.That(aggregate.ThatValue, Is.Null);
+        Assert.That(aggregate.ThisValue, Is.EqualTo(string.Empty));
+        Assert.That(aggregate.ThatValue, Is.EqualTo(string.Empty));
 
         stream.Commit();
         stream.Apply(aggregate);
 
         Assert.That(aggregate.ThisValue, Is.EqualTo("this-happened-value"));
-        Assert.That(aggregate.ThatValue, Is.Null);
+        Assert.That(aggregate.ThatValue, Is.EqualTo(string.Empty));
     }
 }

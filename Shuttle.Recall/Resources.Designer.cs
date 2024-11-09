@@ -97,15 +97,6 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async event handler &apos;{0}&apos; is already registered for event type &apos;{1}&apos;..
-        /// </summary>
-        public static string DuplicateAsyncEventHandlerEventTypeException {
-            get {
-                return ResourceManager.GetString("DuplicateAsyncEventHandlerEventTypeException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Event handler &apos;{0}&apos; is already registered for event type &apos;{1}&apos;..
         /// </summary>
         public static string DuplicateEventHandlerEventTypeException {
@@ -120,6 +111,33 @@ namespace Shuttle.Recall {
         public static string DuplicateKeyException {
             get {
                 return ResourceManager.GetString("DuplicateKeyException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A delegate that handles event type &apos;{0}&apos; has already been registered for projection name &apos;{1}&apos;..
+        /// </summary>
+        public static string DuplicateProjectionDelegateException {
+            get {
+                return ResourceManager.GetString("DuplicateProjectionDelegateException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A service has already been registered for generic type &apos;{0}&apos; as a handler for projection &apos;{1}&apos; using key &apos;{2}&apos;..
+        /// </summary>
+        public static string DuplicateProjectionEventHandlerServiceException {
+            get {
+                return ResourceManager.GetString("DuplicateProjectionEventHandlerServiceException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event type &apos;{0}&apos; has already been registered for projection name &apos;{1}&apos;..
+        /// </summary>
+        public static string DuplicateProjectionEventTypeException {
+            get {
+                return ResourceManager.GetString("DuplicateProjectionEventTypeException", resourceCulture);
             }
         }
         
@@ -295,6 +313,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No implementation of the `ProjectionEventProvider` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`..
+        /// </summary>
+        public static string NotImplementedProjectionEventProvider {
+            get {
+                return ResourceManager.GetString("NotImplementedProjectionEventProvider", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No implementation of the `IProjectionRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`..
         /// </summary>
         public static string NotImplementedProjectionRepository {
@@ -331,7 +358,7 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Handler type &apos;{0}&apos; does not have the required ProcessEvent method that handles domain event type &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Event handler type &apos;{0}&apos; does not have the required ProcessEvent method that handles domain event type &apos;{1}&apos;..
         /// </summary>
         public static string ProcessEventMethodMissingException {
             get {
@@ -367,6 +394,24 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There is already a delegate registered that handles event type &apos;{0}&apos;.  Cannot register an event handler that handles the same type..
+        /// </summary>
+        public static string ProjectionDelegateEventTypeAlreadyRegisteredException {
+            get {
+                return ResourceManager.GetString("ProjectionDelegateEventTypeAlreadyRegisteredException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is already an event handler registered that handles event type &apos;{0}&apos;.  Cannot register a delegate that handles the same type..
+        /// </summary>
+        public static string ProjectionHandlerEventTypeAlreadyRegisteredException {
+            get {
+                return ResourceManager.GetString("ProjectionHandlerEventTypeAlreadyRegisteredException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Projection &apos;{0}&apos; is not contained in projectionAggregation with id &apos;{1}&apos;..
         /// </summary>
         public static string ProjectionNotInAggregationException {
@@ -381,6 +426,15 @@ namespace Shuttle.Recall {
         public static string ProjectionNotRegisteredException {
             get {
                 return ResourceManager.GetString("ProjectionNotRegisteredException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Projection &apos;{0}&apos; is currently on sequence number &apos;{1}&apos;, which is after &apos;{2}&apos;..
+        /// </summary>
+        public static string ProjectionSequenceNumberException {
+            get {
+                return ResourceManager.GetString("ProjectionSequenceNumberException", resourceCulture);
             }
         }
         

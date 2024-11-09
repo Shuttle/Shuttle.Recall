@@ -8,40 +8,31 @@ namespace Shuttle.Recall;
 
 public class ProjectionProcessor : IProcessor
 {
-    private readonly IEventProcessor _eventProcessor;
     private readonly IPipelineFactory _pipelineFactory;
     private readonly IThreadActivity _threadActivity;
 
-    public ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory, IEventProcessor eventProcessor)
+    public ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory)
     {
         _threadActivity = new ThreadActivity(Guard.AgainstNull(eventStoreOptions).DurationToSleepWhenIdle);
         _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-        _eventProcessor = Guard.AgainstNull(eventProcessor);
     }
 
-    public async Task ExecuteAsync(CancellationToken cancellationToken = new CancellationToken())
+    public async Task ExecuteAsync(CancellationToken cancellationToken = new())
     {
         var pipeline = _pipelineFactory.GetPipeline<EventProcessingPipeline>();
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            var projection = _eventProcessor.GetProjection();
             var waiting = true;
 
-            if (projection != null)
+            pipeline.State.Clear();
+
+            await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+
+            if (pipeline.State.GetWorking())
             {
-                pipeline.State.Clear();
-                pipeline.State.SetProjection(projection);
-
-                await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-
-                if (pipeline.State.GetWorking())
-                {
-                    _threadActivity.Working();
-                    waiting = false;
-                }
-
-                _eventProcessor.ReleaseProjection(projection);
+                _threadActivity.Working();
+                waiting = false;
             }
 
             if (waiting)

@@ -19,6 +19,6 @@ public class ProjectionProcessorFactory : IProcessorFactory
 
     public IProcessor Create()
     {
-        return new ProjectionProcessor(_eventStoreOptions, _pipelineFactory, _eventProcessor);
+        return new ProjectionProcessor(_eventStoreOptions, _pipelineFactory);
     }
 }

@@ -8,10 +8,6 @@ public class EventStoreOptions
 {
     public const string SectionName = "Shuttle:EventStore";
 
-    public List<string> ActiveProjections { get; set; } = new();
-
-    public string CompressionAlgorithm { get; set; } = string.Empty;
-
     public List<TimeSpan> DurationToSleepWhenIdle { get; set; } = new()
     {
         TimeSpan.FromMilliseconds(250),
@@ -23,12 +19,9 @@ public class EventStoreOptions
         TimeSpan.FromSeconds(1)
     };
 
+    public string CompressionAlgorithm { get; set; } = string.Empty;
     public string EncryptionAlgorithm { get; set; } = string.Empty;
-
     public ProcessorThreadOptions ProcessorThread { get; set; } = new();
-
-    public int ProjectionEventFetchCount { get; set; } = 100;
-
+    public List<string> ActiveProjections { get; set; } = new();
     public int ProjectionThreadCount { get; set; } = 5;
-    public TimeSpan SequenceNumberTailThreadWorkerInterval { get; set; } = TimeSpan.FromSeconds(5);
 }

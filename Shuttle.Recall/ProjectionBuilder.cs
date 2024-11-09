@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Reflection;
 
@@ -10,27 +11,39 @@ namespace Shuttle.Recall;
 public class ProjectionBuilder
 {
     private static readonly Type EventHandlerType = typeof(IEventHandler<>);
-    private static readonly Type EventHandlerContextType = typeof(IEventHandlerContext<>);
-    private readonly Dictionary<Type, List<ProjectionDelegate>> _delegates = new();
-    private readonly Dictionary<Type, List<Type>> _eventHandlers= new();
+    private readonly IEventProcessorConfiguration _eventProcessorConfiguration;
 
     public string Name { get; }
 
-    public ProjectionBuilder(string name)
+    public ProjectionBuilder(IServiceCollection services, IEventProcessorConfiguration eventProcessorConfiguration, string name)
     {
+        Services = Guard.AgainstNull(services);
+        _eventProcessorConfiguration = Guard.AgainstNull(eventProcessorConfiguration);
         Name = Guard.AgainstNullOrEmptyString(name);
     }
 
-    public ProjectionBuilder AddEventHandler(Type type)
+    public IServiceCollection Services { get; }
+
+    public ProjectionBuilder AddEventHandler(Type type, Func<Type, ServiceLifetime>? getServiceLifetime = null)
     {
+        getServiceLifetime ??= _ => ServiceLifetime.Singleton;
+
         var typesAddedCount = 0;
 
         foreach (var interfaceType in type.InterfacesCastableTo(EventHandlerType))
         {
             var eventType = interfaceType.GetGenericArguments()[0];
 
-            _eventHandlers.TryAdd(eventType, new());
-            _eventHandlers[eventType].Add(type);
+            var serviceKey = $"[Shuttle.Recall.Projection/{Name}]:{Guard.AgainstNullOrEmptyString(eventType.FullName)}";
+
+            if (Services.Contains(ServiceDescriptor.KeyedTransient(interfaceType, serviceKey, type)))
+            {
+                throw new InvalidOperationException(string.Format(Resources.DuplicateProjectionEventHandlerServiceException, interfaceType.FullName, Name, serviceKey));
+            }
+
+            Services.Add(new(interfaceType, serviceKey, type, getServiceLifetime(interfaceType)));
+
+            _eventProcessorConfiguration.GetProjection(Name).AddHandlerEventType(eventType);
 
             typesAddedCount++;
         }
@@ -43,33 +56,9 @@ public class ProjectionBuilder
         return this;
     }
 
-    public ProjectionBuilder MapEventHandler(Delegate handler)
+    public ProjectionBuilder AddEventHandler(Delegate handler)
     {
-        if (!typeof(Task).IsAssignableFrom(Guard.AgainstNull(handler).Method.ReturnType))
-        {
-            throw new ApplicationException(Resources.AsyncDelegateRequiredException);
-        }
-
-        var parameters = handler.Method.GetParameters();
-        Type? messageType = null;
-
-        foreach (var parameter in parameters)
-        {
-            var parameterType = parameter.ParameterType;
-
-            if (parameterType.IsCastableTo(EventHandlerContextType))
-            {
-                messageType = parameterType.GetGenericArguments()[0];
-            }
-        }
-
-        if (messageType == null)
-        {
-            throw new ApplicationException(Resources.EventHandlerTypeException);
-        }
-
-        _delegates.TryAdd(messageType, new());
-        _delegates[messageType].Add(new(handler, handler.Method.GetParameters().Select(item => item.ParameterType)));
+        _eventProcessorConfiguration.GetProjection(Name).AddEventHandler(handler);
 
         return this;
     }
