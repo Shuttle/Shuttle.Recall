@@ -36,7 +36,7 @@ public class EventHandlerInvoker : IEventHandlerInvoker
         }
 
         var eventEnvelope = Guard.AgainstNull(state.GetEventEnvelope());
-        var domainEvent = Guard.AgainstNull(state.GetEvent().Event);
+        var domainEvent = Guard.AgainstNull(state.GetDomainEvent().Event);
         var eventType = Guard.AgainstNull(Type.GetType(eventEnvelope.AssemblyQualifiedName, true));
         var projectionConfiguration = _eventProcessorConfiguration.GetProjection(projectionEvent.Projection.Name);
 

@@ -29,7 +29,7 @@ public class ProjectionEventEnvelopeObserver : IProjectionEventEnvelopeObserver
             await pipeline.ExecuteAsync(projectionEvent.PrimitiveEvent);
 
             state.SetEventEnvelope(pipeline.State.GetEventEnvelope());
-            state.SetEvent(pipeline.State.GetEvent());
+            state.SetDomainEvent(pipeline.State.GetDomainEvent());
         }
         finally
         {

@@ -12,11 +12,6 @@ public static class PipelineStateExtensions
         return Guard.AgainstNull(state.Get<DomainEvent>(StateKeys.DomainEvent));
     }
 
-    public static DomainEvent GetEvent(this IState state)
-    {
-        return Guard.AgainstNull(state.Get<DomainEvent>(StateKeys.Event));
-    }
-
     public static byte[] GetEventBytes(this IState state)
     {
         return Guard.AgainstNull(state.Get<byte[]>(StateKeys.EventBytes));
@@ -80,11 +75,6 @@ public static class PipelineStateExtensions
     public static void SetDomainEvent(this IState state, DomainEvent domainEvent)
     {
         state.Replace(StateKeys.DomainEvent, domainEvent);
-    }
-
-    public static void SetEvent(this IState state, DomainEvent value)
-    {
-        state.Replace(StateKeys.Event, value);
     }
 
     public static void SetEventBytes(this IState state, byte[] bytes)

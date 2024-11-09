@@ -127,6 +127,8 @@ public class ProjectionConfiguration
         {
             throw new InvalidOperationException(string.Format(Resources.DuplicateProjectionEventTypeException, eventType.FullName, Name));
         }
+
+        _eventTypes.Add(eventType);
     }
 
     public bool TryGetEventHandler(Type eventType, [MaybeNullWhen(false)] out object handler)

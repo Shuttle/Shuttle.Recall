@@ -27,7 +27,7 @@ public class DeserializeEventObserver : IDeserializeEventObserver
 
         using (var stream = new MemoryStream(eventEnvelope.Event))
         {
-            state.SetEvent(new(await _serializer.DeserializeAsync(Guard.AgainstNull(Type.GetType(Guard.AgainstNullOrEmptyString(eventEnvelope.AssemblyQualifiedName), true, true)), stream), eventEnvelope.Version));
+            state.SetDomainEvent(new(await _serializer.DeserializeAsync(Guard.AgainstNull(Type.GetType(Guard.AgainstNullOrEmptyString(eventEnvelope.AssemblyQualifiedName), true, true)), stream), eventEnvelope.Version));
         }
     }
 }

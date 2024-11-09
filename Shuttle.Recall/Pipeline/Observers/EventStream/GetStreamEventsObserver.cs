@@ -43,7 +43,7 @@ public class GetStreamEventsObserver : IGetStreamEventsObserver
 
                 await pipeline.ExecuteAsync(primitiveEvent).ConfigureAwait(false);
 
-                events.Add(pipeline.State.GetEvent());
+                events.Add(pipeline.State.GetDomainEvent());
 
                 version = primitiveEvent.Version;
             }
