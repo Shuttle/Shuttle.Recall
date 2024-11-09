@@ -24,6 +24,28 @@ public class ProjectionBuilder
 
     public IServiceCollection Services { get; }
 
+    public ProjectionBuilder AddEventHandler(object handler)
+    {
+        var typesAddedCount = 0;
+        var type = Guard.AgainstNull(handler).GetType();
+
+        foreach (var interfaceType in type.InterfacesCastableTo(EventHandlerType))
+        {
+            var eventType = interfaceType.GetGenericArguments()[0];
+
+            _eventProcessorConfiguration.GetProjection(Name).AddEventHandler(eventType, handler);
+
+            typesAddedCount++;
+        }
+
+        if (typesAddedCount == 0)
+        {
+            throw new EventProcessingException(string.Format(Resources.InvalidEventHandlerTypeExpection, type.FullName ?? type.Name));
+        }
+
+        return this;
+    }
+
     public ProjectionBuilder AddEventHandler(Type type, Func<Type, ServiceLifetime>? getServiceLifetime = null)
     {
         getServiceLifetime ??= _ => ServiceLifetime.Singleton;

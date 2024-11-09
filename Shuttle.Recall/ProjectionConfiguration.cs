@@ -12,8 +12,9 @@ public class ProjectionConfiguration
 {
     private static readonly Type EventHandlerContextType = typeof(IEventHandlerContext<>);
     private readonly Dictionary<Type, ProjectionDelegate> _delegates = new();
+    private readonly Dictionary<Type, object> _handlers = new();
     private readonly List<Type> _handlerEventTypes = new();
-    private readonly List<Type> _eventTypes = new List<Type>();
+    private readonly List<Type> _eventTypes = new();
 
     public IEnumerable<Type> EventTypes => _eventTypes;
 
@@ -54,6 +55,11 @@ public class ProjectionConfiguration
             throw new InvalidOperationException(string.Format(Resources.ProjectionHandlerEventTypeAlreadyRegisteredException, eventType.FullName, Name));
         }
 
+        if (_handlers.ContainsKey(eventType))
+        {
+            throw new InvalidOperationException(string.Format(Resources.ProjectionHandlerAlreadyRegisteredException, eventType.FullName, Name));
+        }
+
         if (!_delegates.TryAdd(eventType, new(handler, handler.Method.GetParameters().Select(item => item.ParameterType))))
         {
             throw new InvalidOperationException(string.Format(Resources.DuplicateProjectionDelegateException, eventType.FullName, Name));
@@ -67,6 +73,11 @@ public class ProjectionConfiguration
         if (_delegates.ContainsKey(Guard.AgainstNull(eventType)))
         {
             throw new InvalidOperationException(string.Format(Resources.ProjectionDelegateEventTypeAlreadyRegisteredException, eventType.FullName, Name));
+        }
+
+        if (_handlers.ContainsKey(eventType))
+        {
+            throw new InvalidOperationException(string.Format(Resources.ProjectionHandlerAlreadyRegisteredException, eventType.FullName, Name));
         }
 
         if (_handlerEventTypes.Contains(eventType))
@@ -93,6 +104,41 @@ public class ProjectionConfiguration
         }
 
         handler = _delegates[eventType];
+
+        return true;
+    }
+
+    public void AddEventHandler(Type eventType, object handler)
+    {
+        Guard.AgainstNull(eventType);
+        Guard.AgainstNull(handler);
+
+        if (_delegates.ContainsKey(eventType))
+        {
+            throw new InvalidOperationException(string.Format(Resources.ProjectionDelegateEventTypeAlreadyRegisteredException, eventType.FullName, Name));
+        }
+
+        if (_handlerEventTypes.Contains(eventType))
+        {
+            throw new InvalidOperationException(string.Format(Resources.ProjectionHandlerEventTypeAlreadyRegisteredException, eventType.FullName, Name));
+        }
+
+        if (!_handlers.TryAdd(eventType, handler))
+        {
+            throw new InvalidOperationException(string.Format(Resources.DuplicateProjectionEventTypeException, eventType.FullName, Name));
+        }
+    }
+
+    public bool TryGetEventHandler(Type eventType, [MaybeNullWhen(false)] out object handler)
+    {
+        if (!_handlers.ContainsKey(Guard.AgainstNull(eventType)))
+        {
+            handler = null;
+
+            return false;
+        }
+
+        handler = _handlers[eventType];
 
         return true;
     }

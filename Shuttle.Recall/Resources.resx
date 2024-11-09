@@ -291,15 +291,18 @@
     <comment>0 = generic event handler type, 1 = projection name, 2 = service descriptor key</comment>
   </data>
   <data name="ProjectionHandlerEventTypeAlreadyRegisteredException" xml:space="preserve">
-    <value>There is already an event handler registered that handles event type '{0}'.  Cannot register a delegate that handles the same type.</value>
+    <value>There is already an event handler type registered that handles event type '{0}'.  Cannot register another implementation that handles the same type.</value>
     <comment>0 = event type name</comment>
   </data>
   <data name="ProjectionDelegateEventTypeAlreadyRegisteredException" xml:space="preserve">
-    <value>There is already a delegate registered that handles event type '{0}'.  Cannot register an event handler that handles the same type.</value>
+    <value>There is already a delegate registered that handles event type '{0}'.  Cannot register another implementation that handles the same type.</value>
     <comment>0 = event type name</comment>
   </data>
   <data name="ProjectionSequenceNumberException" xml:space="preserve">
     <value>Projection '{0}' is currently on sequence number '{1}', which is after '{2}'.</value>
     <comment>0 = projection name, 1 = current sequence number, 2 = new sequence number</comment>
+  </data>
+  <data name="ProjectionHandlerAlreadyRegisteredException" xml:space="preserve">
+    <value>There is already an event handler registered that handles event type '{0}'.  Cannot register another implementation that handles the same type.</value>
   </data>
 </root>
