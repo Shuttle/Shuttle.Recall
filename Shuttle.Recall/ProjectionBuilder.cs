@@ -35,6 +35,17 @@ public class ProjectionBuilder
 
             _eventProcessorConfiguration.GetProjection(Name).AddEventHandler(eventType, handler);
 
+            var serviceKey = $"[Shuttle.Recall.Projection/{Name}]:{Guard.AgainstNullOrEmptyString(eventType.FullName)}";
+
+            if (Services.Contains(ServiceDescriptor.KeyedTransient(interfaceType, serviceKey, type)))
+            {
+                throw new InvalidOperationException(string.Format(Resources.DuplicateProjectionEventHandlerServiceException, interfaceType.FullName, Name, serviceKey));
+            }
+
+            Services.AddKeyedSingleton(interfaceType, serviceKey, handler);
+
+            _eventProcessorConfiguration.GetProjection(Name).AddHandlerEventType(eventType);
+
             typesAddedCount++;
         }
 
@@ -83,15 +94,5 @@ public class ProjectionBuilder
         _eventProcessorConfiguration.GetProjection(Name).AddEventHandler(handler);
 
         return this;
-    }
-}
-
-public static class ProjectionBuilderExtensions
-{
-    public static ProjectionBuilder AddEventHandler<TEventHandler>(this ProjectionBuilder projectionBuilder) where TEventHandler : class
-    {
-        Guard.AgainstNull(projectionBuilder).AddEventHandler(typeof(TEventHandler));
-
-        return projectionBuilder;
     }
 }

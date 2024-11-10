@@ -19,4 +19,5 @@ public class EventProcessorConfiguration : IEventProcessorConfiguration
     }
 
     public bool HasProjections => _projectionConfigurations.Any(projectionConfiguration => projectionConfiguration.Value.EventTypes.Any());
+    public IEnumerable<ProjectionConfiguration> Projections => _projectionConfigurations.Values;
 }

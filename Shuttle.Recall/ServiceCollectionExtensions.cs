@@ -68,9 +68,9 @@ public static class ServiceCollectionExtensions
             options.ProcessorThread = eventStoreBuilder.Options.ProcessorThread;
         });
 
-        var projectionConfigurationType = typeof(IEventProcessorConfiguration);
+        var eventProcessorConfiguration = typeof(IEventProcessorConfiguration);
 
-        if (services.All(item => item.ServiceType != projectionConfigurationType))
+        if (services.All(item => item.ServiceType != eventProcessorConfiguration))
         {
             services.AddSingleton(eventStoreBuilder.EventProcessorConfiguration);
         }

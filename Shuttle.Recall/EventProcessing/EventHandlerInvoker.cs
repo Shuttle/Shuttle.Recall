@@ -81,10 +81,7 @@ public class EventHandlerInvoker : IEventHandlerInvoker
                 return true;
             }
 
-            if (!projectionConfiguration.TryGetEventHandler(eventType, out var handler))
-            {
-                handler = _serviceProvider.GetKeyedServices(EventHandlerType.MakeGenericType(eventType), $"[Shuttle.Recall.Projection/{projectionEvent.Projection.Name}]:{Guard.AgainstNullOrEmptyString(eventType.FullName)}").FirstOrDefault();
-            }
+            var handler = _serviceProvider.GetKeyedServices(EventHandlerType.MakeGenericType(eventType), $"[Shuttle.Recall.Projection/{projectionEvent.Projection.Name}]:{Guard.AgainstNullOrEmptyString(eventType.FullName)}").FirstOrDefault();
 
             if (handler == null)
             {

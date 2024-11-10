@@ -133,15 +133,6 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Event type &apos;{0}&apos; has already been registered for projection name &apos;{1}&apos;..
-        /// </summary>
-        public static string DuplicateProjectionEventTypeException {
-            get {
-                return ResourceManager.GetString("DuplicateProjectionEventTypeException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A projection with name &apos;{0}&apos; has already been added..
         /// </summary>
         public static string DuplicateProjectionNameException {
@@ -399,15 +390,6 @@ namespace Shuttle.Recall {
         public static string ProjectionDelegateEventTypeAlreadyRegisteredException {
             get {
                 return ResourceManager.GetString("ProjectionDelegateEventTypeAlreadyRegisteredException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There is already an event handler registered that handles event type &apos;{0}&apos;.  Cannot register another implementation that handles the same type..
-        /// </summary>
-        public static string ProjectionHandlerAlreadyRegisteredException {
-            get {
-                return ResourceManager.GetString("ProjectionHandlerAlreadyRegisteredException", resourceCulture);
             }
         }
         

@@ -31,9 +31,19 @@ public class EventHandlerInvokerFixture
     [Test]
     public async Task Should_be_able_to_invoke_handler_instance_async()
     {
-        var serviceProvider = new Mock<IServiceProvider>().Object;
-        var configuration = new EventProcessorConfiguration();
-        var invoker = new EventHandlerInvoker(serviceProvider, configuration);
+        var handler = new EventHandlerA();
+
+        var services = new ServiceCollection();
+
+        services.AddEventStore(builder =>
+        {
+            builder.AddProjection("projection-1")
+                .AddEventHandler(handler);
+        });
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var invoker = serviceProvider.GetRequiredService<IEventHandlerInvoker>();
 
         var pipeline = new Pipeline(serviceProvider);
 
@@ -49,11 +59,8 @@ public class EventHandlerInvokerFixture
             EventType = typeof(EventA).FullName!
         });
 
-        var handler = new EventHandlerA();
 
         Assert.That(handler.Invoked, Is.False);
-
-        configuration.GetProjection("projection-1").AddEventHandler(typeof(EventA), handler);
 
         var result = await invoker.InvokeAsync(new PipelineContext<OnHandleEvent>(pipeline));
 

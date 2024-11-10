@@ -278,10 +278,6 @@
   <data name="NotImplementedProjectionEventProvider" xml:space="preserve">
     <value>No implementation of the `ProjectionEventProvider` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`.</value>
   </data>
-  <data name="DuplicateProjectionEventTypeException" xml:space="preserve">
-    <value>Event type '{0}' has already been registered for projection name '{1}'.</value>
-    <comment>0 = event type name, 1 = projection name</comment>
-  </data>
   <data name="DuplicateProjectionDelegateException" xml:space="preserve">
     <value>A delegate that handles event type '{0}' has already been registered for projection name '{1}'.</value>
     <comment>0 = event type name, 1 = projection name</comment>
@@ -301,8 +297,5 @@
   <data name="ProjectionSequenceNumberException" xml:space="preserve">
     <value>Projection '{0}' is currently on sequence number '{1}', which is after '{2}'.</value>
     <comment>0 = projection name, 1 = current sequence number, 2 = new sequence number</comment>
-  </data>
-  <data name="ProjectionHandlerAlreadyRegisteredException" xml:space="preserve">
-    <value>There is already an event handler registered that handles event type '{0}'.  Cannot register another implementation that handles the same type.</value>
   </data>
 </root>
