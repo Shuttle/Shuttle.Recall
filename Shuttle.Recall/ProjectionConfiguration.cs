@@ -96,22 +96,4 @@ public class ProjectionConfiguration
 
         return true;
     }
-
-    public void AddEventHandler(Type eventType, object handler)
-    {
-        Guard.AgainstNull(eventType);
-        Guard.AgainstNull(handler);
-
-        if (_delegates.ContainsKey(eventType))
-        {
-            throw new InvalidOperationException(string.Format(Resources.ProjectionDelegateEventTypeAlreadyRegisteredException, eventType.FullName, Name));
-        }
-
-        if (_handlerEventTypes.Contains(eventType))
-        {
-            throw new InvalidOperationException(string.Format(Resources.ProjectionHandlerEventTypeAlreadyRegisteredException, eventType.FullName, Name));
-        }
-
-        _eventTypes.Add(eventType);
-    }
 }

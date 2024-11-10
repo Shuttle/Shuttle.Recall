@@ -33,8 +33,6 @@ public class ProjectionBuilder
         {
             var eventType = interfaceType.GetGenericArguments()[0];
 
-            _eventProcessorConfiguration.GetProjection(Name).AddEventHandler(eventType, handler);
-
             var serviceKey = $"[Shuttle.Recall.Projection/{Name}]:{Guard.AgainstNullOrEmptyString(eventType.FullName)}";
 
             if (Services.Contains(ServiceDescriptor.KeyedTransient(interfaceType, serviceKey, type)))
