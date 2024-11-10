@@ -53,7 +53,6 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IEventStore, EventStore>();
         services.TryAddSingleton<IEventProcessor, EventProcessor>();
         services.TryAddSingleton<IProjectionRepository, NotImplementedProjectionRepository>();
-        services.TryAddSingleton<IPrimitiveEventQuery, NotImplementedPrimitiveEventQuery>();
         services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
         services.TryAddSingleton<IProjectionEventProvider, NotImplementedProjectionEventProvider>();
         services.TryAddSingleton<IProcessorThreadPoolFactory, ProcessorThreadPoolFactory>();

@@ -10,7 +10,7 @@ public class AssembleEventEnvelopePipeline : Pipeline
     public AssembleEventEnvelopePipeline(IServiceProvider serviceProvider, IAssembleEventEnvelopeObserver assembleEventEnvelopeObserver, ICompressEventObserver compressEventObserver, IEncryptEventObserver encryptEventObserver, ISerializeEventObserver serializeEventObserver) 
         : base(serviceProvider)
     {
-        RegisterStage("Get")
+        AddStage("Get")
             .WithEvent<OnSerializeEvent>()
             .WithEvent<OnAfterSerializeEvent>()
             .WithEvent<OnAssembleEventEnvelope>()
@@ -20,10 +20,10 @@ public class AssembleEventEnvelopePipeline : Pipeline
             .WithEvent<OnCompressEvent>()
             .WithEvent<OnAfterCompressEvent>();
 
-        RegisterObserver(Guard.AgainstNull(serializeEventObserver));
-        RegisterObserver(Guard.AgainstNull(encryptEventObserver));
-        RegisterObserver(Guard.AgainstNull(compressEventObserver));
-        RegisterObserver(Guard.AgainstNull(assembleEventEnvelopeObserver));
+        AddObserver(Guard.AgainstNull(serializeEventObserver));
+        AddObserver(Guard.AgainstNull(encryptEventObserver));
+        AddObserver(Guard.AgainstNull(compressEventObserver));
+        AddObserver(Guard.AgainstNull(assembleEventEnvelopeObserver));
     }
 
     public async Task<EventEnvelope> ExecuteAsync(DomainEvent domainEvent)

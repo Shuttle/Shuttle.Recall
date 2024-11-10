@@ -10,15 +10,15 @@ public class GetEventStreamPipeline : Pipeline
     public GetEventStreamPipeline(IServiceProvider serviceProvider, IGetStreamEventsObserver getStreamEventsObserver, IAssembleEventStreamObserver assembleEventStreamObserver) 
         : base(serviceProvider)
     {
-        RegisterStage("GetEventStream")
+        AddStage("GetEventStream")
             .WithEvent<OnBeforeGetStreamEvents>()
             .WithEvent<OnGetStreamEvents>()
             .WithEvent<OnAfterGetStreamEvents>()
             .WithEvent<OnAssembleEventStream>()
             .WithEvent<OnAfterAssembleEventStream>();
 
-        RegisterObserver(Guard.AgainstNull(getStreamEventsObserver));
-        RegisterObserver(Guard.AgainstNull(assembleEventStreamObserver));
+        AddObserver(Guard.AgainstNull(getStreamEventsObserver));
+        AddObserver(Guard.AgainstNull(assembleEventStreamObserver));
     }
 
     public async Task<EventStream> ExecuteAsync(Guid id, EventStreamBuilder builder)

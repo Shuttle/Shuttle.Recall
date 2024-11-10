@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
@@ -9,21 +10,30 @@ public class EventProcessingPipeline : Pipeline
     public EventProcessingPipeline(IServiceProvider serviceProvider, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver) 
         : base(serviceProvider)
     {
-        RegisterStage("EventProcessing.Read")
+        AddStage("EventProcessing.Read")
             .WithEvent<OnGetProjectionEvent>()
             .WithEvent<OnAfterGetProjectionEvent>()
             .WithEvent<OnGetProjectionEventEnvelope>()
             .WithEvent<OnAfterGetProjectionEventEnvelope>();
 
-        RegisterStage("EventProcessing.Handle")
+        AddStage("EventProcessing.Handle")
             .WithEvent<OnHandleEvent>()
             .WithEvent<OnAfterHandleEvent>()
             .WithEvent<OnAcknowledgeEvent>()
             .WithEvent<OnAfterAcknowledgeEvent>();
 
-        RegisterObserver(Guard.AgainstNull(projectionEventObserver));
-        RegisterObserver(Guard.AgainstNull(projectionEventEnvelopeObserver));
-        RegisterObserver(Guard.AgainstNull(handleEventObserver));
-        RegisterObserver(Guard.AgainstNull(acknowledgeEventObserver));
+        AddObserver(Guard.AgainstNull(projectionEventObserver));
+        AddObserver(Guard.AgainstNull(projectionEventEnvelopeObserver));
+        AddObserver(Guard.AgainstNull(handleEventObserver));
+        AddObserver(Guard.AgainstNull(acknowledgeEventObserver));
+
+        AddObserver(async (IPipelineContext<OnPipelineException> context) =>
+        {
+            await Task.CompletedTask;
+
+            Console.WriteLine(@$"[UNRECOVERABLE] : {context.Pipeline.Exception?.ToString() ?? "(unknown exception)"}");
+
+            Environment.Exit(1);
+        });
     }
 }

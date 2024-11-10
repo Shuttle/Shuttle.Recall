@@ -9,7 +9,7 @@ public class EventProcessorStartupPipeline : Pipeline
     public EventProcessorStartupPipeline(IServiceProvider serviceProvider, IStartupEventProcessingObserver startupEventProcessingObserver) 
         : base(serviceProvider)
     {
-        RegisterStage("Startup")
+        AddStage("Startup")
             .WithEvent<OnStartEventProcessing>()
             .WithEvent<OnAfterStartEventProcessing>()
             .WithEvent<OnConfigureThreadPools>()
@@ -17,6 +17,6 @@ public class EventProcessorStartupPipeline : Pipeline
             .WithEvent<OnStartThreadPools>()
             .WithEvent<OnAfterStartThreadPools>();
 
-        RegisterObserver(Guard.AgainstNull(startupEventProcessingObserver));
+        AddObserver(Guard.AgainstNull(startupEventProcessingObserver));
     }
 }

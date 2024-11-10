@@ -10,12 +10,12 @@ public class RemoveEventStreamPipeline : Pipeline
     public RemoveEventStreamPipeline(IServiceProvider serviceProvider, IRemoveEventStreamObserver removeEventStreamObserver) 
         : base(serviceProvider)
     {
-        RegisterStage("RemoveEventStream")
+        AddStage("RemoveEventStream")
             .WithEvent<OnBeforeRemoveEventStream>()
             .WithEvent<OnRemoveEventStream>()
             .WithEvent<OnAfterRemoveEventStream>();
 
-        RegisterObserver(Guard.AgainstNull(removeEventStreamObserver));
+        AddObserver(Guard.AgainstNull(removeEventStreamObserver));
     }
 
     public async Task ExecuteAsync(Guid id)
