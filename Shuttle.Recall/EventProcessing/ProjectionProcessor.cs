@@ -17,7 +17,7 @@ public class ProjectionProcessor : IProcessor
         _pipelineFactory = Guard.AgainstNull(pipelineFactory);
     }
 
-    public async Task ExecuteAsync(CancellationToken cancellationToken = new())
+    public async Task ExecuteAsync(IProcessorThreadContext _, CancellationToken cancellationToken = new())
     {
         var pipeline = _pipelineFactory.GetPipeline<EventProcessingPipeline>();
 
