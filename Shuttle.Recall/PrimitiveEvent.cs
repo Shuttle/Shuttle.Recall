@@ -1,21 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall;
 
 public class PrimitiveEvent
 {
-    public PrimitiveEvent()
-    {
-    }
-
-    public PrimitiveEvent(string eventType)
-    {
-        EventType = eventType;
-    }
-
     public DateTime DateRegistered { get; set; }
     public byte[] EventEnvelope { get; set; } = Array.Empty<byte>();
     public Guid EventId { get; set; }

@@ -10,7 +10,7 @@ public class NotImplementedProjectionRepository : IProjectionRepository
         throw new NotImplementedException(Resources.NotImplementedProjectionRepository);
     }
 
-    public Task<Projection?> FindAsync(string name)
+    public Task<Projection?> FindAsync(string projectionName)
     {
         throw new NotImplementedException(Resources.NotImplementedProjectionRepository);
     }

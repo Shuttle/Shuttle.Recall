@@ -37,8 +37,7 @@ public class GetStreamEventsObserver : IGetStreamEventsObserver
             {
                 if (primitiveEvent.Version < version)
                 {
-                    throw new InvalidOperationException(string.Format(Resources.InvalidEventOrderingException,
-                        primitiveEvent.Version, version));
+                    throw new InvalidOperationException(string.Format(Resources.InvalidEventOrderingException, primitiveEvent.Version, version));
                 }
 
                 await pipeline.ExecuteAsync(primitiveEvent).ConfigureAwait(false);

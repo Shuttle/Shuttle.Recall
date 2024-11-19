@@ -37,9 +37,9 @@ public class EventProcessorFixture
 
         async Task<ProjectionEvent?> GetProjectionEvent()
         {
-            var primitiveEvent = sequenceNumber % 2 == 0
+            PrimitiveEvent primitiveEvent = sequenceNumber % 2 == 0
                 ? new() { EventType = Guard.AgainstNullOrEmptyString(typeof(EventA).FullName) }
-                : new PrimitiveEvent(Guard.AgainstNullOrEmptyString(typeof(EventB).FullName));
+                : new() { EventType = Guard.AgainstNullOrEmptyString(typeof(EventB).FullName) };
 
             var eventEnvelope = new EventEnvelope
             {
