@@ -26,7 +26,7 @@ public class EventProcessorFixture
         var id = Guid.NewGuid();
         var serializer = new JsonSerializer(Options.Create(new JsonSerializerOptions()));
         var services = new ServiceCollection();
-        var projectionEventProvider = new Mock<IProjectionEventProvider>();
+        var projectionService = new Mock<IProjectionService>();
         var sequenceNumber = 1;
         var eventStoreOptions = new EventStoreOptions
         {
@@ -66,14 +66,9 @@ public class EventProcessorFixture
             return new(projection, primitiveEvent);
         }
 
-        projectionEventProvider.Setup(m => m.GetAsync()).Returns(GetProjectionEvent);
+        projectionService.Setup(m => m.GetProjectionEventAsync()).Returns(GetProjectionEvent);
 
-        var projectionRepository = new Mock<IProjectionRepository>();
-
-        projectionRepository.Setup(m => m.FindAsync(projectionName)).Returns(Task.FromResult((Projection?)new(projectionName, 0)));
-
-        services.AddSingleton(projectionRepository.Object);
-        services.AddSingleton(projectionEventProvider.Object);
+        services.AddSingleton(projectionService.Object);
 
         services.AddEventStore(builder =>
         {

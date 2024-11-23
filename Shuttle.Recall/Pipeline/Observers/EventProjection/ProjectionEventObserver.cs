@@ -10,9 +10,9 @@ public interface IProjectionEventObserver : IPipelineObserver<OnGetProjectionEve
 
 public class ProjectionEventObserver : IProjectionEventObserver
 {
-    private readonly IProjectionEventProvider _provider;
+    private readonly IProjectionService _provider;
 
-    public ProjectionEventObserver(IProjectionEventProvider provider)
+    public ProjectionEventObserver(IProjectionService provider)
     {
         _provider = Guard.AgainstNull(provider);
     }
@@ -20,7 +20,7 @@ public class ProjectionEventObserver : IProjectionEventObserver
     public async Task ExecuteAsync(IPipelineContext<OnGetProjectionEvent> pipelineContext)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var projectionEvent = await _provider.GetAsync().ConfigureAwait(false);
+        var projectionEvent = await _provider.GetProjectionEventAsync().ConfigureAwait(false);
 
         if (projectionEvent == null)
         {

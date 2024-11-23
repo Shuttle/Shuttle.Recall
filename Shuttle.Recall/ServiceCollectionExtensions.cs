@@ -52,9 +52,8 @@ public static class ServiceCollectionExtensions
 
         services.TryAddSingleton<IEventStore, EventStore>();
         services.TryAddSingleton<IEventProcessor, EventProcessor>();
-        services.TryAddSingleton<IProjectionRepository, NotImplementedProjectionRepository>();
         services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
-        services.TryAddSingleton<IProjectionEventProvider, NotImplementedProjectionEventProvider>();
+        services.TryAddSingleton<IProjectionService, NotImplementedProjectionService>();
         services.TryAddSingleton<IProcessorThreadPoolFactory, ProcessorThreadPoolFactory>();
 
         services.AddOptions<EventStoreOptions>().Configure(options =>

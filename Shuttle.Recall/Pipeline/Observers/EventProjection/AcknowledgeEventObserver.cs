@@ -10,11 +10,11 @@ public interface IAcknowledgeEventObserver : IPipelineObserver<OnAcknowledgeEven
 
 public class AcknowledgeEventObserver : IAcknowledgeEventObserver
 {
-    private readonly IProjectionRepository _repository;
+    private readonly IProjectionService _service;
 
-    public AcknowledgeEventObserver(IProjectionRepository repository)
+    public AcknowledgeEventObserver(IProjectionService projectionService)
     {
-        _repository = Guard.AgainstNull(repository);
+        _service = Guard.AgainstNull(projectionService);
     }
 
     public async Task ExecuteAsync(IPipelineContext<OnAcknowledgeEvent> pipelineContext)
@@ -22,6 +22,6 @@ public class AcknowledgeEventObserver : IAcknowledgeEventObserver
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent());
 
-        await _repository.SetSequenceNumberAsync(projectionEvent.Projection.Name, projectionEvent.Projection.SequenceNumber).ConfigureAwait(false);
+        await _service.SetSequenceNumberAsync(projectionEvent.Projection.Name, projectionEvent.Projection.SequenceNumber).ConfigureAwait(false);
     }
 }
