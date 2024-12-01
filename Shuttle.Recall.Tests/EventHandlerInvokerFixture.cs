@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall.Tests;
@@ -113,7 +111,7 @@ public class EventHandlerInvokerFixture
         services.AddKeyedSingleton<IEventHandler<EventA>>($"[Shuttle.Recall.Projection/projection-1]:{typeof(EventA).FullName}", handler);
 
         var serviceProvider = services.BuildServiceProvider();
-        
+
         var configuration = new EventProcessorConfiguration();
         var invoker = new EventHandlerInvoker(serviceProvider, configuration);
 

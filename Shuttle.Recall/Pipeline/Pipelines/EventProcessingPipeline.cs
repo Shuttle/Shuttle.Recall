@@ -32,6 +32,7 @@ public class EventProcessingPipeline : Pipeline
             await Task.CompletedTask;
 
             Console.WriteLine(@$"[UNRECOVERABLE] : {context.Pipeline.Exception?.ToString() ?? "(unknown exception)"}");
+            Console.Out.Flush();
 
             Environment.Exit(1);
         });
