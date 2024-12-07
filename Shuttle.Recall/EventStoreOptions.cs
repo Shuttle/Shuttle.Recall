@@ -8,8 +8,8 @@ public class EventStoreOptions
 {
     public const string SectionName = "Shuttle:EventStore";
 
-    public List<TimeSpan> DurationToSleepWhenIdle { get; set; } = new()
-    {
+    public List<TimeSpan> DurationToSleepWhenIdle { get; set; } =
+    [
         TimeSpan.FromMilliseconds(250),
         TimeSpan.FromMilliseconds(250),
         TimeSpan.FromMilliseconds(250),
@@ -17,7 +17,7 @@ public class EventStoreOptions
         TimeSpan.FromMilliseconds(500),
         TimeSpan.FromMilliseconds(500),
         TimeSpan.FromSeconds(1)
-    };
+    ];
 
     public string CompressionAlgorithm { get; set; } = string.Empty;
     public string EncryptionAlgorithm { get; set; } = string.Empty;
