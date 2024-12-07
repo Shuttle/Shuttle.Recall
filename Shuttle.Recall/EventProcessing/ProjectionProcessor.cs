@@ -26,7 +26,7 @@ public class ProjectionProcessor : IProcessor
             var waiting = true;
 
             pipeline.State.Clear();
-            pipeline.State.Add("SetProcessorThreadManagedThreadId", context.State.Get("ManagedThreadId"));
+            pipeline.State.SetProcessorThreadManagedThreadId((int)(context.State.Get("ManagedThreadId") ?? 0));
 
             await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
