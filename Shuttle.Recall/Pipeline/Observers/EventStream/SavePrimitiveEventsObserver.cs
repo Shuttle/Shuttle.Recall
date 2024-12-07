@@ -32,7 +32,6 @@ public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
         var eventEnvelopes = Guard.AgainstNull(state.GetEventEnvelopes());
 
         var version = -1;
-        long sequenceNumber = 0;
 
         try
         {
@@ -56,16 +55,16 @@ public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
                 primitiveEvents.Add(primitiveEvent);
             }
 
-            sequenceNumber = await _primitiveEventRepository.SaveAsync(primitiveEvents).ConfigureAwait(false);
+            var sequenceNumber = await _primitiveEventRepository.SaveAsync(primitiveEvents).ConfigureAwait(false);
 
-            if (sequenceNumber > 0)
+            switch (sequenceNumber)
             {
-                state.SetSequenceNumber(sequenceNumber);
-            }
-
-            if (sequenceNumber < 1)
-            {
-                state.SetSequenceNumber(await _primitiveEventRepository.GetSequenceNumberAsync(eventStream.Id).ConfigureAwait(false));
+                case > 0:
+                    state.SetSequenceNumber(sequenceNumber);
+                    break;
+                case < 1:
+                    state.SetSequenceNumber(await _primitiveEventRepository.GetSequenceNumberAsync(eventStream.Id).ConfigureAwait(false));
+                    break;
             }
         }
         catch (Exception ex)
