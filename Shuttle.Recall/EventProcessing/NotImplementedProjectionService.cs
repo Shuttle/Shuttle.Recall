@@ -14,9 +14,4 @@ public class NotImplementedProjectionService : IProjectionService
     {
         throw new NotImplementedException(Resources.NotImplementedProjectionEventProvider);
     }
-
-    public ValueTask<long> GetSequenceNumberAsync(string projectionName)
-    {
-        throw new NotImplementedException(Resources.NotImplementedProjectionEventProvider);
-    }
 }
