@@ -4,6 +4,6 @@ namespace Shuttle.Recall;
 
 public interface IProjectionService
 {
-    Task<ProjectionEvent?> GetProjectionEventAsync();
+    Task<ProjectionEvent?> GetProjectionEventAsync(int processorThreadManagedThreadId);
     Task SetSequenceNumberAsync(string projectionName, long sequenceNumber);
 }

@@ -17,7 +17,7 @@ public class ProjectionProcessor : IProcessor
         _pipelineFactory = Guard.AgainstNull(pipelineFactory);
     }
 
-    public async Task ExecuteAsync(IProcessorThreadContext _, CancellationToken cancellationToken = new())
+    public async Task ExecuteAsync(IProcessorThreadContext context, CancellationToken cancellationToken = new())
     {
         var pipeline = _pipelineFactory.GetPipeline<EventProcessingPipeline>();
 
@@ -26,6 +26,7 @@ public class ProjectionProcessor : IProcessor
             var waiting = true;
 
             pipeline.State.Clear();
+            pipeline.State.Add("SetProcessorThreadManagedThreadId", context.State.Get("ManagedThreadId"));
 
             await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
 

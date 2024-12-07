@@ -66,7 +66,7 @@ public class EventProcessorFixture
             return new(projection, primitiveEvent);
         }
 
-        projectionService.Setup(m => m.GetProjectionEventAsync()).Returns(GetProjectionEvent);
+        projectionService.Setup(m => m.GetProjectionEventAsync(It.IsAny<int>())).Returns(GetProjectionEvent);
 
         services.AddSingleton(projectionService.Object);
 

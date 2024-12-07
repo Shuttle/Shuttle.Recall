@@ -52,6 +52,11 @@ public static class PipelineStateExtensions
         return Guard.AgainstNull(state.Get<PrimitiveEvent>(StateKeys.PrimitiveEvent));
     }
 
+    public static int GetProcessorThreadManagedThreadId(this IState state)
+    {
+        return state.Get<int>(StateKeys.ProcessorThreadManagedThreadId);
+    }
+
     public static ProjectionEvent GetProjectionEvent(this IState state)
     {
         return Guard.AgainstNull(state.Get<ProjectionEvent>(StateKeys.ProjectionEvent));
@@ -115,6 +120,11 @@ public static class PipelineStateExtensions
     public static void SetPrimitiveEvent(this IState state, PrimitiveEvent? primitiveEvent)
     {
         state.Replace(StateKeys.PrimitiveEvent, primitiveEvent);
+    }
+
+    public static void SetProcessorThreadManagedThreadId(this IState state, int processorThreadManagedThreadId)
+    {
+        state.Replace(StateKeys.ProcessorThreadManagedThreadId, processorThreadManagedThreadId);
     }
 
     public static void SetProjectionEvent(this IState state, ProjectionEvent projectionEvent)

@@ -5,7 +5,7 @@ namespace Shuttle.Recall;
 
 public class NotImplementedProjectionService : IProjectionService
 {
-    public Task<ProjectionEvent?> GetProjectionEventAsync()
+    public Task<ProjectionEvent?> GetProjectionEventAsync(int processorThreadManagedThreadId)
     {
         throw new NotImplementedException(Resources.NotImplementedProjectionEventProvider);
     }
