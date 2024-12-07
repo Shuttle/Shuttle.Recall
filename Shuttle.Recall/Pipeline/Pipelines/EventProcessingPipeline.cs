@@ -29,12 +29,9 @@ public class EventProcessingPipeline : Pipeline
 
         AddObserver(async (IPipelineContext<OnPipelineException> context) =>
         {
+            context.Pipeline.Abort();
+
             await Task.CompletedTask;
-
-            Console.WriteLine(@$"[UNRECOVERABLE] : {context.Pipeline.Exception?.ToString() ?? "(unknown exception)"}");
-            Console.Out.Flush();
-
-            Environment.Exit(1);
         });
     }
 }

@@ -29,7 +29,7 @@ public class ProjectionProcessor : IProcessor
 
             await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
-            if (pipeline.State.GetWorking())
+            if (!pipeline.Aborted && pipeline.State.GetWorking())
             {
                 _threadActivity.Working();
                 waiting = false;

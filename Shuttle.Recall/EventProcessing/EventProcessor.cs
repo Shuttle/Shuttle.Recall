@@ -33,7 +33,7 @@ public class EventProcessor : IEventProcessor
             return;
         }
 
-        _cancellationTokenSource.Cancel();
+        await _cancellationTokenSource.CancelAsync();
 
         _eventProcessorThreadPool?.Dispose();
 
