@@ -10,13 +10,13 @@ public class EventProcessingPipeline : Pipeline
     public EventProcessingPipeline(IServiceProvider serviceProvider, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver) 
         : base(serviceProvider)
     {
-        AddStage("EventProcessing.Read")
+        AddStage("Read")
             .WithEvent<OnGetProjectionEvent>()
             .WithEvent<OnAfterGetProjectionEvent>()
             .WithEvent<OnGetProjectionEventEnvelope>()
             .WithEvent<OnAfterGetProjectionEventEnvelope>();
 
-        AddStage("EventProcessing.Handle")
+        AddStage("Handle")
             .WithEvent<OnHandleEvent>()
             .WithEvent<OnAfterHandleEvent>()
             .WithEvent<OnAcknowledgeEvent>()

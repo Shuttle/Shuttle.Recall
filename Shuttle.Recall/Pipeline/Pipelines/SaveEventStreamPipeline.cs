@@ -10,7 +10,7 @@ public class SaveEventStreamPipeline : Pipeline
     public SaveEventStreamPipeline(IServiceProvider serviceProvider, IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver) 
         : base(serviceProvider)
     {
-        AddStage("SaveEventStream")
+        AddStage("Handle")
             .WithEvent<OnAssembleEventEnvelopes>()
             .WithEvent<OnAfterAssembleEventEnvelopes>()
             .WithEvent<OnBeforeSavePrimitiveEvents>()
@@ -18,6 +18,10 @@ public class SaveEventStreamPipeline : Pipeline
             .WithEvent<OnAfterSavePrimitiveEvents>()
             .WithEvent<OnCommitEventStream>()
             .WithEvent<OnAfterCommitEventStream>();
+
+        AddStage("Completed")
+            .WithEvent<OnSaveEventStreamCompleted>()
+            .WithEvent<OnAfterSaveEventStreamCompleted>();
 
         AddObserver(Guard.AgainstNull(assembleEventEnvelopesObserver));
         AddObserver(Guard.AgainstNull(savePrimitiveEventsObserver));

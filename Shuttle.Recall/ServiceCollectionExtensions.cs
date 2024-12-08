@@ -45,8 +45,9 @@ public static class ServiceCollectionExtensions
         {
             services.AddPipelineTransactionScope(transactionScopeBuilder =>
             {
-                transactionScopeBuilder.AddStage<EventProcessingPipeline>("EventProcessing.Handle");
-                transactionScopeBuilder.AddStage<SaveEventStreamPipeline>("SaveEventStream");
+                transactionScopeBuilder.AddStage<EventProcessingPipeline>("Handle");
+                transactionScopeBuilder.AddStage<SaveEventStreamPipeline>("Handle");
+                transactionScopeBuilder.AddStage<SaveEventStreamPipeline>("Completed");
             });
         }
 

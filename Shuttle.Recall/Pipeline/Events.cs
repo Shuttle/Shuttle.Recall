@@ -191,3 +191,11 @@ public class OnStartThreadPools
 public class OnAfterStartThreadPools
 {
 }
+
+public class OnSaveEventStreamCompleted
+{
+}
+
+public class OnAfterSaveEventStreamCompleted
+{
+}
