@@ -26,15 +26,13 @@ public class EventHandlerInvoker : IEventHandlerInvoker
 
     public async ValueTask<bool> InvokeAsync(IPipelineContext<OnHandleEvent> pipelineContext)
     {
+        // We cannot ensure that the projection sequence number is going to be less than the primitive event sequence number.
+        // Implementations may process correlated events in parallel and the sequence number is not guaranteed to be in order.
+        // It would be up to the implementation to ensure that the sequence number is correct and processing is idempotent.
+
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent());
         var primitiveEvent = Guard.AgainstNull(projectionEvent.PrimitiveEvent);
-
-        if (primitiveEvent.SequenceNumber <= projectionEvent.Projection.SequenceNumber)
-        {
-            throw new InvalidOperationException(string.Format(Resources.ProjectionSequenceNumberException, projectionEvent.Projection.Name, projectionEvent.Projection.SequenceNumber, primitiveEvent.SequenceNumber));
-        }
-
         var eventEnvelope = Guard.AgainstNull(state.GetEventEnvelope());
         var domainEvent = Guard.AgainstNull(state.GetDomainEvent().Event);
         var eventType = Guard.AgainstNull(Type.GetType(eventEnvelope.AssemblyQualifiedName, true));
@@ -118,7 +116,7 @@ public class EventHandlerInvoker : IEventHandlerInvoker
         }
         finally
         {
-            projectionEvent.Projection.Processed(primitiveEvent.SequenceNumber);
+            projectionEvent.Projection.Commit(primitiveEvent.SequenceNumber);
         }
 
         return true;

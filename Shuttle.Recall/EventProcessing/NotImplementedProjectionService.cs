@@ -10,7 +10,7 @@ public class NotImplementedProjectionService : IProjectionService
         throw new NotImplementedException(Resources.NotImplementedProjectionEventProvider);
     }
 
-    public Task SetSequenceNumberAsync(string projectionName, long sequenceNumber)
+    public Task AcknowledgeAsync(ProjectionEvent projectionEvent)
     {
         throw new NotImplementedException(Resources.NotImplementedProjectionEventProvider);
     }

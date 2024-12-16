@@ -11,5 +11,5 @@ public class ProjectionEvent
     }
 
     public Projection Projection { get; }
-    public PrimitiveEvent? PrimitiveEvent { get; }
+    public PrimitiveEvent PrimitiveEvent { get; }
 }

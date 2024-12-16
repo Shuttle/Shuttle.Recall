@@ -1,201 +1,103 @@
 ﻿namespace Shuttle.Recall;
 
-public class OnBeforeAddProjection
-{
-}
+public class OnBeforeAddProjection;
 
-public class OnAddProjection
-{
-}
+public class OnAddProjection;
 
-public class OnAfterAddProjection
-{
-}
+public class OnAfterAddProjection;
 
-public class OnGetProjectionEventEnvelope
-{
-}
+public class OnGetProjectionEventEnvelope;
 
-public class OnAfterGetProjectionEventEnvelope
-{
-}
+public class OnAfterGetProjectionEventEnvelope;
 
-public class OnAssembleEventEnvelopes
-{
-}
+public class OnAssembleEventEnvelopes;
 
-public class OnAfterAssembleEventEnvelopes
-{
-}
+public class OnAfterAssembleEventEnvelopes;
 
-public class OnBeforeSavePrimitiveEvents
-{
-}
+public class OnBeforeSavePrimitiveEvents;
 
-public class OnSavePrimitiveEvents
-{
-}
+public class OnSavePrimitiveEvents;
 
-public class OnAfterSavePrimitiveEvents
-{
-}
+public class OnAfterSavePrimitiveEvents;
 
-public class OnCommitEventStream
-{
-}
+public class OnCommitEventStream;
 
-public class OnAfterCommitEventStream
-{
-}
+public class OnAfterCommitEventStream;
 
-public class OnBeforeGetStreamEvents
-{
-}
+public class OnBeforeGetStreamEvents;
 
-public class OnGetStreamEvents
-{
-}
+public class OnGetStreamEvents;
 
-public class OnAfterGetStreamEvents
-{
-}
+public class OnAfterGetStreamEvents;
 
-public class OnAssembleEventStream
-{
-}
+public class OnAssembleEventStream;
 
-public class OnAfterAssembleEventStream
-{
-}
+public class OnAfterAssembleEventStream;
 
-public class OnBeforeRemoveEventStream
-{
-}
+public class OnBeforeRemoveEventStream;
 
-public class OnRemoveEventStream
-{
-}
+public class OnRemoveEventStream;
 
-public class OnAfterRemoveEventStream
-{
-}
+public class OnAfterRemoveEventStream;
 
-public class OnGetProjectionEvent
-{
-}
+public class OnGetProjectionEvent;
 
-public class OnAfterGetProjectionEvent
-{
-}
+public class OnAfterGetProjectionEvent;
 
-public class OnHandleEvent
-{
-}
+public class OnHandleEvent;
 
-public class OnAfterHandleEvent
-{
-}
+public class OnAfterHandleEvent;
 
-public class OnAcknowledgeEvent
-{
-}
+public class OnAcknowledgeEvent;
 
-public class OnAfterAcknowledgeEvent
-{
-}
+public class OnAfterAcknowledgeEvent;
 
-public class OnDeserializeEventEnvelope
-{
-}
+public class OnDeserializeEventEnvelope;
 
-public class OnAfterDeserializeEventEnvelope
-{
-}
+public class OnAfterDeserializeEventEnvelope;
 
-public class OnDecryptEvent
-{
-}
+public class OnDecryptEvent;
 
-public class OnAfterDecryptEvent
-{
-}
+public class OnAfterDecryptEvent;
 
-public class OnDeserializeEvent
-{
-}
+public class OnDeserializeEvent;
 
-public class OnAfterDeserializeEvent
-{
-}
+public class OnAfterDeserializeEvent;
 
-public class OnDecompressEvent
-{
-}
+public class OnDecompressEvent;
 
-public class OnAfterDecompressEvent
-{
-}
+public class OnAfterDecompressEvent;
 
-public class OnSerializeEvent
-{
-}
+public class OnSerializeEvent;
 
-public class OnAfterSerializeEvent
-{
-}
+public class OnAfterSerializeEvent;
 
-public class OnAssembleEventEnvelope
-{
-}
+public class OnAssembleEventEnvelope;
 
-public class OnAfterAssembleEventEnvelope
-{
-}
+public class OnAfterAssembleEventEnvelope;
 
-public class OnCompressEvent
-{
-}
+public class OnCompressEvent;
 
-public class OnAfterCompressEvent
-{
-}
+public class OnAfterCompressEvent;
 
-public class OnEncryptEvent
-{
-}
+public class OnEncryptEvent;
 
-public class OnAfterEncryptEvent
-{
-}
+public class OnAfterEncryptEvent;
 
-public class OnStartEventProcessing
-{
-}
+public class OnStartEventProcessing;
 
-public class OnAfterStartEventProcessing
-{
-}
+public class OnAfterStartEventProcessing;
 
-public class OnConfigureThreadPools
-{
-}
+public class OnConfigureThreadPools;
 
-public class OnAfterConfigureThreadPools
-{
-}
+public class OnAfterConfigureThreadPools;
 
-public class OnStartThreadPools
-{
-}
+public class OnStartThreadPools;
 
-public class OnAfterStartThreadPools
-{
-}
+public class OnAfterStartThreadPools;
 
-public class OnSaveEventStreamCompleted
-{
-}
+public class OnBeforeSaveEventStreamCompleted;
 
-public class OnAfterSaveEventStreamCompleted
-{
-}
+public class OnSaveEventStreamCompleted;
+
+public class OnAfterSaveEventStreamCompleted;

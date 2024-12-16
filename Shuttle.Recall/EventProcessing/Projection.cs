@@ -7,7 +7,6 @@ public class Projection
 {
     public Projection(string name, long sequenceNumber)
     {
-
         Name = Guard.AgainstNullOrEmptyString(name);
         SequenceNumber = sequenceNumber;
     }
@@ -15,11 +14,11 @@ public class Projection
     public string Name { get; }
     public long SequenceNumber { get; private set; }
 
-    public void Processed(long sequenceNumber)
+    public void Commit(long sequenceNumber)
     {
         if (sequenceNumber < SequenceNumber)
         {
-            throw new InvalidOperationException(string.Format(Resources.ProjectionSequenceNumberException, Name, SequenceNumber, sequenceNumber));
+            return;
         }
 
         SequenceNumber = sequenceNumber;

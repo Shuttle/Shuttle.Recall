@@ -20,6 +20,7 @@ public class SaveEventStreamPipeline : Pipeline
             .WithEvent<OnAfterCommitEventStream>();
 
         AddStage("Completed")
+            .WithEvent<OnBeforeSaveEventStreamCompleted>()
             .WithEvent<OnSaveEventStreamCompleted>()
             .WithEvent<OnAfterSaveEventStreamCompleted>();
 

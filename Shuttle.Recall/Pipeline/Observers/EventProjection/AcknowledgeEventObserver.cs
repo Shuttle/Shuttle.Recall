@@ -20,8 +20,7 @@ public class AcknowledgeEventObserver : IAcknowledgeEventObserver
     public async Task ExecuteAsync(IPipelineContext<OnAcknowledgeEvent> pipelineContext)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent());
 
-        await _service.SetSequenceNumberAsync(projectionEvent.Projection.Name, projectionEvent.Projection.SequenceNumber).ConfigureAwait(false);
+        await _service.AcknowledgeAsync(Guard.AgainstNull(state.GetProjectionEvent())).ConfigureAwait(false);
     }
 }
