@@ -1,10 +1,14 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
 public class EventStoreBuilder
 {
+    public event EventHandler<AddPipelineProcessingEventArgs>? AddPipelineProcessing;
+
     private EventStoreOptions _eventStoreOptions = new();
 
     public EventStoreBuilder(IServiceCollection services)
@@ -12,7 +16,7 @@ public class EventStoreBuilder
         Services = Guard.AgainstNull(services);
     }
 
-    public IEventProcessorConfiguration EventProcessorConfiguration { get; private set; } = new EventProcessorConfiguration();
+    public IEventProcessorConfiguration EventProcessorConfiguration { get; } = new EventProcessorConfiguration();
 
     public EventStoreOptions Options
     {
@@ -31,6 +35,7 @@ public class EventStoreBuilder
     }
 
     public bool ShouldSuppressPipelineTransactionScope { get; private set; }
+    public bool ShouldSuppressPipelineProcessing { get; private set; }
 
     public EventStoreBuilder SuppressPipelineTransactionScope()
     {
@@ -39,8 +44,20 @@ public class EventStoreBuilder
         return this;
     }
 
+    public EventStoreBuilder SuppressPipelineProcessing()
+    {
+        ShouldSuppressPipelineProcessing = true;
+
+        return this;
+    }
+
     public ProjectionBuilder AddProjection(string name)
     {
         return new(Services, EventProcessorConfiguration, name);
+    }
+
+    public void OnAddPipelineProcessing(PipelineProcessingBuilder pipelineProcessingBuilder)
+    {
+        AddPipelineProcessing?.Invoke(this, new(pipelineProcessingBuilder));
     }
 }

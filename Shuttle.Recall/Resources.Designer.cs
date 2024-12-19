@@ -187,7 +187,7 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The event stream for id &apos;{0}&apos; already at version &apos;{1}&apos; and cannot insert the new event.  The event will be ignored and be added to the event stream again as a newer version..
+        ///   Looks up a localized string similar to The event stream for id &apos;{0}&apos; already at, or passed, version &apos;{1}&apos; and cannot accept the new event..
         /// </summary>
         public static string EventStreamConcurrencyException {
             get {

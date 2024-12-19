@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 using Shuttle.Core.Streams;
 using JsonSerializer = Shuttle.Core.Serialization.JsonSerializer;
 
@@ -66,7 +67,7 @@ public class EventProcessorFixture
             return new(projection, primitiveEvent);
         }
 
-        projectionService.Setup(m => m.GetProjectionEventAsync(It.IsAny<int>())).Returns(GetProjectionEvent);
+        projectionService.Setup(m => m.GetEventAsync(It.IsAny<IPipelineContext<OnGetEvent>>())).Returns(GetProjectionEvent);
 
         services.AddSingleton(projectionService.Object);
 

@@ -29,10 +29,15 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<ICompressionService, CompressionService>();
         services.TryAddSingleton<IEventHandlerInvoker, EventHandlerInvoker>();
 
-        services.AddPipelineProcessing(pipelineProcessingBuilder =>
+        if (!eventStoreBuilder.ShouldSuppressPipelineProcessing)
         {
-            pipelineProcessingBuilder.AddAssembly(typeof(EventStore).Assembly);
-        });
+            services.AddPipelineProcessing(pipelineProcessingBuilder =>
+            {
+                pipelineProcessingBuilder.AddAssembly(typeof(EventStore).Assembly);
+
+                eventStoreBuilder.OnAddPipelineProcessing(pipelineProcessingBuilder);
+            });
+        }
 
         var transactionScopeFactoryType = typeof(ITransactionScopeFactory);
 
