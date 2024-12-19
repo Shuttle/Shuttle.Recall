@@ -19,8 +19,6 @@ public class AcknowledgeEventObserver : IAcknowledgeEventObserver
 
     public async Task ExecuteAsync(IPipelineContext<OnAcknowledgeEvent> pipelineContext)
     {
-        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-
-        await _service.AcknowledgeAsync(Guard.AgainstNull(state.GetProjectionEvent())).ConfigureAwait(false);
+        await _service.AcknowledgeEventAsync(Guard.AgainstNull(pipelineContext)).ConfigureAwait(false);
     }
 }

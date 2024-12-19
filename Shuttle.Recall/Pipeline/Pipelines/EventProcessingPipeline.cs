@@ -11,10 +11,10 @@ public class EventProcessingPipeline : Pipeline
         : base(serviceProvider)
     {
         AddStage("Read")
-            .WithEvent<OnGetProjectionEvent>()
-            .WithEvent<OnAfterGetProjectionEvent>()
-            .WithEvent<OnGetProjectionEventEnvelope>()
-            .WithEvent<OnAfterGetProjectionEventEnvelope>();
+            .WithEvent<OnGetEvent>()
+            .WithEvent<OnAfterGetEvent>()
+            .WithEvent<OnGetEventEnvelope>()
+            .WithEvent<OnAfterGetEventEnvelope>();
 
         AddStage("Handle")
             .WithEvent<OnHandleEvent>()

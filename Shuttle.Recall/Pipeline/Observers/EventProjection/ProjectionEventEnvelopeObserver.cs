@@ -4,7 +4,7 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IProjectionEventEnvelopeObserver : IPipelineObserver<OnGetProjectionEventEnvelope>
+public interface IProjectionEventEnvelopeObserver : IPipelineObserver<OnGetEventEnvelope>
 {
 }
 
@@ -17,7 +17,7 @@ public class ProjectionEventEnvelopeObserver : IProjectionEventEnvelopeObserver
         _pipelineFactory = Guard.AgainstNull(pipelineFactory);
     }
 
-    public async Task ExecuteAsync(IPipelineContext<OnGetProjectionEventEnvelope> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<OnGetEventEnvelope> pipelineContext)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent());

@@ -4,7 +4,7 @@ using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IProjectionEventObserver : IPipelineObserver<OnGetProjectionEvent>
+public interface IProjectionEventObserver : IPipelineObserver<OnGetEvent>
 {
 }
 
@@ -17,10 +17,10 @@ public class ProjectionEventObserver : IProjectionEventObserver
         _provider = Guard.AgainstNull(provider);
     }
 
-    public async Task ExecuteAsync(IPipelineContext<OnGetProjectionEvent> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<OnGetEvent> pipelineContext)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var projectionEvent = await _provider.GetProjectionEventAsync(state.GetProcessorThreadManagedThreadId()).ConfigureAwait(false);
+        var projectionEvent = await _provider.GetEventAsync(pipelineContext).ConfigureAwait(false);
 
         if (projectionEvent == null)
         {

@@ -6,9 +6,9 @@ public class OnAddProjection;
 
 public class OnAfterAddProjection;
 
-public class OnGetProjectionEventEnvelope;
+public class OnGetEventEnvelope;
 
-public class OnAfterGetProjectionEventEnvelope;
+public class OnAfterGetEventEnvelope;
 
 public class OnAssembleEventEnvelopes;
 
@@ -40,9 +40,9 @@ public class OnRemoveEventStream;
 
 public class OnAfterRemoveEventStream;
 
-public class OnGetProjectionEvent;
+public class OnGetEvent;
 
-public class OnAfterGetProjectionEvent;
+public class OnAfterGetEvent;
 
 public class OnHandleEvent;
 
