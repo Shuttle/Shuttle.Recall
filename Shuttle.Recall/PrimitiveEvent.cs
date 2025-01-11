@@ -40,16 +40,21 @@ public class PrimitiveEvent
             return this;
         }
 
-        public Specification AddEventType(Type type)
+        public Specification AddEventType(string eventType)
         {
-            var typeName = Guard.AgainstNullOrEmptyString(type.FullName);
-
-            if (!_eventTypes.Contains(typeName))
+            Guard.AgainstNullOrEmptyString(eventType, nameof(eventType));
+         
+            if (!_eventTypes.Contains(eventType))
             {
-                _eventTypes.Add(typeName);
+                _eventTypes.Add(eventType);
             }
 
             return this;
+        }
+
+        public Specification AddEventType(Type type)
+        {
+            return AddEventType(Guard.AgainstNullOrEmptyString(type.FullName));
         }
 
         public Specification AddEventTypes(IEnumerable<Type> types)
