@@ -1,0 +1,29 @@
+{
+  "confirmation-remove": {
+    "title": "Confirmation",
+    "message": "Are you sure that you want to remove the selected item(s)?"
+  },
+  "domain-event": "Domain event",
+  "events": "Events",
+  "event-count": "Event count",
+  "event-type": "Event type",
+  "exceptions": {
+    "invalid-session": "Invalid session.",
+    "invalid-credentials": "Invalid credentials.",
+    "insufficient-permission": "You do not have permission to access the requested view.  Please contact your system administrator if you require access.",
+    "missing-credentials": "Incomplete credentials specified.",
+    "missing-exchange-token": "No exchange token has been specified.",
+    "session-required": "Please sign in before accessing the functionality."
+  },
+  "id": "Id",
+  "maximum-rows": "Maximum rows",
+  "messages": {
+    "retrieving-session": "Retrieving session information..."
+  },
+  "search": "Search",
+  "sequence-number": "Sequence number",
+  "sequence-number-start": "Sequence number start",
+  "sequence-number-end": "Sequence number end",
+  "sign-out": "Sign out",
+  "version": "Version"
+}
