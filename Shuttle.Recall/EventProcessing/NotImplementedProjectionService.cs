@@ -11,7 +11,7 @@ public class NotImplementedProjectionService : IProjectionService
         throw new NotImplementedException(Resources.NotImplementedProjectionEventProvider);
     }
 
-    public Task AcknowledgeEventAsync(IPipelineContext<OnAcknowledgeEvent> projectionEvent)
+    public Task AcknowledgeEventAsync(IPipelineContext<OnAcknowledgeEvent> pipelineContext)
     {
         throw new NotImplementedException(Resources.NotImplementedProjectionEventProvider);
     }

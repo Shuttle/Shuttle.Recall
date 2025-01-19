@@ -6,5 +6,5 @@ namespace Shuttle.Recall;
 public interface IProjectionService
 {
     Task<ProjectionEvent?> GetEventAsync(IPipelineContext<OnGetEvent> pipelineContext);
-    Task AcknowledgeEventAsync(IPipelineContext<OnAcknowledgeEvent> projectionEvent);
+    Task AcknowledgeEventAsync(IPipelineContext<OnAcknowledgeEvent> pipelineContext);
 }

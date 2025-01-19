@@ -16,13 +16,13 @@ public class EventStream
         All = Committed + Appended
     }
 
-    private readonly List<DomainEvent> _appendedEvents = new();
+    private readonly List<DomainEvent> _appendedEvents = [];
     private readonly IEventMethodInvoker _eventMethodInvoker;
-    private readonly List<DomainEvent> _events = new();
+    private readonly List<DomainEvent> _events = [];
     private int _nextVersion;
 
     public EventStream(Guid id, IEventMethodInvoker eventMethodInvoker)
-        : this(id, 0, eventMethodInvoker, null)
+        : this(id, 0, eventMethodInvoker)
     {
         Id = id;
         Version = 0;
@@ -41,24 +41,13 @@ public class EventStream
         }
     }
 
+    public Guid? CorrelationId { get; private set; }
+
     public int Count => (_events?.Count ?? 0) + _appendedEvents.Count;
     public Guid Id { get; }
-    public Guid? CorrelationId { get; private set; }
     public bool IsEmpty => Count == 0;
     public bool Removed { get; private set; }
     public int Version { get; }
-
-    public EventStream WithCorrelationId(Guid correlationId)
-    {
-        if (CorrelationId.HasValue)
-        {
-            throw new InvalidOperationException(string.Format(Resources.EventStreamCorrelationIdAlreadySetException, Id, CorrelationId));
-        }
-
-        CorrelationId = correlationId;
-
-        return this;
-    }
 
     public EventStream Add(object @event)
     {
@@ -67,18 +56,22 @@ public class EventStream
         return this;
     }
 
-    public void Apply(object instance)
+    public EventStream Apply(object instance)
     {
         _eventMethodInvoker.Apply(Guard.AgainstNull(instance), _events.Select(domainEvent => domainEvent.Event));
+
+        return this;
     }
 
-    public void Commit()
+    public EventStream Commit()
     {
         _events.AddRange(_appendedEvents);
         _appendedEvents.Clear();
+
+        return this;
     }
 
-    public void ConcurrencyInvariant(int expectedVersion)
+    public EventStream ConcurrencyInvariant(int expectedVersion)
     {
         if (expectedVersion != Version)
         {
@@ -86,6 +79,8 @@ public class EventStream
                 Resources.EventStreamConcurrencyException, Id, Version,
                 expectedVersion));
         }
+
+        return this;
     }
 
     public IEnumerable<DomainEvent> GetEvents(EventRegistrationType type = EventRegistrationType.Appended)
@@ -114,13 +109,27 @@ public class EventStream
         return result;
     }
 
-    public void Remove()
+    public EventStream Remove()
     {
         Removed = true;
+
+        return this;
     }
 
     public bool ShouldSave()
     {
         return _appendedEvents.Count > 0;
+    }
+
+    public EventStream WithCorrelationId(Guid correlationId)
+    {
+        if (CorrelationId.HasValue)
+        {
+            throw new InvalidOperationException(string.Format(Resources.EventStreamCorrelationIdAlreadySetException, Id, CorrelationId));
+        }
+
+        CorrelationId = correlationId;
+
+        return this;
     }
 }

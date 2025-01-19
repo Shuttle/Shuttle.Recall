@@ -20,7 +20,7 @@ public class EventStore : IEventStore
     {
         if (id.Equals(Guid.Empty))
         {
-            return new(id, _eventMethodInvoker);
+            return new(Guid.NewGuid(), _eventMethodInvoker);
         }
 
         var eventStreamBuilder = new EventStreamBuilder();
