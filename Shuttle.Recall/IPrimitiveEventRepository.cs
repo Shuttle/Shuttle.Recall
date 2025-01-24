@@ -10,4 +10,5 @@ public interface IPrimitiveEventRepository
     ValueTask<long> GetSequenceNumberAsync(Guid id);
     Task RemoveAsync(Guid id);
     ValueTask<long> SaveAsync(IEnumerable<PrimitiveEvent> primitiveEvents);
+    ValueTask<long> GetMaxSequenceNumberAsync();
 }
