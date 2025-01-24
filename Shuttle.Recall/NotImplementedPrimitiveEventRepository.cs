@@ -21,6 +21,11 @@ public class NotImplementedPrimitiveEventRepository : IPrimitiveEventRepository
         throw new NotImplementedException(Resources.NotImplementedPrimitiveEventRepository);
     }
 
+    public ValueTask<long> GetMaxSequenceNumberAsync()
+    {
+        throw new NotImplementedException(Resources.NotImplementedPrimitiveEventRepository);
+    }
+
     public ValueTask<long> GetSequenceNumberAsync(Guid id)
     {
         throw new NotImplementedException(Resources.NotImplementedPrimitiveEventRepository);
