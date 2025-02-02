@@ -2,29 +2,20 @@
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IEventStreamObserver : IPipelineObserver<OnCommitEventStream>
 {
-    public interface IEventStreamObserver : IPipelineObserver<OnCommitEventStream>
+}
+
+public class EventStreamObserver : IEventStreamObserver
+{
+    public async Task ExecuteAsync(IPipelineContext<OnCommitEventStream> pipelineContext)
     {
-    }
+        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
 
-    public class EventStreamObserver : IEventStreamObserver
-    {
-        public void Execute(OnCommitEventStream pipelineEvent)
-        {
-            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
-        }
+        state.GetEventStream().Commit();
 
-        public async Task ExecuteAsync(OnCommitEventStream pipelineEvent)
-        {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var eventStream = state.GetEventStream();
-
-            Guard.AgainstNull(eventStream, nameof(eventStream));
-
-            eventStream.Commit();
-
-            await Task.CompletedTask;
-        }
+        await Task.CompletedTask;
     }
 }

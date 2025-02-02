@@ -1,25 +1,22 @@
 ﻿using System.Threading;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class EventHandlerContext<T> : IEventHandlerContext<T> where T : class
 {
-    public class EventHandlerContext<T> : IEventHandlerContext<T> where T : class
+    public EventHandlerContext(Projection projection, EventEnvelope eventEnvelope, T @event, PrimitiveEvent primitiveEvent, CancellationToken cancellationToken)
     {
-        public EventHandlerContext(EventEnvelope eventEnvelope, T @event, PrimitiveEvent primitiveEvent, CancellationToken cancellationToken)
-        {
-            Guard.AgainstNull(eventEnvelope, nameof(eventEnvelope));
-            Guard.AgainstNull(@event, nameof(@event));
-            Guard.AgainstNull(primitiveEvent, nameof(primitiveEvent));
-
-            CancellationToken = cancellationToken;
-            Event = @event;
-            PrimitiveEvent = primitiveEvent;
-            EventEnvelope = eventEnvelope;
-        }
-
-        public EventEnvelope EventEnvelope { get; }
-        public PrimitiveEvent PrimitiveEvent { get; }
-        public T Event { get; }
-        public CancellationToken CancellationToken { get; }
+        Projection = Guard.AgainstNull(projection);
+        EventEnvelope = Guard.AgainstNull(eventEnvelope);
+        Event = Guard.AgainstNull(@event);
+        PrimitiveEvent = Guard.AgainstNull(primitiveEvent);
+        CancellationToken = cancellationToken;
     }
+
+    public EventEnvelope EventEnvelope { get; }
+    public PrimitiveEvent PrimitiveEvent { get; }
+    public T Event { get; }
+    public Projection Projection { get; }
+    public CancellationToken CancellationToken { get; }
 }

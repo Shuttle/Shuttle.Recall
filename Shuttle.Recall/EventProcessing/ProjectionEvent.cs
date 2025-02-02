@@ -1,20 +1,15 @@
-﻿namespace Shuttle.Recall
+﻿using Shuttle.Core.Contract;
+
+namespace Shuttle.Recall;
+
+public class ProjectionEvent
 {
-    public class ProjectionEvent
+    public ProjectionEvent(Projection projection, PrimitiveEvent primitiveEvent)
     {
-        public ProjectionEvent(long sequenceNumber)
-        {
-            SequenceNumber = sequenceNumber;
-        }
-
-        public ProjectionEvent(PrimitiveEvent primitiveEvent)
-        {
-            SequenceNumber = primitiveEvent.SequenceNumber;
-            PrimitiveEvent = primitiveEvent;
-        }
-
-        public long SequenceNumber { get; }
-        public PrimitiveEvent PrimitiveEvent { get; }
-        public bool HasPrimitiveEvent => PrimitiveEvent != null;
+        Projection = Guard.AgainstNull(projection);
+        PrimitiveEvent = Guard.AgainstNull(primitiveEvent);
     }
+
+    public Projection Projection { get; }
+    public PrimitiveEvent PrimitiveEvent { get; }
 }

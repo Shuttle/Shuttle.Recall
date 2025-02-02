@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IEventProcessorConfiguration
 {
-    public interface IProjectionConfiguration
-    {
-        IEnumerable<string> GetProjectionNames();
-        IEnumerable<Type> GetEventHandlerTypes(string projectionName);
-        void AddProjectionEventHandlerType(string projectionName, Type eventHandlerType);
-    }
+    ProjectionConfiguration GetProjection(string name);
+    bool HasProjections { get; }
+    IEnumerable<ProjectionConfiguration> Projections { get; }
 }

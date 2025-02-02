@@ -1,38 +1,37 @@
-﻿namespace Shuttle.Recall.Tests.Implementation
+﻿namespace Shuttle.Recall.Tests.Implementation;
+
+public class AggregateTwo
 {
-    public class AggregateTwo
+    public string ThatValue { get; private set; } = string.Empty;
+    public string ThisValue { get; private set; } = string.Empty;
+
+    public ThatHappened DoThat(string value)
     {
-        public string ThisValue { get; private set; }
-        public string ThatValue { get; private set; }
-
-        public ThisHappened DoThis(string value)
+        return On(new ThatHappened
         {
-            return On(new ThisHappened
-            {
-                ThisValue = value
-            });
-        }
+            ThatValue = value
+        });
+    }
 
-        private ThisHappened On(ThisHappened thisHappened)
+    public ThisHappened DoThis(string value)
+    {
+        return On(new ThisHappened
         {
-            ThisValue = thisHappened.ThisValue;
+            ThisValue = value
+        });
+    }
 
-            return thisHappened;
-        }
+    private ThisHappened On(ThisHappened thisHappened)
+    {
+        ThisValue = thisHappened.ThisValue;
 
-        public ThatHappened DoThat(string value)
-        {
-            return On(new ThatHappened
-            {
-                ThatValue = value
-            });
-        }
+        return thisHappened;
+    }
 
-        private ThatHappened On(ThatHappened thisHappened)
-        {
-            ThatValue = thisHappened.ThatValue;
+    private ThatHappened On(ThatHappened thisHappened)
+    {
+        ThatValue = thisHappened.ThatValue;
 
-            return thisHappened;
-        }
+        return thisHappened;
     }
 }

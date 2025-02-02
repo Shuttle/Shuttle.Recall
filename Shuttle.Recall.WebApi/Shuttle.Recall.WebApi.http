@@ -1,0 +1,6 @@
+@Shuttle.Recall.WebApi_HostAddress = http://localhost:5077
+
+GET {{Shuttle.Recall.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -4,54 +4,38 @@ using Shuttle.Core.Compression;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IDecompressEventObserver : IPipelineObserver<OnDecompressEvent>
 {
-    public interface IDecompressEventObserver : IPipelineObserver<OnDecompressEvent>
+}
+
+public class DecompressEventObserver : IDecompressEventObserver
+{
+    private readonly ICompressionService _compressionService;
+
+    public DecompressEventObserver(ICompressionService compressionService)
     {
+        _compressionService = Guard.AgainstNull(compressionService);
     }
 
-    public class DecompressEventObserver : IDecompressEventObserver
+    public async Task ExecuteAsync(IPipelineContext<OnDecompressEvent> pipelineContext)
     {
-        private readonly ICompressionService _compressionService;
+        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
+        var eventEnvelope = state.GetEventEnvelope();
 
-        public DecompressEventObserver(ICompressionService compressionService)
+        if (!eventEnvelope.CompressionEnabled())
         {
-            Guard.AgainstNull(compressionService, nameof(compressionService));
-
-            _compressionService = compressionService;
+            return;
         }
 
-        public void Execute(OnDecompressEvent pipelineEvent)
+        var algorithm = _compressionService.Get(eventEnvelope.CompressionAlgorithm);
+
+        if (algorithm == null)
         {
-            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult(); 
+            throw new InvalidOperationException(string.Format(Resources.MissingCompressionAlgorithmException, eventEnvelope.CompressionAlgorithm));
         }
 
-        public async Task ExecuteAsync(OnDecompressEvent pipelineEvent)
-        {
-            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
-        }
-
-        private async Task ExecuteAsync(OnDecompressEvent pipelineEvent, bool sync)
-        {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var eventEnvelope = state.GetEventEnvelope();
-
-            if (!eventEnvelope.CompressionEnabled())
-            {
-                return;
-            }
-
-            var algorithm = _compressionService.Get(eventEnvelope.CompressionAlgorithm);
-
-            if (algorithm == null)
-            {
-                throw new InvalidOperationException(string.Format(
-                    Resources.MissingCompressionAlgorithmException, eventEnvelope.CompressionAlgorithm));
-            }
-
-            eventEnvelope.Event = sync
-            ? algorithm.Decompress(eventEnvelope.Event)
-            : await algorithm.DecompressAsync(eventEnvelope.Event);
-        }
+        eventEnvelope.Event = await algorithm.DecompressAsync(eventEnvelope.Event);
     }
 }

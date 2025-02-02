@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IEventMethodInvoker
 {
-    public interface IEventMethodInvoker
-    {
-        void Apply(object instance, IEnumerable<object> events);
-    }
+    void Apply(object instance, IEnumerable<object> events);
 }

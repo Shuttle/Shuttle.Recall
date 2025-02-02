@@ -1,21 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Shuttle.Recall
-{
-    public interface IEventProcessor : IDisposable, IAsyncDisposable
-    {
-        bool Started { get; }
-        bool Asynchronous { get; }
-        IEventProcessor Start();
-        Projection AddProjection(string name);
-        Task<Projection> AddProjectionAsync(string name);
-        Projection GetProjection(string name);
-        Projection GetProjection();
-        void ReleaseProjection(Projection projection);
+namespace Shuttle.Recall;
 
-        ProjectionAggregation GetProjectionAggregation(Guid id);
-        Task<IEventProcessor> StartAsync();
-        Task StopAsync();
-    }
+public interface IEventProcessor : IDisposable, IAsyncDisposable
+{
+    bool Started { get; }
+    Task<IEventProcessor> StartAsync();
+    Task StopAsync();
 }

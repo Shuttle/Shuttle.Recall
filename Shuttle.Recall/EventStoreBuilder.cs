@@ -1,60 +1,63 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class EventStoreBuilder
 {
-    public class EventStoreBuilder
+    public event EventHandler<AddPipelineProcessingEventArgs>? AddPipelineProcessing;
+
+    private EventStoreOptions _eventStoreOptions = new();
+
+    public EventStoreBuilder(IServiceCollection services)
     {
-        private ProjectionConfiguration _projectionConfiguration = new ProjectionConfiguration();
-        private EventStoreOptions _eventStoreOptions = new EventStoreOptions();
+        Services = Guard.AgainstNull(services);
+    }
 
-        public EventStoreBuilder(IServiceCollection services)
-        {
-            Guard.AgainstNull(services, nameof(services));
+    public IEventProcessorConfiguration EventProcessorConfiguration { get; } = new EventProcessorConfiguration();
 
-            Services = services;
-        }
+    public EventStoreOptions Options
+    {
+        get => _eventStoreOptions;
+        set => _eventStoreOptions = Guard.AgainstNull(value);
+    }
 
-        public ProjectionConfiguration Configuration
-        {
-            get => _projectionConfiguration;
-            set => _projectionConfiguration = value ?? throw new ArgumentNullException(nameof(value));
-        }
+    public IServiceCollection Services { get; }
+    public bool ShouldSuppressEventProcessorHostedService { get; private set; }
 
-        public EventStoreOptions Options
-        {
-            get => _eventStoreOptions;
-            set => _eventStoreOptions = value ?? throw new ArgumentNullException(nameof(value));
-        }
+    public EventStoreBuilder SuppressEventProcessorHostedService()
+    {
+        ShouldSuppressEventProcessorHostedService = true;
 
-        public IServiceCollection Services { get; }
-        public bool SuppressEventProcessorHostedService { get; set; }
+        return this;
+    }
 
-        public EventStoreBuilder AddEventHandler<TEventHandler>(string projectionName) where TEventHandler : class
-        {
-            Guard.AgainstNullOrEmptyString(projectionName, nameof(projectionName));
+    public bool ShouldSuppressPipelineTransactionScope { get; private set; }
+    public bool ShouldSuppressPipelineProcessing { get; private set; }
 
-            var type = typeof(TEventHandler);
+    public EventStoreBuilder SuppressPipelineTransactionScope()
+    {
+        ShouldSuppressPipelineTransactionScope = true;
 
-            Services.AddTransient(type, type);
+        return this;
+    }
 
-            Configuration.AddProjectionEventHandlerType(projectionName, type);
+    public EventStoreBuilder SuppressPipelineProcessing()
+    {
+        ShouldSuppressPipelineProcessing = true;
 
-            return this;
-        }
+        return this;
+    }
 
-        public EventStoreBuilder AddEventHandler<TEventHandler>(Projection projection) where TEventHandler : class
-        {
-            Guard.AgainstNull(projection, nameof(projection));
+    public ProjectionBuilder AddProjection(string name)
+    {
+        return new(Services, EventProcessorConfiguration, name);
+    }
 
-            var type = typeof(TEventHandler);
-
-            Services.AddTransient(type, type);
-
-            Configuration.AddProjectionEventHandlerType(projection.Name, type);
-
-            return this;
-        }
+    public void OnAddPipelineProcessing(PipelineProcessingBuilder pipelineProcessingBuilder)
+    {
+        AddPipelineProcessing?.Invoke(this, new(pipelineProcessingBuilder));
     }
 }

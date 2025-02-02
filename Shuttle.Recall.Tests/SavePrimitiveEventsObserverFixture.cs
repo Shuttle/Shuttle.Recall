@@ -5,43 +5,40 @@ using NUnit.Framework;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Serialization;
 
-namespace Shuttle.Recall.Tests
+namespace Shuttle.Recall.Tests;
+
+[TestFixture]
+public class SavePrimitiveEventsObserverFixture
 {
-    [TestFixture]
-    public class SavePrimitiveEventsObserverFixture
+    [Test]
+    public void Should_be_able_to_raise_concurrency_exception_if_satisfied_by_specification()
     {
-        [Test]
-        public void Should_be_able_to_raise_concurrency_exception_if_satisfied_by_specification()
+        var specification = new Mock<IConcurrencyExceptionSpecification>();
+        var repository = new Mock<IPrimitiveEventRepository>();
+
+        repository.Setup(m => m.SaveAsync(It.IsAny<IEnumerable<PrimitiveEvent>>())).Throws<Exception>();
+
+        var observer = new SavePrimitiveEventsObserver(
+            repository.Object,
+            new Mock<ISerializer>().Object,
+            specification.Object);
+
+        var pipeline = new Pipeline(new Mock<IServiceProvider>().Object);
+
+        pipeline.State.SetEventStream(new(Guid.NewGuid(), new Mock<IEventMethodInvoker>().Object));
+        pipeline.State.SetEventEnvelopes(new List<EventEnvelope>
         {
-            var specification = new Mock<IConcurrencyExceptionSpecification>();
-            var repository = new Mock<IPrimitiveEventRepository>();
+            new()
+        });
 
-            repository.Setup(m => m.SaveAsync(It.IsAny<PrimitiveEvent>())).Throws<Exception>();
+        var pipelineContext = new PipelineContext<OnSavePrimitiveEvents>(pipeline);
 
-            var observer = new SavePrimitiveEventsObserver(
-                repository.Object,
-                new Mock<ISerializer>().Object,
-                specification.Object);
+        specification.Setup(m => m.IsSatisfiedBy(It.IsAny<Exception>())).Returns(false);
 
-            var pipeline = new Pipeline();
+        Assert.ThrowsAsync<ArgumentNullException>(async () => await observer.ExecuteAsync(pipelineContext)); // since mock serializer is returning null
 
-            pipeline.State.SetEventStream(new EventStream(Guid.NewGuid(), new Mock<IEventMethodInvoker>().Object));
-            pipeline.State.SetEventEnvelopes(new List<EventEnvelope>
-            {
-                new()
-            });
+        specification.Setup(m => m.IsSatisfiedBy(It.IsAny<Exception>())).Returns(true);
 
-            var pipelineEvent = new OnSavePrimitiveEvents();
-
-            pipelineEvent.Reset(pipeline);
-
-            specification.Setup(m => m.IsSatisfiedBy(It.IsAny<Exception>())).Returns(false);
-
-            Assert.Throws<NullReferenceException>(() => observer.Execute(pipelineEvent)); // since mock serializer is returning null
-
-            specification.Setup(m => m.IsSatisfiedBy(It.IsAny<Exception>())).Returns(true);
-
-            Assert.Throws<EventStreamConcurrencyException>(() => observer.Execute(pipelineEvent));
-        }
+        Assert.ThrowsAsync<EventStreamConcurrencyException>(async () => await observer.ExecuteAsync(pipelineContext));
     }
 }

@@ -2,52 +2,23 @@
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IAcknowledgeEventObserver : IPipelineObserver<OnAcknowledgeEvent>
 {
-    public interface IAcknowledgeEventObserver : IPipelineObserver<OnAcknowledgeEvent>
+}
+
+public class AcknowledgeEventObserver : IAcknowledgeEventObserver
+{
+    private readonly IProjectionService _service;
+
+    public AcknowledgeEventObserver(IProjectionService projectionService)
     {
+        _service = Guard.AgainstNull(projectionService);
     }
 
-    public class AcknowledgeEventObserver : IAcknowledgeEventObserver
+    public async Task ExecuteAsync(IPipelineContext<OnAcknowledgeEvent> pipelineContext)
     {
-        private readonly IProjectionRepository _repository;
-
-        public AcknowledgeEventObserver(IProjectionRepository repository)
-        {
-            Guard.AgainstNull(repository, nameof(repository));
-
-            _repository = repository;
-        }
-
-        public void Execute(OnAcknowledgeEvent pipelineEvent)
-        {
-            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
-        }
-
-        public async Task ExecuteAsync(OnAcknowledgeEvent pipelineEvent)
-        {
-            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
-        }
-
-        private async Task ExecuteAsync(OnAcknowledgeEvent pipelineEvent, bool sync)
-        {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var projection = Guard.AgainstNull(state.GetProjection(), StateKeys.Projection);
-            var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent(), nameof(ProjectionEvent));
-
-            if (!projectionEvent.HasPrimitiveEvent)
-            {
-                return;
-            }
-
-            if (sync)
-            {
-                _repository.SetSequenceNumber(projection.Name, projection.SequenceNumber);
-            }
-            else
-            {
-                await _repository.SetSequenceNumberAsync(projection.Name, projection.SequenceNumber).ConfigureAwait(false);
-            }
-        }
+        await _service.AcknowledgeEventAsync(Guard.AgainstNull(pipelineContext)).ConfigureAwait(false);
     }
 }

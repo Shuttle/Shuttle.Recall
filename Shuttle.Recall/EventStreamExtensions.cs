@@ -1,41 +1,38 @@
 ﻿using System;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public static class EventStreamExtensions
 {
-    public static class EventStreamExtensions
+    public static void EmptyInvariant(this EventStream stream)
     {
-        public static T Get<T>(this EventStream stream) where T : class
+        if (stream == null || stream.IsEmpty)
         {
-            Guard.AgainstNull(stream, nameof(stream));
+            throw new EventStreamEmptyException();
+        }
+    }
 
-            stream.EmptyInvariant();
+    public static T Get<T>(this EventStream stream) where T : class
+    {
+        Guard.AgainstNull(stream).EmptyInvariant();
 
-            T result;
+        T result;
 
-            try
-            {
-                result = (T)Activator.CreateInstance(typeof(T), stream.Id);
-            }
-            catch (Exception ex)
-            {
-                throw new AggregateConstructorException(Resources.AggregateConstructorException, ex);
-            }
-
-            if (!stream.IsEmpty)
-            {
-                stream.Apply(result);
-            }
-
-            return result;
+        try
+        {
+            result = Guard.AgainstNull(Activator.CreateInstance(typeof(T), stream.Id) as T);
+        }
+        catch (Exception ex)
+        {
+            throw new AggregateConstructorException(Resources.AggregateConstructorException, ex);
         }
 
-        public static void EmptyInvariant(this EventStream stream)
+        if (!stream.IsEmpty)
         {
-            if (stream == null || stream.IsEmpty)
-            {
-                throw new EventStreamEmptyException();
-            }
+            stream.Apply(result);
         }
+
+        return result;
     }
 }

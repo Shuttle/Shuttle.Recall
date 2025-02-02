@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class EventProcessingException : Exception
 {
-    public class EventProcessingException : Exception
+    public EventProcessingException(string message) : base(message)
     {
-        public EventProcessingException(string message) : base(message)
-        {
-        }
     }
 }

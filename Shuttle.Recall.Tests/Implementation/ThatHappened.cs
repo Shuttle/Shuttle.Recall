@@ -1,7 +1,6 @@
-﻿namespace Shuttle.Recall.Tests.Implementation
+﻿namespace Shuttle.Recall.Tests.Implementation;
+
+public class ThatHappened
 {
-    public class ThatHappened
-    {
-        public string ThatValue { get; set; }
-    }
+    public string ThatValue { get; set; } = string.Empty;
 }

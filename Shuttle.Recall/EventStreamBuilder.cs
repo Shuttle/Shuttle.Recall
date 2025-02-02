@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class EventStreamBuilder
 {
-    public class EventStreamBuilder
-    {
-        public List<EnvelopeHeader> Headers { get; set; } = new List<EnvelopeHeader>();
-    }
+    public List<EnvelopeHeader> Headers { get; set; } = new();
 }

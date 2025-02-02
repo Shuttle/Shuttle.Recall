@@ -1,10 +1,9 @@
 using System.Reflection;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IEventMethodInvokerConfiguration
 {
-    public interface IEventMethodInvokerConfiguration
-    {
-        string EventHandlingMethodName { get; }
-        BindingFlags BindingFlags { get; }
-    }
+    BindingFlags BindingFlags { get; }
+    string EventHandlingMethodName { get; }
 }

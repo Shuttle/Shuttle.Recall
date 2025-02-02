@@ -2,63 +2,38 @@
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IProjectionEventEnvelopeObserver : IPipelineObserver<OnGetEventEnvelope>
 {
-    public interface IProjectionEventEnvelopeObserver : IPipelineObserver<OnGetProjectionEventEnvelope>
+}
+
+public class ProjectionEventEnvelopeObserver : IProjectionEventEnvelopeObserver
+{
+    private readonly IPipelineFactory _pipelineFactory;
+
+    public ProjectionEventEnvelopeObserver(IPipelineFactory pipelineFactory)
     {
+        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
     }
 
-    public class ProjectionEventEnvelopeObserver : IProjectionEventEnvelopeObserver
+    public async Task ExecuteAsync(IPipelineContext<OnGetEventEnvelope> pipelineContext)
     {
-        private readonly IPipelineFactory _pipelineFactory;
+        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
+        var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent());
 
-        public ProjectionEventEnvelopeObserver(IPipelineFactory pipelineFactory)
+        var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
+
+        try
         {
-            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
+            await pipeline.ExecuteAsync(projectionEvent.PrimitiveEvent);
 
-            _pipelineFactory = pipelineFactory;
+            state.SetEventEnvelope(pipeline.State.GetEventEnvelope());
+            state.SetDomainEvent(pipeline.State.GetDomainEvent());
         }
-
-        public void Execute(OnGetProjectionEventEnvelope pipelineEvent)
+        finally
         {
-            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
-        }
-
-        public async Task ExecuteAsync(OnGetProjectionEventEnvelope pipelineEvent)
-        {
-            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
-        }
-
-        public async Task ExecuteAsync(OnGetProjectionEventEnvelope pipelineEvent, bool sync)
-        {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent(), StateKeys.ProjectionEvent);
-
-            if (!projectionEvent.HasPrimitiveEvent)
-            {
-                return;
-            }
-
-            var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
-
-            try
-            {
-                if (sync)
-                {
-                    pipeline.Execute(projectionEvent.PrimitiveEvent);
-                }
-                else
-                {
-                    await pipeline.ExecuteAsync(projectionEvent.PrimitiveEvent);
-                }
-
-                state.SetEventEnvelope(pipeline.State.GetEventEnvelope());
-                state.SetEvent(pipeline.State.GetEvent());
-            }
-            finally
-            {
-                _pipelineFactory.ReleasePipeline(pipeline);
-            }
+            _pipelineFactory.ReleasePipeline(pipeline);
         }
     }
 }

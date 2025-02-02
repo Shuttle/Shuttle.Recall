@@ -1,23 +1,13 @@
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class DomainEvent
 {
-    public class DomainEvent
+    public DomainEvent(object @event, int version)
     {
-        public DomainEvent(object @event, int version)
-        {
-            Event = @event;
-            Version = version;
-            IsSnapshot = false;
-        }
-
-        public object Event { get; }
-        public bool IsSnapshot { get; private set; }
-        public int Version { get; }
-
-        public DomainEvent AsSnapshot()
-        {
-            IsSnapshot = true;
-
-            return this;
-        }
+        Event = @event;
+        Version = version;
     }
+
+    public object Event { get; }
+    public int Version { get; }
 }

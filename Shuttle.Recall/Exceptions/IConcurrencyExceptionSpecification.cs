@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IConcurrencyExceptionSpecification
 {
-    public interface IConcurrencyExceptionSpecification
-    {
-        bool IsSatisfiedBy(Exception exception);
-    }
+    bool IsSatisfiedBy(Exception exception);
 }

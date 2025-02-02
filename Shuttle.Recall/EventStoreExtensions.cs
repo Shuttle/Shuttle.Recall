@@ -1,12 +1,12 @@
 ﻿using System;
+using System.Threading.Tasks;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public static class EventStoreExtensions
 {
-    public static class EventStoreExtensions
+    public static async Task<EventStream> GetAsync(this IEventStore eventStore, Action<EventStreamBuilder>? builder = null)
     {
-        public static EventStream Get(this IEventStore eventStore)
-        {
-            return eventStore.Get(Guid.Empty);
-        }
+        return await eventStore.GetAsync(Guid.Empty, builder);
     }
 }

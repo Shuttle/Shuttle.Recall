@@ -1,91 +1,80 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Serialization;
 using Shuttle.Core.Streams;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface ISavePrimitiveEventsObserver : IPipelineObserver<OnSavePrimitiveEvents>
 {
-    public interface ISavePrimitiveEventsObserver : IPipelineObserver<OnSavePrimitiveEvents>
+}
+
+public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
+{
+    private readonly IConcurrencyExceptionSpecification _concurrencyExceptionSpecification;
+    private readonly IPrimitiveEventRepository _primitiveEventRepository;
+    private readonly ISerializer _serializer;
+
+    public SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEventRepository, ISerializer serializer, IConcurrencyExceptionSpecification concurrencyExceptionSpecification)
     {
+        _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
+        _serializer = Guard.AgainstNull(serializer);
+        _concurrencyExceptionSpecification = Guard.AgainstNull(concurrencyExceptionSpecification);
     }
 
-    public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
+    public async Task ExecuteAsync(IPipelineContext<OnSavePrimitiveEvents> pipelineContext)
     {
-        private readonly IConcurrencyExceptionSpecification _concurrencyExceptionSpecification;
-        private readonly IPrimitiveEventRepository _primitiveEventRepository;
-        private readonly ISerializer _serializer;
+        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
+        var eventStream = state.GetEventStream();
+        var eventEnvelopes = Guard.AgainstNull(state.GetEventEnvelopes());
 
-        public SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEventRepository, ISerializer serializer, IConcurrencyExceptionSpecification concurrencyExceptionSpecification)
+        var version = -1;
+
+        try
         {
-            _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository, nameof(primitiveEventRepository));
-            _serializer = Guard.AgainstNull(serializer, nameof(serializer));
-            _concurrencyExceptionSpecification = Guard.AgainstNull(concurrencyExceptionSpecification, nameof(concurrencyExceptionSpecification));
-        }
+            var primitiveEvents = new List<PrimitiveEvent>();
 
-        public void Execute(OnSavePrimitiveEvents pipelineEvent)
-        {
-            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
-        }
-
-        public async Task ExecuteAsync(OnSavePrimitiveEvents pipelineEvent)
-        {
-            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
-        }
-
-        private async Task ExecuteAsync(OnSavePrimitiveEvents pipelineEvent, bool sync)
-        {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var eventStream = Guard.AgainstNull(state.GetEventStream(), StateKeys.EventStream);
-            var eventEnvelopes = Guard.AgainstNull(state.GetEventEnvelopes(), StateKeys.EventEnvelopes);
-
-            var version = -1;
-            long sequenceNumber = 0;
-
-            try
+            foreach (var eventEnvelope in eventEnvelopes)
             {
-                foreach (var eventEnvelope in eventEnvelopes)
+                version = eventEnvelope.Version;
+
+                var primitiveEvent = new PrimitiveEvent
                 {
-                    version = eventEnvelope.Version;
+                    Id = eventStream.Id,
+                    Version = version,
+                    CorrelationId = eventStream.CorrelationId,
+                    EventEnvelope = await (await _serializer.SerializeAsync(eventEnvelope)).ToBytesAsync(),
+                    EventId = eventEnvelope.EventId,
+                    EventType = eventEnvelope.EventType,
+                    DateRegistered = eventEnvelope.EventDate
+                };
 
-                    var primitiveEvent = new PrimitiveEvent
-                    {
-                        Id = eventStream.Id,
-                        EventEnvelope = sync ? _serializer.Serialize(eventEnvelope).ToBytes() : await (await _serializer.SerializeAsync(eventEnvelope)).ToBytesAsync(),
-                        EventId = eventEnvelope.EventId,
-                        EventType = eventEnvelope.EventType,
-                        IsSnapshot = eventEnvelope.IsSnapshot,
-                        Version = version,
-                        DateRegistered = eventEnvelope.EventDate
-                    };
-
-                    sequenceNumber = sync
-                        ? _primitiveEventRepository.Save(primitiveEvent)
-                        : await _primitiveEventRepository.SaveAsync(primitiveEvent).ConfigureAwait(false);
-
-                    if (sequenceNumber > 0)
-                    {
-                        state.SetSequenceNumber(sequenceNumber);
-                    }
-                }
-
-                if (sequenceNumber < 1)
-                {
-                    state.SetSequenceNumber(sync 
-                        ? _primitiveEventRepository.GetSequenceNumber(eventStream.Id)
-                        : await _primitiveEventRepository.GetSequenceNumberAsync(eventStream.Id).ConfigureAwait(false));
-                }
+                primitiveEvents.Add(primitiveEvent);
             }
-            catch (Exception ex)
+
+            var sequenceNumber = await _primitiveEventRepository.SaveAsync(primitiveEvents).ConfigureAwait(false);
+
+            switch (sequenceNumber)
             {
-                if (_concurrencyExceptionSpecification.IsSatisfiedBy(ex))
-                {
-                    throw new EventStreamConcurrencyException(string.Format(Resources.EventStreamConcurrencyException, eventStream.Id, version), ex);
-                }
-
-                throw;
+                case > 0:
+                    state.SetSequenceNumber(sequenceNumber);
+                    break;
+                case < 1:
+                    state.SetSequenceNumber(await _primitiveEventRepository.GetSequenceNumberAsync(eventStream.Id).ConfigureAwait(false));
+                    break;
             }
+        }
+        catch (Exception ex)
+        {
+            if (_concurrencyExceptionSpecification.IsSatisfiedBy(ex))
+            {
+                throw new EventStreamConcurrencyException(string.Format(Resources.EventStreamConcurrencyException, eventStream.Id, version), ex);
+            }
+
+            throw;
         }
     }
 }

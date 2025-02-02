@@ -1,197 +1,103 @@
-﻿using Shuttle.Core.Pipelines;
+﻿namespace Shuttle.Recall;
 
-namespace Shuttle.Recall
-{
-    public class OnBeforeAddProjection: PipelineEvent
-    {
-    }
+public class OnBeforeAddProjection;
 
-    public class OnAddProjection: PipelineEvent
-    {
-    }
+public class OnAddProjection;
 
-    public class OnAfterAddProjection: PipelineEvent
-    {
-    }
+public class OnAfterAddProjection;
 
-    public class OnGetProjectionEventEnvelope : PipelineEvent
-    {
-    }
+public class OnGetEventEnvelope;
 
-    public class OnAfterGetProjectionEventEnvelope : PipelineEvent
-    {
-    }
+public class OnAfterGetEventEnvelope;
 
-    public class OnAssembleEventEnvelopes : PipelineEvent
-    {
-    }
+public class OnAssembleEventEnvelopes;
 
-    public class OnAfterAssembleEventEnvelopes : PipelineEvent
-    {
-    }
+public class OnAfterAssembleEventEnvelopes;
 
-    public class OnBeforeSavePrimitiveEvents : PipelineEvent
-    {
-    }
+public class OnBeforeSavePrimitiveEvents;
 
-    public class OnSavePrimitiveEvents : PipelineEvent
-    {
-    }
+public class OnSavePrimitiveEvents;
 
-    public class OnAfterSavePrimitiveEvents : PipelineEvent
-    {
-    }
+public class OnAfterSavePrimitiveEvents;
 
-    public class OnCommitEventStream : PipelineEvent
-    {
-    }
+public class OnCommitEventStream;
 
-    public class OnAfterCommitEventStream : PipelineEvent
-    {
-    }
+public class OnAfterCommitEventStream;
 
-    public class OnBeforeGetStreamEvents : PipelineEvent
-    {
-    }
+public class OnBeforeGetStreamEvents;
 
-    public class OnGetStreamEvents : PipelineEvent
-    {
-    }
+public class OnGetStreamEvents;
 
-    public class OnAfterGetStreamEvents : PipelineEvent
-    {
-    }
+public class OnAfterGetStreamEvents;
 
-    public class OnAssembleEventStream : PipelineEvent
-    {
-    }
+public class OnAssembleEventStream;
 
-    public class OnAfterAssembleEventStream : PipelineEvent
-    {
-    }
+public class OnAfterAssembleEventStream;
 
-    public class OnBeforeRemoveEventStream : PipelineEvent
-    {
-    }
+public class OnBeforeRemoveEventStream;
 
-    public class OnRemoveEventStream : PipelineEvent
-    {
-    }
+public class OnRemoveEventStream;
 
-    public class OnAfterRemoveEventStream : PipelineEvent
-    {
-    }
+public class OnAfterRemoveEventStream;
 
-    public class OnGetProjectionEvent : PipelineEvent
-    {
-    }
+public class OnGetEvent;
 
-    public class OnAfterGetProjectionEvent : PipelineEvent
-    {
-    }
+public class OnAfterGetEvent;
 
-    public class OnProcessEvent : PipelineEvent
-    {
-    }
+public class OnHandleEvent;
 
-    public class OnAfterProcessEvent : PipelineEvent
-    {
-    }
+public class OnAfterHandleEvent;
 
-    public class OnAcknowledgeEvent : PipelineEvent
-    {
-    }
+public class OnAcknowledgeEvent;
 
-    public class OnAfterAcknowledgeEvent : PipelineEvent
-    {
-    }
+public class OnAfterAcknowledgeEvent;
 
-    public class OnDeserializeEventEnvelope : PipelineEvent
-    {
-    }
+public class OnDeserializeEventEnvelope;
 
-    public class OnAfterDeserializeEventEnvelope : PipelineEvent
-    {
-    }
+public class OnAfterDeserializeEventEnvelope;
 
-    public class OnDecryptEvent : PipelineEvent
-    {
-    }
+public class OnDecryptEvent;
 
-    public class OnAfterDecryptEvent : PipelineEvent
-    {
-    }
+public class OnAfterDecryptEvent;
 
-    public class OnDeserializeEvent : PipelineEvent
-    {
-    }
+public class OnDeserializeEvent;
 
-    public class OnAfterDeserializeEvent : PipelineEvent
-    {
-    }
+public class OnAfterDeserializeEvent;
 
-    public class OnDecompressEvent : PipelineEvent
-    {
-    }
+public class OnDecompressEvent;
 
-    public class OnAfterDecompressEvent : PipelineEvent
-    {
-    }
+public class OnAfterDecompressEvent;
 
-    public class OnSerializeEvent : PipelineEvent
-    {
-    }
+public class OnSerializeEvent;
 
-    public class OnAfterSerializeEvent : PipelineEvent
-    {
-    }
+public class OnAfterSerializeEvent;
 
-    public class OnAssembleEventEnvelope : PipelineEvent
-    {
-    }
+public class OnAssembleEventEnvelope;
 
-    public class OnAfterAssembleEventEnvelope : PipelineEvent
-    {
-    }
+public class OnAfterAssembleEventEnvelope;
 
-    public class OnCompressEvent : PipelineEvent
-    {
-    }
+public class OnCompressEvent;
 
-    public class OnAfterCompressEvent : PipelineEvent
-    {
-    }
+public class OnAfterCompressEvent;
 
-    public class OnEncryptEvent : PipelineEvent
-    {
-    }
+public class OnEncryptEvent;
 
-    public class OnAfterEncryptEvent : PipelineEvent
-    {
-    }
+public class OnAfterEncryptEvent;
 
-    public class OnStartEventProcessing : PipelineEvent
-    {
-    }
+public class OnStartEventProcessing;
 
-    public class OnAfterStartEventProcessing : PipelineEvent
-    {
-    }
+public class OnAfterStartEventProcessing;
 
-    public class OnConfigureThreadPools : PipelineEvent
-    {
-    }
+public class OnConfigureThreadPools;
 
-    public class OnAfterConfigureThreadPools : PipelineEvent
-    {
-    }
+public class OnAfterConfigureThreadPools;
 
-    public class OnStartThreadPools : PipelineEvent
-    {
-    }
+public class OnStartThreadPools;
 
-    public class OnAfterStartThreadPools : PipelineEvent
-    {
-    }
+public class OnAfterStartThreadPools;
 
-}
+public class OnBeforeSaveEventStreamCompleted;
+
+public class OnSaveEventStreamCompleted;
+
+public class OnAfterSaveEventStreamCompleted;

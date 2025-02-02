@@ -1,37 +1,99 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
+using Shuttle.Core.Reflection;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class ProjectionConfiguration
 {
-    public class ProjectionConfiguration : IProjectionConfiguration
+    private static readonly Type EventHandlerContextType = typeof(IEventHandlerContext<>);
+    private readonly Dictionary<Type, ProjectionDelegate> _delegates = new();
+    private readonly List<Type> _handlerEventTypes = new();
+    private readonly List<Type> _eventTypes = new();
+
+    public IEnumerable<Type> EventTypes => _eventTypes;
+
+    public ProjectionConfiguration(string name)
     {
-        private readonly Dictionary<string, List<Type>> _projectionNameEventHandlerTypes = new Dictionary<string, List<Type>>();
+        Name = Guard.AgainstNullOrEmptyString(name);
+    }
 
-        public void AddProjectionEventHandlerType(string projectionName, Type eventHandlerType)
+    public string Name { get; }
+
+    public void AddEventHandler(Delegate handler)
+    {
+        if (!typeof(Task).IsAssignableFrom(Guard.AgainstNull(handler).Method.ReturnType))
         {
-            Guard.AgainstNullOrEmptyString(projectionName, nameof(projectionName));
-            Guard.AgainstNull(eventHandlerType, nameof(eventHandlerType));
+            throw new ApplicationException(Resources.AsyncDelegateRequiredException);
+        }
 
-            if (!_projectionNameEventHandlerTypes.ContainsKey(projectionName))
+        var parameters = handler.Method.GetParameters();
+        Type? eventType = null;
+
+        foreach (var parameter in parameters)
+        {
+            var parameterType = parameter.ParameterType;
+
+            if (parameterType.IsCastableTo(EventHandlerContextType))
             {
-                _projectionNameEventHandlerTypes.Add(projectionName, new List<Type>());
+                eventType = parameterType.GetGenericArguments()[0];
             }
-
-            _projectionNameEventHandlerTypes[projectionName].Add(eventHandlerType);
         }
 
-        public IEnumerable<string> GetProjectionNames()
+        if (eventType == null)
         {
-            return _projectionNameEventHandlerTypes.Keys;
+            throw new InvalidOperationException(Resources.EventHandlerTypeException);
         }
 
-        public IEnumerable<Type> GetEventHandlerTypes(string projectionName)
+        if (_handlerEventTypes.Contains(eventType))
         {
-            Guard.AgainstNullOrEmptyString(projectionName, nameof(projectionName));
-
-            return _projectionNameEventHandlerTypes[projectionName] ?? Enumerable.Empty<Type>();
+            throw new InvalidOperationException(string.Format(Resources.ProjectionHandlerEventTypeAlreadyRegisteredException, eventType.FullName, Name));
         }
+
+        if (!_delegates.TryAdd(eventType, new(handler, handler.Method.GetParameters().Select(item => item.ParameterType))))
+        {
+            throw new InvalidOperationException(string.Format(Resources.DuplicateProjectionDelegateException, eventType.FullName, Name));
+        }
+
+        _eventTypes.Add(eventType);
+    }
+
+    public void AddHandlerEventType(Type eventType)
+    {
+        if (_delegates.ContainsKey(Guard.AgainstNull(eventType)))
+        {
+            throw new InvalidOperationException(string.Format(Resources.ProjectionDelegateEventTypeAlreadyRegisteredException, eventType.FullName, Name));
+        }
+
+        if (_handlerEventTypes.Contains(eventType))
+        {
+            throw new InvalidOperationException(string.Format(Resources.DuplicateProjectionEventHandlerServiceException, eventType.FullName, Name));
+        }
+
+        _handlerEventTypes.Add(eventType);
+        _eventTypes.Add(eventType);
+    }
+
+    public bool HandlesEventType(Type eventType)
+    {
+        return _eventTypes.Contains(Guard.AgainstNull(eventType));
+    }
+
+    public bool TryGetDelegate(Type eventType, [MaybeNullWhen(false)] out ProjectionDelegate handler)
+    {
+        if (!_delegates.ContainsKey(Guard.AgainstNull(eventType)))
+        {
+            handler = null;
+
+            return false;
+        }
+
+        handler = _delegates[eventType];
+
+        return true;
     }
 }

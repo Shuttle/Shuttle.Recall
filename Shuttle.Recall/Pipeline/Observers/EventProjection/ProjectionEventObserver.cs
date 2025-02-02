@@ -2,47 +2,34 @@
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IProjectionEventObserver : IPipelineObserver<OnGetEvent>
 {
-    public interface IProjectionEventObserver : IPipelineObserver<OnGetProjectionEvent>
+}
+
+public class ProjectionEventObserver : IProjectionEventObserver
+{
+    private readonly IProjectionService _provider;
+
+    public ProjectionEventObserver(IProjectionService provider)
     {
+        _provider = Guard.AgainstNull(provider);
     }
 
-    public class ProjectionEventObserver : IProjectionEventObserver
+    public async Task ExecuteAsync(IPipelineContext<OnGetEvent> pipelineContext)
     {
-        private readonly IProjectionEventProvider _provider;
+        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
+        var projectionEvent = await _provider.GetEventAsync(pipelineContext).ConfigureAwait(false);
 
-        public ProjectionEventObserver(IProjectionEventProvider provider)
+        if (projectionEvent == null)
         {
-            Guard.AgainstNull(provider, nameof(provider));
+            pipelineContext.Pipeline.Abort();
 
-            _provider = provider;
+            return;
         }
 
-        public void Execute(OnGetProjectionEvent pipelineEvent)
-        {
-            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
-        }
-
-        public async Task ExecuteAsync(OnGetProjectionEvent pipelineEvent)
-        {
-            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
-        }
-
-        private async Task ExecuteAsync(OnGetProjectionEvent pipelineEvent, bool sync)
-        {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var projection = Guard.AgainstNull(state.GetProjection(), StateKeys.Projection);
-            var projectionEvent = sync
-                ? _provider.Get(projection)
-                : await _provider.GetAsync(projection);
-
-            if (projectionEvent.HasPrimitiveEvent)
-            {
-                state.SetWorking();
-            }
-
-            state.SetProjectionEvent(projectionEvent);
-        }
+        state.SetWorking();
+        state.SetProjectionEvent(projectionEvent);
     }
 }

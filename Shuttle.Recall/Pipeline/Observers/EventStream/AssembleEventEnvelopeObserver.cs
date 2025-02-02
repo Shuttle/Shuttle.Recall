@@ -3,58 +3,41 @@ using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public interface IAssembleEventEnvelopeObserver : IPipelineObserver<OnAssembleEventEnvelope>
 {
-    public interface IAssembleEventEnvelopeObserver : IPipelineObserver<OnAssembleEventEnvelope>
+}
+
+public class AssembleEventEnvelopeObserver : IAssembleEventEnvelopeObserver
+{
+    private readonly EventStoreOptions _eventStoreOptions;
+
+    public AssembleEventEnvelopeObserver(IOptions<EventStoreOptions> eventStoreOptions)
     {
+        _eventStoreOptions = Guard.AgainstNull(Guard.AgainstNull(eventStoreOptions).Value);
     }
 
-    public class AssembleEventEnvelopeObserver : IAssembleEventEnvelopeObserver
+    public async Task ExecuteAsync(IPipelineContext<OnAssembleEventEnvelope> pipelineContext)
     {
-        private readonly EventStoreOptions _eventStoreOptions;
+        var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
+        var domainEvent = state.GetDomainEvent();
+        var domainEventType = Guard.AgainstNull(domainEvent.Event.GetType());
+        var builder = state.GetEventStreamBuilder();
 
-        public AssembleEventEnvelopeObserver(IOptions<EventStoreOptions> eventStoreOptions)
+        var eventEnvelope = new EventEnvelope
         {
-            Guard.AgainstNull(eventStoreOptions, nameof(eventStoreOptions));
+            Event = state.GetEventBytes(),
+            EventType = Guard.AgainstNullOrEmptyString(domainEventType.FullName),
+            Version = domainEvent.Version,
+            AssemblyQualifiedName = Guard.AgainstNullOrEmptyString(domainEventType.AssemblyQualifiedName),
+            EncryptionAlgorithm = _eventStoreOptions.EncryptionAlgorithm,
+            CompressionAlgorithm = _eventStoreOptions.CompressionAlgorithm,
+            Headers = builder.Headers
+        };
 
-            _eventStoreOptions = Guard.AgainstNull(eventStoreOptions.Value, nameof(eventStoreOptions.Value));
-        }
+        state.SetEventEnvelope(eventEnvelope);
 
-        public void Execute(OnAssembleEventEnvelope pipelineEvent)
-        {
-            ExecuteAsync(pipelineEvent, true).GetAwaiter().GetResult();
-        }
-
-        public async Task ExecuteAsync(OnAssembleEventEnvelope pipelineEvent)
-        {
-            await ExecuteAsync(pipelineEvent, false).ConfigureAwait(false);
-        }
-
-        private async Task ExecuteAsync(OnAssembleEventEnvelope pipelineEvent, bool sync)
-        {
-            var state = Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)).Pipeline.State;
-            var domainEvent = Guard.AgainstNull(state.GetDomainEvent(), StateKeys.DomainEvent);
-            var builder = state.GetEventStreamBuilder();
-
-            var eventEnvelope = new EventEnvelope
-            {
-                Event = state.GetEventBytes(),
-                EventType = domainEvent.Event.GetType().FullName,
-                IsSnapshot = domainEvent.IsSnapshot,
-                Version = domainEvent.Version,
-                AssemblyQualifiedName = domainEvent.Event.GetType().AssemblyQualifiedName,
-                EncryptionAlgorithm = _eventStoreOptions.EncryptionAlgorithm,
-                CompressionAlgorithm = _eventStoreOptions.CompressionAlgorithm
-            };
-
-            if (builder != null)
-            {
-                eventEnvelope.Headers = builder.Headers;
-            }
-
-            state.SetEventEnvelope(eventEnvelope);
-
-            await Task.CompletedTask;
-        }
+        await Task.CompletedTask;
     }
 }

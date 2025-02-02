@@ -1,11 +1,10 @@
 using System;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+[Serializable]
+public class EnvelopeHeader
 {
-    [Serializable]
-    public class EnvelopeHeader
-    {
-        public string Key { get; set; }
-        public string Value { get; set; }
-    }
+    public string Key { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
 }

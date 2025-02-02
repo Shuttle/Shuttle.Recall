@@ -4,134 +4,132 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Recall
+namespace Shuttle.Recall;
+
+public class EventStream
 {
-    public class EventStream
+    [Flags]
+    public enum EventRegistrationType
     {
-        [Flags]
-        public enum EventRegistrationType
+        Committed = 1 << 0,
+        Appended = 1 << 1,
+        All = Committed + Appended
+    }
+
+    private readonly List<DomainEvent> _appendedEvents = [];
+    private readonly IEventMethodInvoker _eventMethodInvoker;
+    private readonly List<DomainEvent> _events = [];
+    private int _nextVersion;
+
+    public EventStream(Guid id, IEventMethodInvoker eventMethodInvoker)
+        : this(id, 0, eventMethodInvoker)
+    {
+        Id = id;
+        Version = 0;
+    }
+
+    public EventStream(Guid id, int version, IEventMethodInvoker eventMethodInvoker, IEnumerable<DomainEvent>? events = null)
+    {
+        Id = id;
+        Version = version;
+        _nextVersion = version + 1;
+        _eventMethodInvoker = Guard.AgainstNull(eventMethodInvoker);
+
+        if (events != null)
         {
-            Committed = 1 << 0,
-            Appended = 1 << 1,
-            All = Committed + Appended
+            _events.AddRange(events);
+        }
+    }
+
+    public Guid? CorrelationId { get; private set; }
+
+    public int Count => (_events?.Count ?? 0) + _appendedEvents.Count;
+    public Guid Id { get; }
+    public bool IsEmpty => Count == 0;
+    public bool Removed { get; private set; }
+    public int Version { get; }
+
+    public EventStream Add(object @event)
+    {
+        _appendedEvents.Add(new(Guard.AgainstNull(@event), GetNextVersion()));
+
+        return this;
+    }
+
+    public EventStream Apply(object instance)
+    {
+        _eventMethodInvoker.Apply(Guard.AgainstNull(instance), _events.Select(domainEvent => domainEvent.Event));
+
+        return this;
+    }
+
+    public EventStream Commit()
+    {
+        _events.AddRange(_appendedEvents);
+        _appendedEvents.Clear();
+
+        return this;
+    }
+
+    public EventStream ConcurrencyInvariant(int expectedVersion)
+    {
+        if (expectedVersion != Version)
+        {
+            throw new EventStreamConcurrencyException(string.Format(
+                Resources.EventStreamConcurrencyException, Id, Version,
+                expectedVersion));
         }
 
-        private readonly List<DomainEvent> _appendedEvents = new List<DomainEvent>();
-        private readonly IEventMethodInvoker _eventMethodInvoker;
-        private readonly List<DomainEvent> _events = new List<DomainEvent>();
-        private int _nextVersion;
+        return this;
+    }
 
-        public EventStream(Guid id, IEventMethodInvoker eventMethodInvoker)
-            : this(id, 0, null, eventMethodInvoker)
+    public IEnumerable<DomainEvent> GetEvents(EventRegistrationType type = EventRegistrationType.Appended)
+    {
+        var result = new List<DomainEvent>();
+
+        if (type.HasFlag(EventRegistrationType.Appended))
         {
-            Id = id;
-            Version = 0;
+            result.AddRange(_appendedEvents);
         }
 
-        public EventStream(Guid id, int version, IEnumerable<DomainEvent> events, IEventMethodInvoker eventMethodInvoker)
+        if (type.HasFlag(EventRegistrationType.Committed))
         {
-            Guard.AgainstNull(eventMethodInvoker, nameof(eventMethodInvoker));
-
-            Id = id;
-            Version = version;
-            _nextVersion = version + 1;
-            _eventMethodInvoker = eventMethodInvoker;
-
-            if (events != null)
-            {
-                _events.AddRange(events);
-            }
+            result.AddRange(_events);
         }
 
-        public Guid Id { get; }
-        public int Version { get; }
-        public object Snapshot { get; private set; }
+        return new ReadOnlyCollection<DomainEvent>(result);
+    }
 
-        public int Count => (_events?.Count ?? 0) + _appendedEvents.Count;
+    private int GetNextVersion()
+    {
+        var result = _nextVersion;
 
-        public bool IsEmpty => Count == 0;
+        _nextVersion += 1;
 
-        public bool HasSnapshot => Snapshot != null;
+        return result;
+    }
 
-        public bool Removed { get; private set; }
+    public EventStream Remove()
+    {
+        Removed = true;
 
-        public EventStream AddEvent(object @event)
+        return this;
+    }
+
+    public bool ShouldSave()
+    {
+        return _appendedEvents.Count > 0;
+    }
+
+    public EventStream WithCorrelationId(Guid correlationId)
+    {
+        if (CorrelationId.HasValue)
         {
-            Guard.AgainstNull(@event, nameof(@event));
-
-            _appendedEvents.Add(new DomainEvent(@event, GetNextVersion()));
-
-            return this;
+            throw new InvalidOperationException(string.Format(Resources.EventStreamCorrelationIdAlreadySetException, Id, CorrelationId));
         }
 
-        private int GetNextVersion()
-        {
-            var result = _nextVersion;
+        CorrelationId = correlationId;
 
-            _nextVersion += 1;
-
-            return result;
-        }
-
-        public EventStream AddSnapshot(object snapshot)
-        {
-            Guard.AgainstNull(snapshot, nameof(snapshot));
-
-            Snapshot = snapshot;
-
-            _appendedEvents.Add(new DomainEvent(snapshot, GetNextVersion()).AsSnapshot());
-
-            return this;
-        }
-
-        public void Apply(object instance)
-        {
-            Guard.AgainstNull(instance, nameof(instance));
-
-            _eventMethodInvoker.Apply(instance, _events.Select(domainEvent => domainEvent.Event));
-        }
-
-        public void Remove()
-        {
-            Removed = true;
-        }
-
-        public void ConcurrencyInvariant(int expectedVersion)
-        {
-            if (expectedVersion != Version)
-            {
-                throw new EventStreamConcurrencyException(string.Format(
-                    Resources.EventStreamConcurrencyException, Id, Version,
-                    expectedVersion));
-            }
-        }
-
-        public bool ShouldSave()
-        {
-            return _appendedEvents.Count > 0;
-        }
-
-        public IEnumerable<DomainEvent> GetEvents(EventRegistrationType type = EventRegistrationType.Appended)
-        {
-            var result = new List<DomainEvent>();
-
-            if (type.HasFlag(EventRegistrationType.Appended))
-            {
-                result.AddRange(_appendedEvents);
-            }
-
-            if (type.HasFlag(EventRegistrationType.Committed))
-            {
-                result.AddRange(_events);
-            }
-
-            return new ReadOnlyCollection<DomainEvent>(result);
-        }
-
-        public void Commit()
-        {
-            _events.AddRange(_appendedEvents);
-            _appendedEvents.Clear();
-        }
+        return this;
     }
 }
