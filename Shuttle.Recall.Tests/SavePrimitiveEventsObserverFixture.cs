@@ -35,7 +35,7 @@ public class SavePrimitiveEventsObserverFixture
 
         specification.Setup(m => m.IsSatisfiedBy(It.IsAny<Exception>())).Returns(false);
 
-        Assert.ThrowsAsync<NullReferenceException>(async () => await observer.ExecuteAsync(pipelineContext)); // since mock serializer is returning null
+        Assert.ThrowsAsync<ArgumentNullException>(async () => await observer.ExecuteAsync(pipelineContext)); // since mock serializer is returning null
 
         specification.Setup(m => m.IsSatisfiedBy(It.IsAny<Exception>())).Returns(true);
 

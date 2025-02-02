@@ -71,8 +71,8 @@ public class Program
                 options.AddSecurityDefinition("Shuttle.Access", new()
                 {
                     Name = "Authorization",
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "Bearer",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Shuttle.Access",
                     In = ParameterLocation.Header,
                     Description = "Custom authorization header using the Shuttle.Access scheme. Example: 'Shuttle.Access token=GUID'."
                 });
