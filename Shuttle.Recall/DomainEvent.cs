@@ -1,13 +1,7 @@
 namespace Shuttle.Recall;
 
-public class DomainEvent
+public class DomainEvent(object @event, int version)
 {
-    public DomainEvent(object @event, int version)
-    {
-        Event = @event;
-        Version = version;
-    }
-
-    public object Event { get; }
-    public int Version { get; }
+    public object Event { get; } = @event;
+    public int Version { get; } = version;
 }

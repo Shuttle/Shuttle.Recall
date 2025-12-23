@@ -1,21 +1,18 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
 public class GetEventStreamPipeline : Pipeline
 {
-    public GetEventStreamPipeline(IServiceProvider serviceProvider, IGetStreamEventsObserver getStreamEventsObserver, IAssembleEventStreamObserver assembleEventStreamObserver) 
-        : base(serviceProvider)
+    public GetEventStreamPipeline(IPipelineDependencies pipelineDependencies, IGetStreamEventsObserver getStreamEventsObserver, IAssembleEventStreamObserver assembleEventStreamObserver)
+        : base(pipelineDependencies)
     {
         AddStage("GetEventStream")
-            .WithEvent<OnBeforeGetStreamEvents>()
-            .WithEvent<OnGetStreamEvents>()
-            .WithEvent<OnAfterGetStreamEvents>()
-            .WithEvent<OnAssembleEventStream>()
-            .WithEvent<OnAfterAssembleEventStream>();
+            .WithEvent<RetrieveStreamEvents>()
+            .WithEvent<StreamEventsRetrieved>()
+            .WithEvent<AssembleEventStream>()
+            .WithEvent<EventStreamAssembled>();
 
         AddObserver(Guard.AgainstNull(getStreamEventsObserver));
         AddObserver(Guard.AgainstNull(assembleEventStreamObserver));

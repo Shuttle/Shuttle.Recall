@@ -1,33 +1,31 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
 public class EventProcessingPipeline : Pipeline
 {
-    public EventProcessingPipeline(IServiceProvider serviceProvider, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver) 
-        : base(serviceProvider)
+    public EventProcessingPipeline(IPipelineDependencies pipelineDependencies, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver)
+        : base(pipelineDependencies)
     {
         AddStage("Read")
-            .WithEvent<OnGetEvent>()
-            .WithEvent<OnAfterGetEvent>()
-            .WithEvent<OnGetEventEnvelope>()
-            .WithEvent<OnAfterGetEventEnvelope>();
+            .WithEvent<RetrieveEvent>()
+            .WithEvent<EventRetrieved>()
+            .WithEvent<RetrieveEventEnvelope>()
+            .WithEvent<EventEnvelopeRetrieved>();
 
         AddStage("Handle")
-            .WithEvent<OnHandleEvent>()
-            .WithEvent<OnAfterHandleEvent>()
-            .WithEvent<OnAcknowledgeEvent>()
-            .WithEvent<OnAfterAcknowledgeEvent>();
+            .WithEvent<HandleEvent>()
+            .WithEvent<EventHandled>()
+            .WithEvent<AcknowledgeEvent>()
+            .WithEvent<EventAcknowledged>();
 
         AddObserver(Guard.AgainstNull(projectionEventObserver));
         AddObserver(Guard.AgainstNull(projectionEventEnvelopeObserver));
         AddObserver(Guard.AgainstNull(handleEventObserver));
         AddObserver(Guard.AgainstNull(acknowledgeEventObserver));
 
-        AddObserver(async (IPipelineContext<OnPipelineException> context) =>
+        AddObserver(async (IPipelineContext<PipelineException> context) =>
         {
             context.Pipeline.Abort();
 

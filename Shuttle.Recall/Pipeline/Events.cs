@@ -1,103 +1,93 @@
 ﻿namespace Shuttle.Recall;
 
-public class OnBeforeAddProjection;
+public class AddProjection;
 
-public class OnAddProjection;
+public class ProjectionAdded;
 
-public class OnAfterAddProjection;
+public class RetrieveEventEnvelope;
 
-public class OnGetEventEnvelope;
+public class EventEnvelopeRetrieved;
 
-public class OnAfterGetEventEnvelope;
+public class AssembleEventEnvelopes;
 
-public class OnAssembleEventEnvelopes;
+public class EventEnvelopesAssembled;
 
-public class OnAfterAssembleEventEnvelopes;
+public class SavePrimitiveEvents;
 
-public class OnBeforeSavePrimitiveEvents;
+public class PrimitiveEventsSaved;
 
-public class OnSavePrimitiveEvents;
+public class CommitEventStream;
 
-public class OnAfterSavePrimitiveEvents;
+public class EventStreamCommitted;
 
-public class OnCommitEventStream;
+public class RetrieveStreamEvents;
 
-public class OnAfterCommitEventStream;
+public class StreamEventsRetrieved;
 
-public class OnBeforeGetStreamEvents;
+public class AssembleEventStream;
 
-public class OnGetStreamEvents;
+public class EventStreamAssembled;
 
-public class OnAfterGetStreamEvents;
+public class RemoveEventStream;
 
-public class OnAssembleEventStream;
+public class EventStreamRemoved;
 
-public class OnAfterAssembleEventStream;
+public class RetrieveEvent;
 
-public class OnBeforeRemoveEventStream;
+public class EventRetrieved;
 
-public class OnRemoveEventStream;
+public class HandleEvent;
 
-public class OnAfterRemoveEventStream;
+public class EventHandled;
 
-public class OnGetEvent;
+public class AcknowledgeEvent;
 
-public class OnAfterGetEvent;
+public class EventAcknowledged;
 
-public class OnHandleEvent;
+public class DeserializeEventEnvelope;
 
-public class OnAfterHandleEvent;
+public class EventEnvelopeDeserialized;
 
-public class OnAcknowledgeEvent;
+public class DecryptEvent;
 
-public class OnAfterAcknowledgeEvent;
+public class EventDecrypted;
 
-public class OnDeserializeEventEnvelope;
+public class DeserializeEvent;
 
-public class OnAfterDeserializeEventEnvelope;
+public class EventDeserialized;
 
-public class OnDecryptEvent;
+public class DecompressEvent;
 
-public class OnAfterDecryptEvent;
+public class EventDecompressed;
 
-public class OnDeserializeEvent;
+public class SerializeEvent;
 
-public class OnAfterDeserializeEvent;
+public class EventSerialized;
 
-public class OnDecompressEvent;
+public class AssembleEventEnvelope;
 
-public class OnAfterDecompressEvent;
+public class EventEnvelopeAssembled;
 
-public class OnSerializeEvent;
+public class CompressEvent;
 
-public class OnAfterSerializeEvent;
+public class EventCompressed;
 
-public class OnAssembleEventEnvelope;
+public class EncryptEvent;
 
-public class OnAfterAssembleEventEnvelope;
+public class EventEncrypted;
 
-public class OnCompressEvent;
+public class StartEventProcessing;
 
-public class OnAfterCompressEvent;
+public class EventProcessingStarted;
 
-public class OnEncryptEvent;
+public class ConfigureThreadPools;
 
-public class OnAfterEncryptEvent;
+public class ThreadPoolsConfigured;
 
-public class OnStartEventProcessing;
+public class StartThreadPools;
 
-public class OnAfterStartEventProcessing;
+public class ThreadPoolsStarted;
 
-public class OnConfigureThreadPools;
+public class SaveEventStream;
 
-public class OnAfterConfigureThreadPools;
-
-public class OnStartThreadPools;
-
-public class OnAfterStartThreadPools;
-
-public class OnBeforeSaveEventStreamCompleted;
-
-public class OnSaveEventStreamCompleted;
-
-public class OnAfterSaveEventStreamCompleted;
+public class EventStreamSaved;

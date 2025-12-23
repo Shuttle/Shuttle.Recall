@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall;
 
@@ -10,7 +7,7 @@ public static class EventEnvelopeExtensions
     public static void AcceptInvariants(this EventEnvelope eventEnvelope)
     {
         Guard.AgainstNull(eventEnvelope.EventId);
-        Guard.AgainstNullOrEmptyString(eventEnvelope.AssemblyQualifiedName);
+        Guard.AgainstEmpty(eventEnvelope.AssemblyQualifiedName);
     }
 
     public static bool CompressionEnabled(this EventEnvelope eventEnvelope)

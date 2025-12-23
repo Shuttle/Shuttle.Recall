@@ -1,24 +1,22 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Core.Pipelines;
+using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall.Tests;
 
 [TestFixture]
 public class EventHandlerInvokerFixture
 {
-    public class EventA
-    {
-    }
+    public class EventA;
 
     public class EventHandlerA : IEventHandler<EventA>
     {
         public bool Invoked { get; private set; }
 
-        public async Task ProcessEventAsync(IEventHandlerContext<EventA> context)
+        public async Task ProcessEventAsync(IEventHandlerContext<EventA> context, CancellationToken cancellationToken = default)
         {
             Invoked = true;
 
@@ -43,7 +41,7 @@ public class EventHandlerInvokerFixture
 
         var invoker = serviceProvider.GetRequiredService<IEventHandlerInvoker>();
 
-        var pipeline = new Pipeline(serviceProvider);
+        var pipeline = GetPipeline(serviceProvider);
 
         pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
         {
@@ -60,10 +58,19 @@ public class EventHandlerInvokerFixture
 
         Assert.That(handler.Invoked, Is.False);
 
-        var result = await invoker.InvokeAsync(new PipelineContext<OnHandleEvent>(pipeline));
+        var result = await invoker.InvokeAsync(new PipelineContext<HandleEvent>(pipeline));
 
         Assert.That(result, Is.True);
         Assert.That(handler.Invoked, Is.True);
+    }
+
+    private static Pipeline GetPipeline(IServiceProvider serviceProvider)
+    {
+        return new(new PipelineDependencies(
+            Options.Create(new PipelineOptions()),
+            Options.Create(new TransactionScopeOptions()),
+            new TransactionScopeFactory(Options.Create(new TransactionScopeOptions())),
+            serviceProvider));
     }
 
     [Test]
@@ -73,7 +80,7 @@ public class EventHandlerInvokerFixture
         var configuration = new EventProcessorConfiguration();
         var invoker = new EventHandlerInvoker(serviceProvider, configuration);
 
-        var pipeline = new Pipeline(serviceProvider);
+        var pipeline = GetPipeline(serviceProvider);
 
         pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
         {
@@ -96,7 +103,7 @@ public class EventHandlerInvokerFixture
             await Task.CompletedTask;
         });
 
-        var result = await invoker.InvokeAsync(new PipelineContext<OnHandleEvent>(pipeline));
+        var result = await invoker.InvokeAsync(new PipelineContext<HandleEvent>(pipeline));
 
         Assert.That(result, Is.True);
         Assert.That(invoked, Is.True);
@@ -115,7 +122,7 @@ public class EventHandlerInvokerFixture
         var configuration = new EventProcessorConfiguration();
         var invoker = new EventHandlerInvoker(serviceProvider, configuration);
 
-        var pipeline = new Pipeline(serviceProvider);
+        var pipeline = GetPipeline(serviceProvider);
 
         pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
         {
@@ -133,7 +140,7 @@ public class EventHandlerInvokerFixture
 
         configuration.GetProjection("projection-1").AddHandlerEventType(typeof(EventA));
 
-        var result = await invoker.InvokeAsync(new PipelineContext<OnHandleEvent>(pipeline));
+        var result = await invoker.InvokeAsync(new PipelineContext<HandleEvent>(pipeline));
 
         Assert.That(result, Is.True);
         Assert.That(handler.Invoked, Is.True);

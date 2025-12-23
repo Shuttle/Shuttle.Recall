@@ -1,8 +1,7 @@
+using System.Data.Common;
 using Asp.Versioning;
 using Microsoft.Data.SqlClient;
-using Microsoft.OpenApi.Models;
 using Serilog;
-using System.Data.Common;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.RestClient;
 using Shuttle.Core.Data;

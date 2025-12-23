@@ -1,25 +1,16 @@
-﻿using System.IO;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Serialization;
 
 namespace Shuttle.Recall;
 
-public interface IDeserializeEventEnvelopeObserver : IPipelineObserver<OnDeserializeEventEnvelope>
+public interface IDeserializeEventEnvelopeObserver : IPipelineObserver<DeserializeEventEnvelope>;
+
+public class DeserializeEventEnvelopeObserver(ISerializer serializer) : IDeserializeEventEnvelopeObserver
 {
-}
+    private readonly ISerializer _serializer = Guard.AgainstNull(serializer);
 
-public class DeserializeEventEnvelopeObserver : IDeserializeEventEnvelopeObserver
-{
-    private readonly ISerializer _serializer;
-
-    public DeserializeEventEnvelopeObserver(ISerializer serializer)
-    {
-        _serializer = Guard.AgainstNull(serializer);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnDeserializeEventEnvelope> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<DeserializeEventEnvelope> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var primitiveEvent = state.GetPrimitiveEvent();
@@ -28,7 +19,7 @@ public class DeserializeEventEnvelopeObserver : IDeserializeEventEnvelopeObserve
 
         using (var stream = new MemoryStream(primitiveEvent.EventEnvelope))
         {
-            eventEnvelope = (EventEnvelope)await _serializer.DeserializeAsync(typeof(EventEnvelope), stream).ConfigureAwait(false);
+            eventEnvelope = (EventEnvelope)await _serializer.DeserializeAsync(typeof(EventEnvelope), stream, cancellationToken).ConfigureAwait(false);
         }
 
         state.SetEventEnvelope(eventEnvelope);

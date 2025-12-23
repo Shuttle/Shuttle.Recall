@@ -1,25 +1,17 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Reflection;
 
 namespace Shuttle.Recall;
 
-public class ProjectionBuilder
+public class ProjectionBuilder(IServiceCollection services, IEventProcessorConfiguration eventProcessorConfiguration, string name)
 {
     private static readonly Type EventHandlerType = typeof(IEventHandler<>);
-    private readonly IEventProcessorConfiguration _eventProcessorConfiguration;
+    private readonly IEventProcessorConfiguration _eventProcessorConfiguration = Guard.AgainstNull(eventProcessorConfiguration);
 
-    public string Name { get; }
+    public string Name { get; } = Guard.AgainstEmpty(name);
 
-    public ProjectionBuilder(IServiceCollection services, IEventProcessorConfiguration eventProcessorConfiguration, string name)
-    {
-        Services = Guard.AgainstNull(services);
-        _eventProcessorConfiguration = Guard.AgainstNull(eventProcessorConfiguration);
-        Name = Guard.AgainstNullOrEmptyString(name);
-    }
-
-    public IServiceCollection Services { get; }
+    public IServiceCollection Services { get; } = Guard.AgainstNull(services);
 
     public ProjectionBuilder AddEventHandler(object handler)
     {
@@ -30,7 +22,7 @@ public class ProjectionBuilder
         {
             var eventType = interfaceType.GetGenericArguments()[0];
 
-            var serviceKey = $"[Shuttle.Recall.Projection/{Name}]:{Guard.AgainstNullOrEmptyString(eventType.FullName)}";
+            var serviceKey = $"[Shuttle.Recall.Projection/{Name}]:{Guard.AgainstEmpty(eventType.FullName)}";
 
             if (Services.Contains(ServiceDescriptor.KeyedTransient(interfaceType, serviceKey, type)))
             {
@@ -62,7 +54,7 @@ public class ProjectionBuilder
         {
             var eventType = interfaceType.GetGenericArguments()[0];
 
-            var serviceKey = $"[Shuttle.Recall.Projection/{Name}]:{Guard.AgainstNullOrEmptyString(eventType.FullName)}";
+            var serviceKey = $"[Shuttle.Recall.Projection/{Name}]:{Guard.AgainstEmpty(eventType.FullName)}";
 
             if (Services.Contains(ServiceDescriptor.KeyedTransient(interfaceType, serviceKey, type)))
             {

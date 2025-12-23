@@ -1,29 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Reflection;
 
 namespace Shuttle.Recall;
 
-public class ProjectionDelegate
+public class ProjectionDelegate(Delegate handler, IEnumerable<Type> parameterTypes)
 {
-    private readonly IEnumerable<Type> _parameterTypes;
     private readonly Type _eventHandlerContextType = typeof(IEventHandlerContext<>);
 
-    public ProjectionDelegate(Delegate handler, IEnumerable<Type> parameterTypes)
-    {
-        Handler = handler;
-        HasParameters = parameterTypes.Any();
-        _parameterTypes = parameterTypes;
-    }
-
-    public Delegate Handler { get; }
-    public bool HasParameters { get; }
+    public Delegate Handler { get; } = handler;
+    public bool HasParameters { get; } = parameterTypes.Any();
 
     public object[] GetParameters(IServiceProvider serviceProvider, object pipelineContext)
     {
-        return _parameterTypes
+        return parameterTypes
             .Select(parameterType => !parameterType.IsCastableTo(_eventHandlerContextType)
                 ? serviceProvider.GetRequiredService(parameterType)
                 : pipelineContext

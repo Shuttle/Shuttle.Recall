@@ -1,11 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace Shuttle.Recall;
+﻿namespace Shuttle.Recall;
 
 public interface IEventProcessor : IDisposable, IAsyncDisposable
 {
     bool Started { get; }
-    Task<IEventProcessor> StartAsync();
-    Task StopAsync();
+    Task<IEventProcessor> StartAsync(CancellationToken cancellationToken = default);
+    Task StopAsync(CancellationToken cancellationToken = default);
 }

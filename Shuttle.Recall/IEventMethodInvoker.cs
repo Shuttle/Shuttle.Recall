@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Shuttle.Recall;
 
 public interface IEventMethodInvoker

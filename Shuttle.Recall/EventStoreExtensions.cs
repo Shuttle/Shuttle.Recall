@@ -1,12 +1,27 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace Shuttle.Recall;
+﻿namespace Shuttle.Recall;
 
 public static class EventStoreExtensions
 {
-    public static async Task<EventStream> GetAsync(this IEventStore eventStore, Action<EventStreamBuilder>? builder = null)
+    extension(IEventStore eventStore)
     {
-        return await eventStore.GetAsync(Guid.Empty, builder);
+        public async Task<EventStream> GetAsync(Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
+        {
+            return await eventStore.GetAsync(Guid.Empty, builder, cancellationToken);
+        }
+
+        public async Task<EventStream> GetAsync(CancellationToken cancellationToken = default)
+        {
+            return await eventStore.GetAsync(Guid.Empty, null, cancellationToken);
+        }
+
+        public async Task<EventStream> GetAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await eventStore.GetAsync(id, null, cancellationToken);
+        }
+
+        public async ValueTask<long> SaveAsync(EventStream eventStream, CancellationToken cancellationToken = default)
+        {
+            return await eventStore.SaveAsync(eventStream, cancellationToken);
+        }
     }
 }

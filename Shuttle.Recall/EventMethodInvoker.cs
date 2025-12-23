@@ -1,19 +1,14 @@
-using System.Collections.Generic;
 using System.Reflection;
+using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall;
 
-public class EventMethodInvoker : IEventMethodInvoker
+public class EventMethodInvoker(IOptions<EventStoreOptions> eventStreamOptions) : IEventMethodInvoker
 {
+    private readonly EventStoreOptions _eventStreamOptions = Guard.AgainstNull(Guard.AgainstNull(eventStreamOptions).Value);
     private readonly Dictionary<string, MethodInfo> _cache = new();
-    private readonly IEventMethodInvokerConfiguration _configuration;
-    private readonly object _lock = new();
-
-    public EventMethodInvoker(IEventMethodInvokerConfiguration configuration)
-    {
-        _configuration = Guard.AgainstNull(configuration);
-    }
+    private readonly Lock _lock = new();
 
     public void Apply(object instance, IEnumerable<object> events)
     {
@@ -30,15 +25,11 @@ public class EventMethodInvoker : IEventMethodInvoker
             {
                 if (!_cache.ContainsKey(key))
                 {
-                    var method = instanceType.GetMethod(_configuration.EventHandlingMethodName,
-                        _configuration.BindingFlags, null,
-                        new[] { eventType }, null);
+                    var method = instanceType.GetMethod(_eventStreamOptions.EventHandlingMethodName, _eventStreamOptions.BindingFlags, null, [eventType], null);
 
                     if (method == null)
                     {
-                        throw new UnhandledEventException(string.Format(Resources.UnhandledEventException,
-                            instanceType.AssemblyQualifiedName, _configuration.EventHandlingMethodName,
-                            eventType.AssemblyQualifiedName));
+                        throw new UnhandledEventException(string.Format(Resources.UnhandledEventException, instanceType.AssemblyQualifiedName, _eventStreamOptions.EventHandlingMethodName, eventType.AssemblyQualifiedName));
                     }
 
                     _cache.Add(key, method);
@@ -47,7 +38,7 @@ public class EventMethodInvoker : IEventMethodInvoker
                 cachedMethod = _cache[key];
             }
 
-            cachedMethod.Invoke(instance, new[] { @event });
+            cachedMethod.Invoke(instance, [@event]);
         }
     }
 }

@@ -1,25 +1,16 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Encryption;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IDecryptEventObserver : IPipelineObserver<OnDecryptEvent>
+public interface IDecryptEventObserver : IPipelineObserver<DecryptEvent>;
+
+public class DecryptEventObserver(IEncryptionService encryptionService) : IDecryptEventObserver
 {
-}
+    private readonly IEncryptionService _encryptionService = Guard.AgainstNull(encryptionService);
 
-public class DecryptEventObserver : IDecryptEventObserver
-{
-    private readonly IEncryptionService _encryptionService;
-
-    public DecryptEventObserver(IEncryptionService encryptionService)
-    {
-        _encryptionService = Guard.AgainstNull(encryptionService);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnDecryptEvent> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<DecryptEvent> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var eventEnvelope = state.GetEventEnvelope();
@@ -36,6 +27,6 @@ public class DecryptEventObserver : IDecryptEventObserver
             throw new InvalidOperationException(string.Format(Resources.MissingCompressionAlgorithmException, eventEnvelope.CompressionAlgorithm));
         }
 
-        eventEnvelope.Event = await algorithm.DecryptAsync(eventEnvelope.Event).ConfigureAwait(false);
+        eventEnvelope.Event = await algorithm.DecryptAsync(eventEnvelope.Event, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -1,25 +1,18 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class ProjectionProcessor : IProcessor
+public class ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory)
+    : IProcessor
 {
-    private readonly IPipelineFactory _pipelineFactory;
-    private readonly IThreadActivity _threadActivity;
+    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
+    private readonly IThreadActivity _threadActivity = new ThreadActivity(Guard.AgainstNull(eventStoreOptions).DurationToSleepWhenIdle);
 
-    public ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory)
+    public async Task ExecuteAsync(IProcessorThreadContext context, CancellationToken cancellationToken = default)
     {
-        _threadActivity = new ThreadActivity(Guard.AgainstNull(eventStoreOptions).DurationToSleepWhenIdle);
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-    }
-
-    public async Task ExecuteAsync(IProcessorThreadContext context, CancellationToken cancellationToken = new())
-    {
-        var pipeline = _pipelineFactory.GetPipeline<EventProcessingPipeline>();
+        var pipeline = await _pipelineFactory.GetPipelineAsync<EventProcessingPipeline>(cancellationToken);
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -42,6 +35,6 @@ public class ProjectionProcessor : IProcessor
             }
         }
 
-        _pipelineFactory.ReleasePipeline(pipeline);
+        await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
     }
 }

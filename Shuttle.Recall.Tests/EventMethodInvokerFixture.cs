@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using Shuttle.Recall.Tests.Implementation;
 
@@ -10,7 +10,7 @@ public class EventMethodInvokerFixture
     [Test]
     public void Should_be_able_to_invoke_public_methods()
     {
-        var invoker = new EventMethodInvoker(new EventMethodInvokerConfiguration());
+        var invoker = new EventMethodInvoker(Options.Create(new EventStoreOptions()));
 
         var events = new List<object>
         {

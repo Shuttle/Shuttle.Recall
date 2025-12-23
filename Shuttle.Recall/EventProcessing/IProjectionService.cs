@@ -1,10 +1,9 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Core.Pipelines;
+﻿using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
 public interface IProjectionService
 {
-    Task<ProjectionEvent?> GetEventAsync(IPipelineContext<OnGetEvent> pipelineContext);
-    Task AcknowledgeEventAsync(IPipelineContext<OnAcknowledgeEvent> pipelineContext);
+    Task AcknowledgeEventAsync(IPipelineContext<AcknowledgeEvent> pipelineContext, CancellationToken cancellationToken = default);
+    Task<ProjectionEvent?> GetEventAsync(IPipelineContext<RetrieveEvent> pipelineContext, CancellationToken cancellationToken = default);
 }

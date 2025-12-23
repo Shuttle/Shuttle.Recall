@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Shuttle.Recall;
+﻿namespace Shuttle.Recall;
 
 public class AggregateConstructorException : Exception
 {

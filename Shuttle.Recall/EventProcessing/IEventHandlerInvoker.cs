@@ -1,9 +1,8 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Core.Pipelines;
+﻿using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
 public interface IEventHandlerInvoker
 {
-    ValueTask<bool> InvokeAsync(IPipelineContext<OnHandleEvent> pipelineContext);
+    ValueTask<bool> InvokeAsync(IPipelineContext<HandleEvent> pipelineContext, CancellationToken cancellationToken = default);
 }

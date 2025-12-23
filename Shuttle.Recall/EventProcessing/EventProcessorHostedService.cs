@@ -1,26 +1,19 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall;
 
-public class EventProcessorHostedService : IHostedService
+public class EventProcessorHostedService(IEventProcessor eventProcessor) : IHostedService
 {
-    private readonly IEventProcessor _eventProcessor;
-
-    public EventProcessorHostedService(IEventProcessor eventProcessor)
-    {
-        _eventProcessor = Guard.AgainstNull(eventProcessor);
-    }
+    private readonly IEventProcessor _eventProcessor = Guard.AgainstNull(eventProcessor);
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await _eventProcessor.StartAsync();
+        await _eventProcessor.StartAsync(cancellationToken);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        await _eventProcessor.StopAsync();
+        await _eventProcessor.StopAsync(cancellationToken);
     }
 }

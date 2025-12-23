@@ -1,28 +1,20 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IProjectionEventEnvelopeObserver : IPipelineObserver<OnGetEventEnvelope>
+public interface IProjectionEventEnvelopeObserver : IPipelineObserver<RetrieveEventEnvelope>;
+
+public class ProjectionEventEnvelopeObserver(IPipelineFactory pipelineFactory) : IProjectionEventEnvelopeObserver
 {
-}
+    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
 
-public class ProjectionEventEnvelopeObserver : IProjectionEventEnvelopeObserver
-{
-    private readonly IPipelineFactory _pipelineFactory;
-
-    public ProjectionEventEnvelopeObserver(IPipelineFactory pipelineFactory)
-    {
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnGetEventEnvelope> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<RetrieveEventEnvelope> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent());
 
-        var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
+        var pipeline = await _pipelineFactory.GetPipelineAsync<GetEventEnvelopePipeline>(cancellationToken);
 
         try
         {
@@ -33,7 +25,7 @@ public class ProjectionEventEnvelopeObserver : IProjectionEventEnvelopeObserver
         }
         finally
         {
-            _pipelineFactory.ReleasePipeline(pipeline);
+            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
         }
     }
 }

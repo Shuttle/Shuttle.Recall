@@ -1,8 +1,5 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -39,8 +36,8 @@ public class EventProcessorFixture
         async Task<ProjectionEvent?> GetProjectionEvent()
         {
             PrimitiveEvent primitiveEvent = sequenceNumber % 2 == 0
-                ? new() { EventType = Guard.AgainstNullOrEmptyString(typeof(EventA).FullName) }
-                : new() { EventType = Guard.AgainstNullOrEmptyString(typeof(EventB).FullName) };
+                ? new() { EventType = Guard.AgainstEmpty(typeof(EventA).FullName) }
+                : new() { EventType = Guard.AgainstEmpty(typeof(EventB).FullName) };
 
             var eventEnvelope = new EventEnvelope
             {
@@ -67,7 +64,7 @@ public class EventProcessorFixture
             return new(projection, primitiveEvent);
         }
 
-        projectionService.Setup(m => m.GetEventAsync(It.IsAny<IPipelineContext<OnGetEvent>>())).Returns(GetProjectionEvent);
+        projectionService.Setup(m => m.GetEventAsync(It.IsAny<IPipelineContext<RetrieveEvent>>(), It.IsAny<CancellationToken>())).Returns(GetProjectionEvent);
 
         services.AddSingleton(projectionService.Object);
 
@@ -76,17 +73,17 @@ public class EventProcessorFixture
             builder.Options = eventStoreOptions;
 
             builder.AddProjection("projection-1")
-                .AddEventHandler(async (IEventHandlerContext<EventA> _) =>
+                .AddEventHandler((IEventHandlerContext<EventA> _) =>
                 {
                     count++;
 
-                    await Task.CompletedTask;
+                    return Task.CompletedTask;
                 })
-                .AddEventHandler(async (IEventHandlerContext<EventB> _) =>
+                .AddEventHandler((IEventHandlerContext<EventB> _) =>
                 {
                     count++;
 
-                    await Task.CompletedTask;
+                    return Task.CompletedTask;
                 });
         });
 

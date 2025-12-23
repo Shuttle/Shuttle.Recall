@@ -1,26 +1,18 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IProjectionEventObserver : IPipelineObserver<OnGetEvent>
+public interface IProjectionEventObserver : IPipelineObserver<RetrieveEvent>;
+
+public class ProjectionEventObserver(IProjectionService provider) : IProjectionEventObserver
 {
-}
+    private readonly IProjectionService _provider = Guard.AgainstNull(provider);
 
-public class ProjectionEventObserver : IProjectionEventObserver
-{
-    private readonly IProjectionService _provider;
-
-    public ProjectionEventObserver(IProjectionService provider)
-    {
-        _provider = Guard.AgainstNull(provider);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnGetEvent> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<RetrieveEvent> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var projectionEvent = await _provider.GetEventAsync(pipelineContext).ConfigureAwait(false);
+        var projectionEvent = await _provider.GetEventAsync(pipelineContext, cancellationToken).ConfigureAwait(false);
 
         if (projectionEvent == null)
         {

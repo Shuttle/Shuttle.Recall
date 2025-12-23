@@ -1,32 +1,24 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class EventProcessor : IEventProcessor
+public class EventProcessor(IPipelineFactory pipelineFactory) : IEventProcessor
 {
-    private readonly IPipelineFactory _pipelineFactory;
+    private CancellationTokenSource _cancellationTokenSource = new();
+    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
 
-    private CancellationToken _cancellationToken;
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
     private IProcessorThreadPool? _eventProcessorThreadPool;
-
-    public EventProcessor(IPipelineFactory pipelineFactory)
-    {
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-    }
 
     public void Dispose()
     {
-        StopAsync().GetAwaiter().GetResult();
+        StopAsync(CancellationToken.None).GetAwaiter().GetResult();
     }
 
     public bool Started { get; private set; }
 
-    public async Task StopAsync()
+    public async Task StopAsync(CancellationToken cancellationToken = default)
     {
         if (!Started)
         {
@@ -44,21 +36,21 @@ public class EventProcessor : IEventProcessor
 
     public async ValueTask DisposeAsync()
     {
-        await StopAsync().ConfigureAwait(false);
+        await StopAsync(CancellationToken.None).ConfigureAwait(false);
     }
 
-    public async Task<IEventProcessor> StartAsync()
+    public async Task<IEventProcessor> StartAsync(CancellationToken cancellationToken = default)
     {
         if (Started)
         {
             return this;
         }
 
-        var startupPipeline = _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>();
+        _cancellationTokenSource = new();
 
-        await startupPipeline.ExecuteAsync(_cancellationToken).ConfigureAwait(false);
+        var startupPipeline = await _pipelineFactory.GetPipelineAsync<EventProcessorStartupPipeline>(cancellationToken);
 
-        _cancellationToken = _cancellationTokenSource.Token;
+        await startupPipeline.ExecuteAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
 
         _eventProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool");
 

@@ -1,22 +1,15 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class EventStore : IEventStore
+public class EventStore(IPipelineFactory pipelineFactory, IEventMethodInvoker eventMethodInvoker)
+    : IEventStore
 {
-    private readonly IEventMethodInvoker _eventMethodInvoker;
-    private readonly IPipelineFactory _pipelineFactory;
+    private readonly IEventMethodInvoker _eventMethodInvoker = Guard.AgainstNull(eventMethodInvoker);
+    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
 
-    public EventStore(IPipelineFactory pipelineFactory, IEventMethodInvoker eventMethodInvoker)
-    {
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-        _eventMethodInvoker = Guard.AgainstNull(eventMethodInvoker);
-    }
-
-    public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder>? builder = null)
+    public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
     {
         if (id.Equals(Guid.Empty))
         {
@@ -27,7 +20,7 @@ public class EventStore : IEventStore
 
         builder?.Invoke(eventStreamBuilder);
 
-        var pipeline = _pipelineFactory.GetPipeline<GetEventStreamPipeline>();
+        var pipeline = await _pipelineFactory.GetPipelineAsync<GetEventStreamPipeline>(cancellationToken);
 
         try
         {
@@ -35,13 +28,13 @@ public class EventStore : IEventStore
         }
         finally
         {
-            _pipelineFactory.ReleasePipeline(pipeline);
+            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
         }
     }
 
-    public async Task RemoveAsync(Guid id)
+    public async Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var pipeline = _pipelineFactory.GetPipeline<RemoveEventStreamPipeline>();
+        var pipeline = await _pipelineFactory.GetPipelineAsync<RemoveEventStreamPipeline>(cancellationToken);
 
         try
         {
@@ -49,15 +42,15 @@ public class EventStore : IEventStore
         }
         finally
         {
-            _pipelineFactory.ReleasePipeline(pipeline);
+            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
         }
     }
 
-    public async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null)
+    public async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
     {
         if (Guard.AgainstNull(eventStream).Removed)
         {
-            await RemoveAsync(eventStream.Id).ConfigureAwait(false);
+            await RemoveAsync(eventStream.Id, cancellationToken).ConfigureAwait(false);
 
             return -1;
         }
@@ -67,7 +60,7 @@ public class EventStore : IEventStore
             return -1;
         }
 
-        var pipeline = _pipelineFactory.GetPipeline<SaveEventStreamPipeline>();
+        var pipeline = await _pipelineFactory.GetPipelineAsync<SaveEventStreamPipeline>(cancellationToken);
 
         try
         {
@@ -81,7 +74,7 @@ public class EventStore : IEventStore
         }
         finally
         {
-            _pipelineFactory.ReleasePipeline(pipeline);
+            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
         }
     }
 }

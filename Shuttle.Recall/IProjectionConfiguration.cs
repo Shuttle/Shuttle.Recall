@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-
-namespace Shuttle.Recall;
+﻿namespace Shuttle.Recall;
 
 public interface IEventProcessorConfiguration
 {
-    ProjectionConfiguration GetProjection(string name);
     bool HasProjections { get; }
     IEnumerable<ProjectionConfiguration> Projections { get; }
+    ProjectionConfiguration GetProjection(string name);
 }

@@ -4,21 +4,14 @@ using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class ProjectionProcessorFactory : IProcessorFactory
+public class ProjectionProcessorFactory(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory)
+    : IProcessorFactory
 {
-    private readonly IEventProcessor _eventProcessor;
-    private readonly EventStoreOptions _eventStoreOptions;
-    private readonly IPipelineFactory _pipelineFactory;
+    private readonly EventStoreOptions _eventStoreOptions = Guard.AgainstNull(eventStoreOptions);
+    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
 
-    public ProjectionProcessorFactory(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory, IEventProcessor eventProcessor)
+    public Task<IProcessor> CreateAsync(CancellationToken cancellationToken = default)
     {
-        _eventStoreOptions = Guard.AgainstNull(eventStoreOptions);
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-        _eventProcessor = Guard.AgainstNull(eventProcessor);
-    }
-
-    public IProcessor Create()
-    {
-        return new ProjectionProcessor(_eventStoreOptions, _pipelineFactory);
+        return Task.FromResult<IProcessor>(new ProjectionProcessor(_eventStoreOptions, _pipelineFactory));
     }
 }

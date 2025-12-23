@@ -1,45 +1,32 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class EventStoreBuilder
+public class EventStoreBuilder(IServiceCollection services)
 {
-    public event EventHandler<AddPipelineProcessingEventArgs>? AddPipelineProcessing;
-
-    private EventStoreOptions _eventStoreOptions = new();
-
-    public EventStoreBuilder(IServiceCollection services)
-    {
-        Services = Guard.AgainstNull(services);
-    }
-
     public IEventProcessorConfiguration EventProcessorConfiguration { get; } = new EventProcessorConfiguration();
 
     public EventStoreOptions Options
     {
-        get => _eventStoreOptions;
-        set => _eventStoreOptions = Guard.AgainstNull(value);
-    }
+        get;
+        set => field = Guard.AgainstNull(value);
+    } = new();
 
-    public IServiceCollection Services { get; }
+    public IServiceCollection Services { get; } = Guard.AgainstNull(services);
     public bool ShouldSuppressEventProcessorHostedService { get; private set; }
+    public bool ShouldSuppressPipelineProcessing { get; private set; }
+
+    public bool ShouldSuppressPipelineTransactionScope { get; private set; }
+
+    public ProjectionBuilder AddProjection(string name)
+    {
+        return new(Services, EventProcessorConfiguration, name);
+    }
 
     public EventStoreBuilder SuppressEventProcessorHostedService()
     {
         ShouldSuppressEventProcessorHostedService = true;
-
-        return this;
-    }
-
-    public bool ShouldSuppressPipelineTransactionScope { get; private set; }
-    public bool ShouldSuppressPipelineProcessing { get; private set; }
-
-    public EventStoreBuilder SuppressPipelineTransactionScope()
-    {
-        ShouldSuppressPipelineTransactionScope = true;
 
         return this;
     }
@@ -51,13 +38,10 @@ public class EventStoreBuilder
         return this;
     }
 
-    public ProjectionBuilder AddProjection(string name)
+    public EventStoreBuilder SuppressPipelineTransactionScope()
     {
-        return new(Services, EventProcessorConfiguration, name);
-    }
+        ShouldSuppressPipelineTransactionScope = true;
 
-    public void OnAddPipelineProcessing(PipelineProcessingBuilder pipelineProcessingBuilder)
-    {
-        AddPipelineProcessing?.Invoke(this, new(pipelineProcessingBuilder));
+        return this;
     }
 }

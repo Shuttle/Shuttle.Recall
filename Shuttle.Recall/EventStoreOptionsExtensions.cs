@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall;
 

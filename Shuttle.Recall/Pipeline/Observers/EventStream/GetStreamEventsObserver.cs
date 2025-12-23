@@ -1,31 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IGetStreamEventsObserver : IPipelineObserver<OnGetStreamEvents>
+public interface IGetStreamEventsObserver : IPipelineObserver<RetrieveStreamEvents>;
+
+public class GetStreamEventsObserver(IPipelineFactory pipelineFactory, IPrimitiveEventRepository primitiveEventRepository)
+    : IGetStreamEventsObserver
 {
-}
+    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
+    private readonly IPrimitiveEventRepository _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
 
-public class GetStreamEventsObserver : IGetStreamEventsObserver
-{
-    private readonly IPipelineFactory _pipelineFactory;
-    private readonly IPrimitiveEventRepository _primitiveEventRepository;
-
-    public GetStreamEventsObserver(IPipelineFactory pipelineFactory, IPrimitiveEventRepository primitiveEventRepository)
-    {
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-        _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnGetStreamEvents> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<RetrieveStreamEvents> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var events = new List<DomainEvent>();
-        var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
+        var pipeline = await _pipelineFactory.GetPipelineAsync<GetEventEnvelopePipeline>(cancellationToken);
 
         try
         {
@@ -52,7 +42,7 @@ public class GetStreamEventsObserver : IGetStreamEventsObserver
         }
         finally
         {
-            _pipelineFactory.ReleasePipeline(pipeline);
+            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
         }
     }
 }

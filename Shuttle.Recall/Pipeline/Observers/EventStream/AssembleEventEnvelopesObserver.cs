@@ -1,31 +1,22 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IAssembleEventEnvelopesObserver : IPipelineObserver<OnAssembleEventEnvelopes>
+public interface IAssembleEventEnvelopesObserver : IPipelineObserver<AssembleEventEnvelopes>;
+
+public class AssembleEventEnvelopesObserver(IPipelineFactory pipelineFactory) : IAssembleEventEnvelopesObserver
 {
-}
+    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
 
-public class AssembleEventEnvelopesObserver : IAssembleEventEnvelopesObserver
-{
-    private readonly IPipelineFactory _pipelineFactory;
-
-    public AssembleEventEnvelopesObserver(IPipelineFactory pipelineFactory)
-    {
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnAssembleEventEnvelopes> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<AssembleEventEnvelopes> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var eventStream = state.GetEventStream();
         var builder = state.GetEventStreamBuilder();
         var eventEnvelopes = new List<EventEnvelope>();
 
-        var pipeline = _pipelineFactory.GetPipeline<AssembleEventEnvelopePipeline>();
+        var pipeline = await _pipelineFactory.GetPipelineAsync<AssembleEventEnvelopePipeline>(cancellationToken);
 
         pipeline.State.SetEventStreamBuilder(builder);
 
@@ -40,7 +31,7 @@ public class AssembleEventEnvelopesObserver : IAssembleEventEnvelopesObserver
         }
         finally
         {
-            _pipelineFactory.ReleasePipeline(pipeline);
+            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
         }
 
         state.SetEventEnvelopes(eventEnvelopes);

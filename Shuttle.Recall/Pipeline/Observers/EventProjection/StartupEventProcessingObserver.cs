@@ -1,46 +1,35 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class StartupEventProcessingObserver : IStartupEventProcessingObserver
+public class StartupEventProcessingObserver(IOptions<EventStoreOptions> eventStoreOptions, IPipelineFactory pipelineFactory, IProcessorThreadPoolFactory processorThreadPoolFactory)
+    : IStartupEventProcessingObserver
 {
-    private readonly EventStoreOptions _eventStoreOptions;
-    private readonly IPipelineFactory _pipelineFactory;
-    private readonly IEventProcessor _processor;
-    private readonly IProcessorThreadPoolFactory _processorThreadPoolFactory;
+    private readonly EventStoreOptions _eventStoreOptions = Guard.AgainstNull(Guard.AgainstNull(eventStoreOptions).Value);
+    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
+    private readonly IProcessorThreadPoolFactory _processorThreadPoolFactory = Guard.AgainstNull(processorThreadPoolFactory);
 
-    public StartupEventProcessingObserver(IOptions<EventStoreOptions> eventStoreOptions, IEventProcessor processor, IPipelineFactory pipelineFactory, IProcessorThreadPoolFactory processorThreadPoolFactory)
-    {
-        _eventStoreOptions = Guard.AgainstNull(Guard.AgainstNull(eventStoreOptions).Value);
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-        _processor = Guard.AgainstNull(processor);
-        _processorThreadPoolFactory = Guard.AgainstNull(processorThreadPoolFactory);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnConfigureThreadPools> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<ConfigureThreadPools> pipelineContext, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(pipelineContext).Pipeline.State
-            .Add("EventProcessorThreadPool", _processorThreadPoolFactory.Create("EventProcessorThreadPool", _eventStoreOptions.ProjectionThreadCount, new ProjectionProcessorFactory(_eventStoreOptions, _pipelineFactory, _processor), _eventStoreOptions.ProcessorThread));
+            .Add("EventProcessorThreadPool", await _processorThreadPoolFactory.CreateAsync("EventProcessorThreadPool", _eventStoreOptions.ProjectionThreadCount, new ProjectionProcessorFactory(_eventStoreOptions, _pipelineFactory), cancellationToken));
 
         await Task.CompletedTask;
     }
 
-    public async Task ExecuteAsync(IPipelineContext<OnStartThreadPools> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<StartThreadPools> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
 
         var eventProcessorThreadPool = Guard.AgainstNull(state.Get<IProcessorThreadPool>("EventProcessorThreadPool"));
 
-        await eventProcessorThreadPool.StartAsync();
+        await eventProcessorThreadPool.StartAsync(cancellationToken);
     }
 }
 
 public interface IStartupEventProcessingObserver :
-    IPipelineObserver<OnConfigureThreadPools>,
-    IPipelineObserver<OnStartThreadPools>
-{
-}
+    IPipelineObserver<ConfigureThreadPools>,
+    IPipelineObserver<StartThreadPools>;

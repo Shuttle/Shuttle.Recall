@@ -1,28 +1,24 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
 public class SaveEventStreamPipeline : Pipeline
 {
-    public SaveEventStreamPipeline(IServiceProvider serviceProvider, IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver) 
-        : base(serviceProvider)
+    public SaveEventStreamPipeline(IPipelineDependencies pipelineDependencies, IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver)
+        : base(pipelineDependencies)
     {
         AddStage("Handle")
-            .WithEvent<OnAssembleEventEnvelopes>()
-            .WithEvent<OnAfterAssembleEventEnvelopes>()
-            .WithEvent<OnBeforeSavePrimitiveEvents>()
-            .WithEvent<OnSavePrimitiveEvents>()
-            .WithEvent<OnAfterSavePrimitiveEvents>()
-            .WithEvent<OnCommitEventStream>()
-            .WithEvent<OnAfterCommitEventStream>();
+            .WithEvent<AssembleEventEnvelopes>()
+            .WithEvent<EventEnvelopesAssembled>()
+            .WithEvent<SavePrimitiveEvents>()
+            .WithEvent<PrimitiveEventsSaved>()
+            .WithEvent<CommitEventStream>()
+            .WithEvent<EventStreamCommitted>();
 
         AddStage("Completed")
-            .WithEvent<OnBeforeSaveEventStreamCompleted>()
-            .WithEvent<OnSaveEventStreamCompleted>()
-            .WithEvent<OnAfterSaveEventStreamCompleted>();
+            .WithEvent<SaveEventStream>()
+            .WithEvent<EventStreamSaved>();
 
         AddObserver(Guard.AgainstNull(assembleEventEnvelopesObserver));
         AddObserver(Guard.AgainstNull(savePrimitiveEventsObserver));

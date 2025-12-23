@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Shuttle.Recall;
+﻿namespace Shuttle.Recall;
 
 public class EventStreamBuilder
 {

@@ -2,14 +2,9 @@
 
 namespace Shuttle.Recall;
 
-public class ProjectionEvent
+public class ProjectionEvent(Projection projection, PrimitiveEvent primitiveEvent)
 {
-    public ProjectionEvent(Projection projection, PrimitiveEvent primitiveEvent)
-    {
-        Projection = Guard.AgainstNull(projection);
-        PrimitiveEvent = Guard.AgainstNull(primitiveEvent);
-    }
+    public PrimitiveEvent PrimitiveEvent { get; } = Guard.AgainstNull(primitiveEvent);
 
-    public Projection Projection { get; }
-    public PrimitiveEvent PrimitiveEvent { get; }
+    public Projection Projection { get; } = Guard.AgainstNull(projection);
 }

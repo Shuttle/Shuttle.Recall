@@ -1,25 +1,16 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Compression;
+﻿using Shuttle.Core.Compression;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IDecompressEventObserver : IPipelineObserver<OnDecompressEvent>
+public interface IDecompressEventObserver : IPipelineObserver<DecompressEvent>;
+
+public class DecompressEventObserver(ICompressionService compressionService) : IDecompressEventObserver
 {
-}
+    private readonly ICompressionService _compressionService = Guard.AgainstNull(compressionService);
 
-public class DecompressEventObserver : IDecompressEventObserver
-{
-    private readonly ICompressionService _compressionService;
-
-    public DecompressEventObserver(ICompressionService compressionService)
-    {
-        _compressionService = Guard.AgainstNull(compressionService);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnDecompressEvent> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<DecompressEvent> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var eventEnvelope = state.GetEventEnvelope();
@@ -36,6 +27,6 @@ public class DecompressEventObserver : IDecompressEventObserver
             throw new InvalidOperationException(string.Format(Resources.MissingCompressionAlgorithmException, eventEnvelope.CompressionAlgorithm));
         }
 
-        eventEnvelope.Event = await algorithm.DecompressAsync(eventEnvelope.Event);
+        eventEnvelope.Event = await algorithm.DecompressAsync(eventEnvelope.Event, cancellationToken);
     }
 }
