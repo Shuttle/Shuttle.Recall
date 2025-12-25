@@ -13,12 +13,16 @@ public class SaveEventStreamPipeline : Pipeline
             .WithEvent<EventEnvelopesAssembled>()
             .WithEvent<SavePrimitiveEvents>()
             .WithEvent<PrimitiveEventsSaved>()
+            .WithEvent<CompleteTransactionScope>()
+            .WithEvent<DisposeTransactionScope>()
             .WithEvent<CommitEventStream>()
             .WithEvent<EventStreamCommitted>();
 
         AddStage("Completed")
             .WithEvent<SaveEventStream>()
-            .WithEvent<EventStreamSaved>();
+            .WithEvent<EventStreamSaved>()
+            .WithEvent<CompleteTransactionScope>()
+            .WithEvent<DisposeTransactionScope>();
 
         AddObserver(Guard.AgainstNull(assembleEventEnvelopesObserver));
         AddObserver(Guard.AgainstNull(savePrimitiveEventsObserver));

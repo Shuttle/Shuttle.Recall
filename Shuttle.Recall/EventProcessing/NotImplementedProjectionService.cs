@@ -4,7 +4,7 @@ namespace Shuttle.Recall;
 
 public class NotImplementedProjectionService : IProjectionService
 {
-    public Task<ProjectionEvent?> GetEventAsync(IPipelineContext<RetrieveEvent> pipelineContext, CancellationToken cancellationToken = default)
+    public Task<ProjectionEvent?> RetrieveEventAsync(IPipelineContext<RetrieveEvent> pipelineContext, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException(Resources.NotImplementedProjectionEventProvider);
     }

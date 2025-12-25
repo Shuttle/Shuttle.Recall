@@ -64,7 +64,7 @@ public class EventProcessorFixture
             return new(projection, primitiveEvent);
         }
 
-        projectionService.Setup(m => m.GetEventAsync(It.IsAny<IPipelineContext<RetrieveEvent>>(), It.IsAny<CancellationToken>())).Returns(GetProjectionEvent);
+        projectionService.Setup(m => m.RetrieveEventAsync(It.IsAny<IPipelineContext<RetrieveEvent>>(), It.IsAny<CancellationToken>())).Returns(GetProjectionEvent);
 
         services.AddSingleton(projectionService.Object);
 

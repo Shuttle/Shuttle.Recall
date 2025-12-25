@@ -18,7 +18,9 @@ public class EventProcessingPipeline : Pipeline
             .WithEvent<HandleEvent>()
             .WithEvent<EventHandled>()
             .WithEvent<AcknowledgeEvent>()
-            .WithEvent<EventAcknowledged>();
+            .WithEvent<EventAcknowledged>()
+            .WithEvent<CompleteTransactionScope>()
+            .WithEvent<DisposeTransactionScope>();
 
         AddObserver(Guard.AgainstNull(projectionEventObserver));
         AddObserver(Guard.AgainstNull(projectionEventEnvelopeObserver));

@@ -44,7 +44,7 @@ public class SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEven
                 primitiveEvents.Add(primitiveEvent);
             }
 
-            var sequenceNumber = await _primitiveEventRepository.SaveAsync(primitiveEvents).ConfigureAwait(false);
+            var sequenceNumber = await _primitiveEventRepository.SaveAsync(primitiveEvents, cancellationToken).ConfigureAwait(false);
 
             switch (sequenceNumber)
             {
@@ -52,7 +52,7 @@ public class SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEven
                     state.SetSequenceNumber(sequenceNumber);
                     break;
                 case < 1:
-                    state.SetSequenceNumber(await _primitiveEventRepository.GetSequenceNumberAsync(eventStream.Id).ConfigureAwait(false));
+                    state.SetSequenceNumber(await _primitiveEventRepository.GetSequenceNumberAsync(eventStream.Id, cancellationToken).ConfigureAwait(false));
                     break;
             }
         }
