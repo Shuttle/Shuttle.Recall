@@ -71,6 +71,8 @@ public class EventProcessorFixture
         services.AddEventStore(builder =>
         {
             builder.Options = eventStoreOptions;
+            
+            builder.SuppressPrimitiveEventSequencerHostedService();
 
             builder.AddProjection("projection-1")
                 .AddEventHandler((IEventHandlerContext<EventA> _) =>

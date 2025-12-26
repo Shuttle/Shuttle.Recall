@@ -19,7 +19,7 @@ namespace Shuttle.Recall {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -327,6 +327,24 @@ namespace Shuttle.Recall {
         public static string OpenSectionException {
             get {
                 return ResourceManager.GetString("OpenSectionException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PrimitiveEvent with id &apos;{0}&apos; and version number &apos;{1}&apos; has no sequence number and cannot be projected..
+        /// </summary>
+        public static string PrimitiveEventSequenceNumberException {
+            get {
+                return ResourceManager.GetString("PrimitiveEventSequenceNumberException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No `IPrimitiveEventSequencer` implementation has been registered.  Please register the dependency before calling `AddRecall()`..
+        /// </summary>
+        public static string PrimitiveEventSequencerException {
+            get {
+                return ResourceManager.GetString("PrimitiveEventSequencerException", resourceCulture);
             }
         }
         

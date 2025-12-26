@@ -33,7 +33,10 @@ public class EventHandlerInvokerFixture
 
         services.AddEventStore(builder =>
         {
-            builder.AddProjection("projection-1")
+            builder.SuppressPrimitiveEventSequencerHostedService();
+
+            builder
+                .AddProjection("projection-1")
                 .AddEventHandler(handler);
         });
 

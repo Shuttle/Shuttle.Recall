@@ -9,7 +9,18 @@ public class EventStoreOptions
 
     public string CompressionAlgorithm { get; set; } = string.Empty;
 
-    public List<TimeSpan> DurationToSleepWhenIdle { get; set; } =
+    public List<TimeSpan> ProjectionProcessorIdleDurations { get; set; } =
+    [
+        TimeSpan.FromMilliseconds(250),
+        TimeSpan.FromMilliseconds(250),
+        TimeSpan.FromMilliseconds(250),
+        TimeSpan.FromMilliseconds(250),
+        TimeSpan.FromMilliseconds(500),
+        TimeSpan.FromMilliseconds(500),
+        TimeSpan.FromSeconds(1)
+    ];
+
+    public List<TimeSpan> PrimitiveEventSequencerIdleDurations { get; set; } =
     [
         TimeSpan.FromMilliseconds(250),
         TimeSpan.FromMilliseconds(250),

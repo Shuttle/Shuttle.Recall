@@ -14,9 +14,9 @@ public class EventStoreBuilder(IServiceCollection services)
     } = new();
 
     public IServiceCollection Services { get; } = Guard.AgainstNull(services);
+    public bool ShouldSuppressPrimitiveEventSequencerHostedService { get; private set; }
     public bool ShouldSuppressEventProcessorHostedService { get; private set; }
     public bool ShouldSuppressPipelineProcessing { get; private set; }
-
     public bool ShouldSuppressPipelineTransactionScope { get; private set; }
 
     public ProjectionBuilder AddProjection(string name)
@@ -42,6 +42,13 @@ public class EventStoreBuilder(IServiceCollection services)
     {
         ShouldSuppressPipelineTransactionScope = true;
 
+        return this;
+    }
+
+    public EventStoreBuilder SuppressPrimitiveEventSequencerHostedService()
+    {
+        ShouldSuppressPrimitiveEventSequencerHostedService = true;
+        
         return this;
     }
 }

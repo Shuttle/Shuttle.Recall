@@ -10,7 +10,7 @@ public class EventStoreOptionsFixture
     {
         var result = new EventStoreOptions();
 
-        result.DurationToSleepWhenIdle.Clear();
+        result.ProjectionProcessorIdleDurations.Clear();
 
         new ConfigurationBuilder()
             .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @".\appsettings.json")).Build()
@@ -38,7 +38,7 @@ public class EventStoreOptionsFixture
         var options = GetOptions();
 
         Assert.That(options, Is.Not.Null);
-        Assert.That(options.DurationToSleepWhenIdle[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
+        Assert.That(options.ProjectionProcessorIdleDurations[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
 
         Assert.That(options.ActiveProjections, Is.Not.Null);
         Assert.That(options.ActiveProjections.Count, Is.EqualTo(3));

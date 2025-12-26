@@ -288,4 +288,10 @@
     <value>There is already a delegate registered that handles event type '{0}'.  Cannot register another implementation that handles the same type.</value>
     <comment>0 = event type name</comment>
   </data>
+  <data name="PrimitiveEventSequenceNumberException" xml:space="preserve">
+    <value>PrimitiveEvent with id '{0}' and version number '{1}' has no sequence number and cannot be projected.</value>
+  </data>
+  <data name="PrimitiveEventSequencerException" xml:space="preserve">
+    <value>No `IPrimitiveEventSequencer` implementation has been registered.  Please register the dependency before calling `AddRecall()`.</value>
+  </data>
 </root>

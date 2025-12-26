@@ -8,7 +8,7 @@ public class ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineF
     : IProcessor
 {
     private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-    private readonly IThreadActivity _threadActivity = new ThreadActivity(Guard.AgainstNull(eventStoreOptions).DurationToSleepWhenIdle);
+    private readonly IThreadActivity _threadActivity = new ThreadActivity(Guard.AgainstNull(eventStoreOptions).ProjectionProcessorIdleDurations);
 
     public async Task ExecuteAsync(IProcessorThreadContext context, CancellationToken cancellationToken = default)
     {

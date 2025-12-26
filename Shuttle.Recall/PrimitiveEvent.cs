@@ -10,7 +10,7 @@ public class PrimitiveEvent
     public Guid EventId { get; set; }
     public string EventType { get; set; } = string.Empty;
     public Guid Id { get; set; }
-    public long SequenceNumber { get; set; }
+    public long? SequenceNumber { get; set; }
     public int Version { get; set; }
 
     public class Specification

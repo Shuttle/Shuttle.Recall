@@ -20,6 +20,18 @@ public static class ServiceCollectionExtensions
 
             builder?.Invoke(eventStoreBuilder);
 
+            if (!eventStoreBuilder.ShouldSuppressPrimitiveEventSequencerHostedService)
+            {
+                var primitiveEventSequencerType = typeof(IPrimitiveEventSequencer);
+
+                if (services.All(item => item.ServiceType != primitiveEventSequencerType))
+                {
+                    throw new ApplicationException(Resources.PrimitiveEventSequencerException);
+                }
+
+                eventStoreBuilder.Services.AddHostedService<PrimitiveEventSequencerHostedService>();
+            }
+
             services.TryAddSingleton<IEventMethodInvoker, EventMethodInvoker>();
             services.TryAddSingleton<ISerializer, JsonSerializer>();
             services.TryAddSingleton<IConcurrencyExceptionSpecification, DefaultConcurrencyExceptionSpecification>();
@@ -61,12 +73,12 @@ public static class ServiceCollectionExtensions
                     ? eventStoreBuilder.Options.ProjectionThreadCount
                     : 1;
 
-                options.DurationToSleepWhenIdle = eventStoreBuilder.Options.DurationToSleepWhenIdle;
+                options.ProjectionProcessorIdleDurations = eventStoreBuilder.Options.ProjectionProcessorIdleDurations;
             });
 
-            var eventProcessorConfiguration = typeof(IEventProcessorConfiguration);
+            var eventProcessorConfigurationType = typeof(IEventProcessorConfiguration);
 
-            if (services.All(item => item.ServiceType != eventProcessorConfiguration))
+            if (services.All(item => item.ServiceType != eventProcessorConfigurationType))
             {
                 services.AddSingleton(eventStoreBuilder.EventProcessorConfiguration);
             }

@@ -33,6 +33,11 @@ public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcess
             return false;
         }
 
+        if (!primitiveEvent.SequenceNumber.HasValue)
+        {
+            throw new ApplicationException(string.Format(Resources.PrimitiveEventSequenceNumberException, projectionEvent.PrimitiveEvent.Id, projectionEvent.PrimitiveEvent.Version));
+        }
+
         try
         {
             HandlerContextConstructorInvoker? contextConstructor;
@@ -106,7 +111,7 @@ public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcess
         }
         finally
         {
-            projectionEvent.Projection.Commit(primitiveEvent.SequenceNumber);
+            projectionEvent.Projection.Commit(primitiveEvent.SequenceNumber.Value);
         }
 
         return true;
