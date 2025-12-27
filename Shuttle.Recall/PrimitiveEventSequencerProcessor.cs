@@ -10,7 +10,7 @@ public class PrimitiveEventSequencerProcessor(IPrimitiveEventSequencer primitive
 
     public async Task ExecuteAsync(IProcessorThreadContext processorThread, CancellationToken cancellationToken = default)
     {
-        if (await _primitiveEventSequencer.SequenceAsync())
+        if (await _primitiveEventSequencer.SequenceAsync(cancellationToken))
         {
             _threadActivity.Working();
         }
