@@ -7,5 +7,6 @@
 /// </summary>
 public interface IPrimitiveEventSequencer
 {
-    ValueTask<bool> SequenceAsync();
+    ValueTask<bool> SequenceAsync(CancellationToken cancellationToken = default);
+    ValueTask<long> GetMaxSequenceNumberAsync(CancellationToken cancellationToken = default);
 }

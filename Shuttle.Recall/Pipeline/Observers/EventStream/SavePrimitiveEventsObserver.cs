@@ -44,17 +44,7 @@ public class SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEven
                 primitiveEvents.Add(primitiveEvent);
             }
 
-            var sequenceNumber = await _primitiveEventRepository.SaveAsync(primitiveEvents, cancellationToken).ConfigureAwait(false);
-
-            switch (sequenceNumber)
-            {
-                case > 0:
-                    state.SetSequenceNumber(sequenceNumber);
-                    break;
-                case < 1:
-                    state.SetSequenceNumber(await _primitiveEventRepository.GetSequenceNumberAsync(eventStream.Id, cancellationToken).ConfigureAwait(false));
-                    break;
-            }
+            await _primitiveEventRepository.SaveAsync(primitiveEvents, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

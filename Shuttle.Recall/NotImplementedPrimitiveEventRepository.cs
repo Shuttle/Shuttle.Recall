@@ -12,17 +12,7 @@ public class NotImplementedPrimitiveEventRepository : IPrimitiveEventRepository
         throw new NotImplementedException(Resources.NotImplementedPrimitiveEventRepository);
     }
 
-    public ValueTask<long> SaveAsync(IEnumerable<PrimitiveEvent> primitiveEvents, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException(Resources.NotImplementedPrimitiveEventRepository);
-    }
-
-    public ValueTask<long> GetMaxSequenceNumberAsync(CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException(Resources.NotImplementedPrimitiveEventRepository);
-    }
-
-    public ValueTask<long> GetSequenceNumberAsync(Guid id, CancellationToken cancellationToken = default)
+    public Task SaveAsync(IEnumerable<PrimitiveEvent> primitiveEvents, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException(Resources.NotImplementedPrimitiveEventRepository);
     }
