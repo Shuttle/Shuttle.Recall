@@ -1,10 +1,18 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
+using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
 public class EventStoreBuilder(IServiceCollection services)
 {
+    public class AddPipelinesEventArgs(PipelineBuilder pipelineBuilder) : EventArgs
+    {
+        public PipelineBuilder PipelineBuilder { get; } = Guard.AgainstNull(pipelineBuilder);
+    }
+
+    public event EventHandler<AddPipelinesEventArgs>? AddPipelines;
+
     public IEventProcessorConfiguration EventProcessorConfiguration { get; } = new EventProcessorConfiguration();
 
     public EventStoreOptions Options
@@ -50,5 +58,10 @@ public class EventStoreBuilder(IServiceCollection services)
         ShouldSuppressPrimitiveEventSequencerHostedService = true;
         
         return this;
+    }
+
+    internal void OnAddPipelines(PipelineBuilder pipelineBuilder)
+    {
+        AddPipelines?.Invoke(this, new(pipelineBuilder));
     }
 }
