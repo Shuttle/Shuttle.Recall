@@ -17,9 +17,10 @@ public class ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineF
         while (!cancellationToken.IsCancellationRequested)
         {
             var waiting = true;
+            var managedThreadId = (int)(context.State.Get("ManagedThreadId") ?? 0);
 
             pipeline.State.Clear();
-            pipeline.State.SetProcessorThreadManagedThreadId((int)(context.State.Get("ManagedThreadId") ?? 0));
+            pipeline.State.SetProcessorThreadManagedThreadId(managedThreadId);
 
             await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
