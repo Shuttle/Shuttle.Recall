@@ -6,15 +6,15 @@ namespace Shuttle.Recall.Tests;
 [TestFixture]
 public class EventStoreOptionsFixture
 {
-    protected EventStoreOptions GetOptions()
+    protected RecallOptions GetOptions()
     {
-        var result = new EventStoreOptions();
+        var result = new RecallOptions();
 
-        result.ProjectionProcessorIdleDurations.Clear();
+        result.EventProcessing.ProjectionProcessorIdleDurations.Clear();
 
         new ConfigurationBuilder()
             .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @".\appsettings.json")).Build()
-            .GetRequiredSection($"{EventStoreOptions.SectionName}").Bind(result);
+            .GetRequiredSection($"{RecallOptions.SectionName}").Bind(result);
 
         return result;
     }
@@ -22,11 +22,11 @@ public class EventStoreOptionsFixture
     [Test]
     public void Should_be_able_to_add_and_check_for_active_projection_names()
     {
-        var eventStoreOptions = new EventStoreOptions();
+        var eventStoreOptions = new RecallOptions();
 
         Assert.That(eventStoreOptions.HasActiveProjection("not-registered"), Is.True);
 
-        eventStoreOptions.ActiveProjections.Add("projection-1");
+        eventStoreOptions.EventProcessing.ActiveProjections.Add("projection-1");
 
         Assert.That(eventStoreOptions.HasActiveProjection("not-registered"), Is.False);
         Assert.That(eventStoreOptions.HasActiveProjection("projection-1"), Is.True);
@@ -38,9 +38,9 @@ public class EventStoreOptionsFixture
         var options = GetOptions();
 
         Assert.That(options, Is.Not.Null);
-        Assert.That(options.ProjectionProcessorIdleDurations[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
+        Assert.That(options.EventProcessing.ProjectionProcessorIdleDurations[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
 
-        Assert.That(options.ActiveProjections, Is.Not.Null);
-        Assert.That(options.ActiveProjections.Count, Is.EqualTo(3));
+        Assert.That(options.EventProcessing.ActiveProjections, Is.Not.Null);
+        Assert.That(options.EventProcessing.ActiveProjections.Count, Is.EqualTo(3));
     }
 }

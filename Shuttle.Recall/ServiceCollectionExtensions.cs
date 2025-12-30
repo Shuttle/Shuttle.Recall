@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Shuttle.Core.Compression;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Encryption;
@@ -14,11 +15,27 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddEventStore(Action<EventStoreBuilder>? builder = null)
+        public IServiceCollection AddRecall(Action<RecallBuilder>? builder = null)
         {
-            var eventStoreBuilder = new EventStoreBuilder(Guard.AgainstNull(services));
+            Guard.AgainstNull(services);
 
-            builder?.Invoke(eventStoreBuilder);
+            var eventProcessorConfigurationServiceDescriptor = services.FirstOrDefault(sd => sd.ServiceType == typeof(IEventProcessorConfiguration));
+            
+            IEventProcessorConfiguration eventProcessorConfiguration;
+
+            if (eventProcessorConfigurationServiceDescriptor == null)
+            {
+                eventProcessorConfiguration = new EventProcessorConfiguration();
+                services.AddSingleton(eventProcessorConfiguration);
+            }
+            else
+            {
+                eventProcessorConfiguration = (IEventProcessorConfiguration)eventProcessorConfigurationServiceDescriptor.ImplementationInstance!;
+            }
+
+            var recallBuilder = new RecallBuilder(services, eventProcessorConfiguration);
+
+            builder?.Invoke(recallBuilder);
 
             services.TryAddSingleton<IEventMethodInvoker, EventMethodInvoker>();
             services.TryAddSingleton<ISerializer, JsonSerializer>();
@@ -29,7 +46,7 @@ public static class ServiceCollectionExtensions
 
             services.TryAddKeyedScoped<IProcessor, ProjectionProcessor>("ProjectionProcessor");
 
-            if (!eventStoreBuilder.ShouldSuppressPrimitiveEventSequencerHostedService)
+            if (!recallBuilder.ShouldSuppressPrimitiveEventSequencerHostedService)
             {
                 var primitiveEventSequencerType = typeof(IPrimitiveEventSequencer);
 
@@ -38,7 +55,7 @@ public static class ServiceCollectionExtensions
                     throw new ApplicationException(Resources.PrimitiveEventSequencerException);
                 }
 
-                eventStoreBuilder.Services.AddHostedService<PrimitiveEventSequencerHostedService>();
+                recallBuilder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, PrimitiveEventSequencerHostedService>());
 
                 services.TryAddKeyedScoped<IProcessor, PrimitiveEventSequencerProcessor>("PrimitiveEventSequencerProcessor");
             }
@@ -47,29 +64,29 @@ public static class ServiceCollectionExtensions
             {
                 threadingBuilder.ConfigureProcessorIdle("ProjectionProcessor", options =>
                 {
-                    options.Durations = eventStoreBuilder.Options.ProjectionProcessorIdleDurations.Any()
-                        ? eventStoreBuilder.Options.ProjectionProcessorIdleDurations
+                    options.Durations = recallBuilder.Options.EventProcessing.ProjectionProcessorIdleDurations.Any()
+                        ? recallBuilder.Options.EventProcessing.ProjectionProcessorIdleDurations
                         : [TimeSpan.FromSeconds(1)];
                 });
 
-                if (!eventStoreBuilder.ShouldSuppressPrimitiveEventSequencerHostedService)
+                if (!recallBuilder.ShouldSuppressPrimitiveEventSequencerHostedService)
                 {
                     threadingBuilder.ConfigureProcessorIdle("PrimitiveEventSequencerProcessor", options =>
                     {
-                        options.Durations = eventStoreBuilder.Options.PrimitiveEventSequencerIdleDurations.Any()
-                            ? eventStoreBuilder.Options.PrimitiveEventSequencerIdleDurations
+                        options.Durations = recallBuilder.Options.EventStore.PrimitiveEventSequencerIdleDurations.Any()
+                            ? recallBuilder.Options.EventStore.PrimitiveEventSequencerIdleDurations
                             : [TimeSpan.FromSeconds(1)];
                     });
                 }
             });
 
-            if (!eventStoreBuilder.ShouldSuppressPipelineProcessing)
+            if (!recallBuilder.ShouldSuppressPipelineProcessing)
             {
                 services.AddPipelines(pipelineBuilder =>
                 {
                     pipelineBuilder.AddAssembly(typeof(EventStore).Assembly);
 
-                    if (!eventStoreBuilder.ShouldSuppressPipelineTransactionScope)
+                    if (!recallBuilder.ShouldSuppressPipelineTransactionScope)
                     {
                         pipelineBuilder.Configure(options =>
                         {
@@ -78,8 +95,6 @@ public static class ServiceCollectionExtensions
                             options.UseTransactionScope<SaveEventStreamPipeline>("Completed");
                         });
                     }
-
-                    eventStoreBuilder.OnAddPipelines(pipelineBuilder);
                 });
             }
 
@@ -95,25 +110,25 @@ public static class ServiceCollectionExtensions
             services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
             services.TryAddSingleton<IProjectionService, NotImplementedProjectionService>();
 
-            services.AddOptions<EventStoreOptions>().Configure(options =>
+            services.AddOptions<RecallOptions>().Configure(options =>
             {
-                options.ProjectionThreadCount = eventStoreBuilder.Options.ProjectionThreadCount > 1
-                    ? eventStoreBuilder.Options.ProjectionThreadCount
+                options.EventProcessing.ProjectionThreadCount = recallBuilder.Options.EventProcessing.ProjectionThreadCount > 1
+                    ? recallBuilder.Options.EventProcessing.ProjectionThreadCount
                     : 1;
 
-                options.ProjectionProcessorIdleDurations = eventStoreBuilder.Options.ProjectionProcessorIdleDurations;
+                options.EventProcessing.ProjectionProcessorIdleDurations = recallBuilder.Options.EventProcessing.ProjectionProcessorIdleDurations;
             });
 
             var eventProcessorConfigurationType = typeof(IEventProcessorConfiguration);
 
             if (services.All(item => item.ServiceType != eventProcessorConfigurationType))
             {
-                services.AddSingleton(eventStoreBuilder.EventProcessorConfiguration);
+                services.AddSingleton(recallBuilder.EventProcessorConfiguration);
             }
 
-            if (eventStoreBuilder is { ShouldSuppressEventProcessorHostedService: false, EventProcessorConfiguration.HasProjections: true })
+            if (recallBuilder is { ShouldSuppressEventProcessorHostedService: false, EventProcessorConfiguration.HasProjections: true })
             {
-                services.AddHostedService<EventProcessorHostedService>();
+                services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, EventProcessorHostedService>());
             }
 
             return services;

@@ -10,7 +10,7 @@ public class EventMethodInvokerFixture
     [Test]
     public void Should_be_able_to_invoke_public_methods()
     {
-        var invoker = new EventMethodInvoker(Options.Create(new EventStoreOptions()));
+        var invoker = new EventMethodInvoker(Options.Create(new RecallOptions()));
 
         var events = new List<object>
         {

@@ -4,9 +4,9 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall;
 
-public class EventMethodInvoker(IOptions<EventStoreOptions> eventStreamOptions) : IEventMethodInvoker
+public class EventMethodInvoker(IOptions<RecallOptions> recallOptions) : IEventMethodInvoker
 {
-    private readonly EventStoreOptions _eventStreamOptions = Guard.AgainstNull(Guard.AgainstNull(eventStreamOptions).Value);
+    private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);
     private readonly Dictionary<string, MethodInfo> _cache = new();
     private readonly Lock _lock = new();
 
@@ -25,11 +25,11 @@ public class EventMethodInvoker(IOptions<EventStoreOptions> eventStreamOptions) 
             {
                 if (!_cache.ContainsKey(key))
                 {
-                    var method = instanceType.GetMethod(_eventStreamOptions.EventHandlingMethodName, _eventStreamOptions.BindingFlags, null, [eventType], null);
+                    var method = instanceType.GetMethod(_recallOptions.EventStore.EventHandlingMethodName, _recallOptions.EventStore.BindingFlags, null, [eventType], null);
 
                     if (method == null)
                     {
-                        throw new UnhandledEventException(string.Format(Resources.UnhandledEventException, instanceType.AssemblyQualifiedName, _eventStreamOptions.EventHandlingMethodName, eventType.AssemblyQualifiedName));
+                        throw new UnhandledEventException(string.Format(Resources.UnhandledEventException, instanceType.AssemblyQualifiedName, _recallOptions.EventStore.EventHandlingMethodName, eventType.AssemblyQualifiedName));
                     }
 
                     _cache.Add(key, method);

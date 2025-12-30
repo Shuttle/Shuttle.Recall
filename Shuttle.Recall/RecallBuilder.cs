@@ -1,21 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class EventStoreBuilder(IServiceCollection services)
+public class RecallBuilder(IServiceCollection services, IEventProcessorConfiguration eventProcessorConfiguration)
 {
-    public class AddPipelinesEventArgs(PipelineBuilder pipelineBuilder) : EventArgs
-    {
-        public PipelineBuilder PipelineBuilder { get; } = Guard.AgainstNull(pipelineBuilder);
-    }
+    public IEventProcessorConfiguration EventProcessorConfiguration { get; } = Guard.AgainstNull(eventProcessorConfiguration);
 
-    public event EventHandler<AddPipelinesEventArgs>? AddPipelines;
-
-    public IEventProcessorConfiguration EventProcessorConfiguration { get; } = new EventProcessorConfiguration();
-
-    public EventStoreOptions Options
+    public RecallOptions Options
     {
         get;
         set => field = Guard.AgainstNull(value);
@@ -32,36 +24,31 @@ public class EventStoreBuilder(IServiceCollection services)
         return new(Services, EventProcessorConfiguration, name);
     }
 
-    public EventStoreBuilder SuppressEventProcessorHostedService()
+    public RecallBuilder SuppressEventProcessorHostedService()
     {
         ShouldSuppressEventProcessorHostedService = true;
 
         return this;
     }
 
-    public EventStoreBuilder SuppressPipelineProcessing()
+    public RecallBuilder SuppressPipelineProcessing()
     {
         ShouldSuppressPipelineProcessing = true;
 
         return this;
     }
 
-    public EventStoreBuilder SuppressPipelineTransactionScope()
+    public RecallBuilder SuppressPipelineTransactionScope()
     {
         ShouldSuppressPipelineTransactionScope = true;
 
         return this;
     }
 
-    public EventStoreBuilder SuppressPrimitiveEventSequencerHostedService()
+    public RecallBuilder SuppressPrimitiveEventSequencerHostedService()
     {
         ShouldSuppressPrimitiveEventSequencerHostedService = true;
         
         return this;
-    }
-
-    internal void OnAddPipelines(PipelineBuilder pipelineBuilder)
-    {
-        AddPipelines?.Invoke(this, new(pipelineBuilder));
     }
 }

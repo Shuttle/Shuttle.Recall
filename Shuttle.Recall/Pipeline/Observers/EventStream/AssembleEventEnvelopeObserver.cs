@@ -6,9 +6,9 @@ namespace Shuttle.Recall;
 
 public interface IAssembleEventEnvelopeObserver : IPipelineObserver<AssembleEventEnvelope>;
 
-public class AssembleEventEnvelopeObserver(IOptions<EventStoreOptions> eventStoreOptions) : IAssembleEventEnvelopeObserver
+public class AssembleEventEnvelopeObserver(IOptions<RecallOptions> recallOptions) : IAssembleEventEnvelopeObserver
 {
-    private readonly EventStoreOptions _eventStoreOptions = Guard.AgainstNull(Guard.AgainstNull(eventStoreOptions).Value);
+    private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);
 
     public async Task ExecuteAsync(IPipelineContext<AssembleEventEnvelope> pipelineContext, CancellationToken cancellationToken = default)
     {
@@ -23,8 +23,8 @@ public class AssembleEventEnvelopeObserver(IOptions<EventStoreOptions> eventStor
             EventType = Guard.AgainstEmpty(domainEventType.FullName),
             Version = domainEvent.Version,
             AssemblyQualifiedName = Guard.AgainstEmpty(domainEventType.AssemblyQualifiedName),
-            EncryptionAlgorithm = _eventStoreOptions.EncryptionAlgorithm,
-            CompressionAlgorithm = _eventStoreOptions.CompressionAlgorithm,
+            EncryptionAlgorithm = _recallOptions.EventStore.EncryptionAlgorithm,
+            CompressionAlgorithm = _recallOptions.EventStore.CompressionAlgorithm,
             Headers = builder.Headers
         };
 

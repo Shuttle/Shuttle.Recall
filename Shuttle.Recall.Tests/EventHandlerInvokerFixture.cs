@@ -31,7 +31,7 @@ public class EventHandlerInvokerFixture
 
         var services = new ServiceCollection();
 
-        services.AddEventStore(builder =>
+        services.AddRecall(builder =>
         {
             builder.SuppressPrimitiveEventSequencerHostedService();
 

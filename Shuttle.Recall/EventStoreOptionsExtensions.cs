@@ -2,31 +2,34 @@
 
 namespace Shuttle.Recall;
 
-public static class EventStoreOptionsExtensions
+public static class RecallOptionsExtensions
 {
-    public static bool HasActiveProjection(this EventStoreOptions eventStoreOptions, string name)
+    extension(RecallOptions recallOptions)
     {
-        if (string.IsNullOrEmpty(name))
+        public bool HasActiveProjection(string name)
         {
-            return false;
-        }
-
-        if (Guard.AgainstNull(eventStoreOptions).ActiveProjections.Count == 1)
-        {
-            var value = eventStoreOptions.ActiveProjections.ElementAt(0);
-
-            if (value.Equals("!"))
+            if (string.IsNullOrEmpty(name))
             {
                 return false;
             }
 
-            if (value.Equals("*"))
+            if (Guard.AgainstNull(recallOptions).EventProcessing.ActiveProjections.Count == 1)
             {
-                return true;
-            }
-        }
+                var value = recallOptions.EventProcessing.ActiveProjections.ElementAt(0);
 
-        return !eventStoreOptions.ActiveProjections.Any() ||
-               eventStoreOptions.ActiveProjections.FirstOrDefault(item => item.Equals(name)) != null;
+                if (value.Equals("!"))
+                {
+                    return false;
+                }
+
+                if (value.Equals("*"))
+                {
+                    return true;
+                }
+            }
+
+            return !recallOptions.EventProcessing.ActiveProjections.Any() ||
+                   recallOptions.EventProcessing.ActiveProjections.FirstOrDefault(item => item.Equals(name)) != null;
+        }
     }
 }

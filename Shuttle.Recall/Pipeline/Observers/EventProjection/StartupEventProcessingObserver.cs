@@ -6,18 +6,18 @@ using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class StartupEventProcessingObserver(IOptions<EventStoreOptions> eventStoreOptions, IOptions<ThreadingOptions> threadingOptions, IServiceScopeFactory serviceScopeFactory, IProcessorIdleStrategy processorIdleStrategy)
+public class StartupEventProcessingObserver(IOptions<RecallOptions> recallOptions, IOptions<ThreadingOptions> threadingOptions, IServiceScopeFactory serviceScopeFactory, IProcessorIdleStrategy processorIdleStrategy)
     : IStartupEventProcessingObserver
 {
     private readonly IProcessorIdleStrategy _processorIdleStrategy = Guard.AgainstNull(processorIdleStrategy);
     private readonly IServiceScopeFactory _serviceScopeFactory = Guard.AgainstNull(serviceScopeFactory);
     private readonly ThreadingOptions _threadingOptions = Guard.AgainstNull(Guard.AgainstNull(threadingOptions).Value);
-    private readonly EventStoreOptions _eventStoreOptions = Guard.AgainstNull(Guard.AgainstNull(eventStoreOptions).Value);
+    private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);
 
     public async Task ExecuteAsync(IPipelineContext<ConfigureThreadPools> pipelineContext, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(pipelineContext).Pipeline.State
-            .Add("ProjectionProcessorThreadPool", new ProcessorThreadPool("ProjectionProcessor", _eventStoreOptions.ProjectionThreadCount, _serviceScopeFactory, _threadingOptions, _processorIdleStrategy));
+            .Add("ProjectionProcessorThreadPool", new ProcessorThreadPool("ProjectionProcessor", _recallOptions.EventProcessing.ProjectionThreadCount, _serviceScopeFactory, _threadingOptions, _processorIdleStrategy));
 
         await Task.CompletedTask;
     }

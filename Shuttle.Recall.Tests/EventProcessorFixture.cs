@@ -26,9 +26,12 @@ public class EventProcessorFixture
         var services = new ServiceCollection();
         var projectionService = new Mock<IProjectionService>();
         var sequenceNumber = 1;
-        var eventStoreOptions = new EventStoreOptions
+        var eventStoreOptions = new RecallOptions
         {
-            ProjectionThreadCount = 1
+            EventProcessing = new()
+            {
+                ProjectionThreadCount = 1
+            }
         };
 
         var projection = new Projection(projectionName, 0);
@@ -68,7 +71,7 @@ public class EventProcessorFixture
 
         services.AddSingleton(projectionService.Object);
 
-        services.AddEventStore(builder =>
+        services.AddRecall(builder =>
         {
             builder.Options = eventStoreOptions;
             

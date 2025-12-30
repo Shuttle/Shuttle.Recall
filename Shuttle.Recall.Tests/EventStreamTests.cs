@@ -35,7 +35,7 @@ public class EventStreamTests
         var aggregate = new AggregateOne();
 
         var stream = new EventStream(Guid.NewGuid(),
-            new EventMethodInvoker(Options.Create(new EventStoreOptions())));
+            new EventMethodInvoker(Options.Create(new RecallOptions())));
 
         stream.Add(new ThisHappened
         {

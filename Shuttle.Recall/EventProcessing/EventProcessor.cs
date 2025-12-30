@@ -9,7 +9,7 @@ public class EventProcessor(IPipelineFactory pipelineFactory) : IEventProcessor
     private CancellationTokenSource _cancellationTokenSource = new();
     private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
 
-    private IProcessorThreadPool? _eventProcessorThreadPool;
+    private IProcessorThreadPool? _projectionProcessorThreadPool;
 
     public void Dispose()
     {
@@ -27,7 +27,7 @@ public class EventProcessor(IPipelineFactory pipelineFactory) : IEventProcessor
 
         await _cancellationTokenSource.CancelAsync();
 
-        _eventProcessorThreadPool?.Dispose();
+        _projectionProcessorThreadPool?.Dispose();
 
         Started = false;
 
@@ -52,7 +52,7 @@ public class EventProcessor(IPipelineFactory pipelineFactory) : IEventProcessor
 
         await startupPipeline.ExecuteAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
 
-        _eventProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("ProjectionProcessorThreadPool");
+        _projectionProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("ProjectionProcessorThreadPool");
 
         Started = true;
 
