@@ -2,7 +2,7 @@
 
 public class StateKeys
 {
-    public const string Working = "Working";
+    public const string WorkPerformed = "WorkPerformed";
     public const string DomainEvent = "DomainEvent";
     public const string EventEnvelope = "EventEnvelope";
     public const string EventEnvelopes = "EventEnvelopes";

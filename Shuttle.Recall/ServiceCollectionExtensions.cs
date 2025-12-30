@@ -20,6 +20,15 @@ public static class ServiceCollectionExtensions
 
             builder?.Invoke(eventStoreBuilder);
 
+            services.TryAddSingleton<IEventMethodInvoker, EventMethodInvoker>();
+            services.TryAddSingleton<ISerializer, JsonSerializer>();
+            services.TryAddSingleton<IConcurrencyExceptionSpecification, DefaultConcurrencyExceptionSpecification>();
+            services.TryAddSingleton<IEncryptionService, EncryptionService>();
+            services.TryAddSingleton<ICompressionService, CompressionService>();
+            services.TryAddScoped<IEventHandlerInvoker, EventHandlerInvoker>();
+
+            services.TryAddKeyedScoped<IProcessor, ProjectionProcessor>("ProjectionProcessor");
+
             if (!eventStoreBuilder.ShouldSuppressPrimitiveEventSequencerHostedService)
             {
                 var primitiveEventSequencerType = typeof(IPrimitiveEventSequencer);
@@ -30,14 +39,29 @@ public static class ServiceCollectionExtensions
                 }
 
                 eventStoreBuilder.Services.AddHostedService<PrimitiveEventSequencerHostedService>();
-            }
 
-            services.TryAddSingleton<IEventMethodInvoker, EventMethodInvoker>();
-            services.TryAddSingleton<ISerializer, JsonSerializer>();
-            services.TryAddSingleton<IConcurrencyExceptionSpecification, DefaultConcurrencyExceptionSpecification>();
-            services.TryAddSingleton<IEncryptionService, EncryptionService>();
-            services.TryAddSingleton<ICompressionService, CompressionService>();
-            services.TryAddSingleton<IEventHandlerInvoker, EventHandlerInvoker>();
+                services.TryAddKeyedScoped<IProcessor, PrimitiveEventSequencerProcessor>("PrimitiveEventSequencerProcessor");
+            }
+            
+            services.AddThreading(threadingBuilder =>
+            {
+                threadingBuilder.ConfigureProcessorIdle("ProjectionProcessor", options =>
+                {
+                    options.Durations = eventStoreBuilder.Options.ProjectionProcessorIdleDurations.Any()
+                        ? eventStoreBuilder.Options.ProjectionProcessorIdleDurations
+                        : [TimeSpan.FromSeconds(1)];
+                });
+
+                if (!eventStoreBuilder.ShouldSuppressPrimitiveEventSequencerHostedService)
+                {
+                    threadingBuilder.ConfigureProcessorIdle("PrimitiveEventSequencerProcessor", options =>
+                    {
+                        options.Durations = eventStoreBuilder.Options.PrimitiveEventSequencerIdleDurations.Any()
+                            ? eventStoreBuilder.Options.PrimitiveEventSequencerIdleDurations
+                            : [TimeSpan.FromSeconds(1)];
+                    });
+                }
+            });
 
             if (!eventStoreBuilder.ShouldSuppressPipelineProcessing)
             {
@@ -47,9 +71,12 @@ public static class ServiceCollectionExtensions
 
                     if (!eventStoreBuilder.ShouldSuppressPipelineTransactionScope)
                     {
-                        pipelineBuilder.Options.UseTransactionScope<EventProcessingPipeline>("Handle");
-                        pipelineBuilder.Options.UseTransactionScope<SaveEventStreamPipeline>("Handle");
-                        pipelineBuilder.Options.UseTransactionScope<SaveEventStreamPipeline>("Completed");
+                        pipelineBuilder.Configure(options =>
+                        {
+                            options.UseTransactionScope<EventProcessingPipeline>("Handle");
+                            options.UseTransactionScope<SaveEventStreamPipeline>("Handle");
+                            options.UseTransactionScope<SaveEventStreamPipeline>("Completed");
+                        });
                     }
 
                     eventStoreBuilder.OnAddPipelines(pipelineBuilder);
@@ -67,7 +94,6 @@ public static class ServiceCollectionExtensions
             services.TryAddSingleton<IEventProcessor, EventProcessor>();
             services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
             services.TryAddSingleton<IProjectionService, NotImplementedProjectionService>();
-            services.TryAddSingleton<IProcessorThreadPoolFactory, ProcessorThreadPoolFactory>();
 
             services.AddOptions<EventStoreOptions>().Configure(options =>
             {

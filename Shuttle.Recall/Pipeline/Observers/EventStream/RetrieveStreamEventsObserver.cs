@@ -17,32 +17,25 @@ public class RetrieveStreamEventsObserver(IPipelineFactory pipelineFactory, IPri
         var events = new List<DomainEvent>();
         var pipeline = await _pipelineFactory.GetPipelineAsync<GetEventEnvelopePipeline>(cancellationToken);
 
-        try
+        var version = 0;
+
+        var primitiveEvents = await _primitiveEventRepository.GetAsync(state.GetId(), cancellationToken).ConfigureAwait(false);
+
+        foreach (var primitiveEvent in primitiveEvents)
         {
-            var version = 0;
-
-            var primitiveEvents = await _primitiveEventRepository.GetAsync(state.GetId(), cancellationToken).ConfigureAwait(false);
-
-            foreach (var primitiveEvent in primitiveEvents)
+            if (primitiveEvent.Version < version)
             {
-                if (primitiveEvent.Version < version)
-                {
-                    throw new InvalidOperationException(string.Format(Resources.InvalidEventOrderingException, primitiveEvent.Version, version));
-                }
-
-                await pipeline.ExecuteAsync(primitiveEvent).ConfigureAwait(false);
-
-                events.Add(pipeline.State.GetDomainEvent());
-
-                version = primitiveEvent.Version;
+                throw new InvalidOperationException(string.Format(Resources.InvalidEventOrderingException, primitiveEvent.Version, version));
             }
 
-            state.SetEvents(events);
-            state.SetVersion(version);
+            await pipeline.ExecuteAsync(primitiveEvent).ConfigureAwait(false);
+
+            events.Add(pipeline.State.GetDomainEvent());
+
+            version = primitiveEvent.Version;
         }
-        finally
-        {
-            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
-        }
+
+        state.SetEvents(events);
+        state.SetVersion(version);
     }
 }

@@ -22,28 +22,14 @@ public class EventStore(IPipelineFactory pipelineFactory, IEventMethodInvoker ev
 
         var pipeline = await _pipelineFactory.GetPipelineAsync<GetEventStreamPipeline>(cancellationToken);
 
-        try
-        {
-            return await pipeline.ExecuteAsync(id, eventStreamBuilder).ConfigureAwait(false);
-        }
-        finally
-        {
-            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
-        }
+        return await pipeline.ExecuteAsync(id, eventStreamBuilder).ConfigureAwait(false);
     }
 
     public async Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var pipeline = await _pipelineFactory.GetPipelineAsync<RemoveEventStreamPipeline>(cancellationToken);
 
-        try
-        {
-            await pipeline.ExecuteAsync(id).ConfigureAwait(false);
-        }
-        finally
-        {
-            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
-        }
+        await pipeline.ExecuteAsync(id).ConfigureAwait(false);
     }
 
     public async Task SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
@@ -62,17 +48,10 @@ public class EventStore(IPipelineFactory pipelineFactory, IEventMethodInvoker ev
 
         var pipeline = await _pipelineFactory.GetPipelineAsync<SaveEventStreamPipeline>(cancellationToken);
 
-        try
-        {
-            var eventStreamBuilder = new EventStreamBuilder();
+        var eventStreamBuilder = new EventStreamBuilder();
 
-            builder?.Invoke(eventStreamBuilder);
+        builder?.Invoke(eventStreamBuilder);
 
-            await pipeline.ExecuteAsync(eventStream, eventStreamBuilder).ConfigureAwait(false);
-        }
-        finally
-        {
-            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
-        }
+        await pipeline.ExecuteAsync(eventStream, eventStreamBuilder).ConfigureAwait(false);
     }
 }

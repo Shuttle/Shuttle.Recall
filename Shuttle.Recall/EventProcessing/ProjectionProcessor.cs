@@ -4,38 +4,20 @@ using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory)
-    : IProcessor
+public class ProjectionProcessor(IPipelineFactory pipelineFactory, IProcessorContext processorContext) : IProcessor
 {
     private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-    private readonly IThreadActivity _threadActivity = new ThreadActivity(Guard.AgainstNull(eventStoreOptions).ProjectionProcessorIdleDurations);
+    private readonly IProcessorContext _processorContext = Guard.AgainstNull(processorContext);
 
-    public async Task ExecuteAsync(IProcessorThreadContext context, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var pipeline = await _pipelineFactory.GetPipelineAsync<EventProcessingPipeline>(cancellationToken);
 
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            var waiting = true;
-            var managedThreadId = (int)(context.State.Get("ManagedThreadId") ?? 0);
+        pipeline.State.Clear();
+        pipeline.State.SetProcessorThreadManagedThreadId(_processorContext.ManagedThreadId);
 
-            pipeline.State.Clear();
-            pipeline.State.SetProcessorThreadManagedThreadId(managedThreadId);
+        await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
-            await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-
-            if (!pipeline.Aborted && pipeline.State.GetWorking())
-            {
-                _threadActivity.Working();
-                waiting = false;
-            }
-
-            if (waiting)
-            {
-                await _threadActivity.WaitingAsync(cancellationToken);
-            }
-        }
-
-        await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
+        return !pipeline.Aborted && pipeline.State.GetWorkPerformed();
     }
 }

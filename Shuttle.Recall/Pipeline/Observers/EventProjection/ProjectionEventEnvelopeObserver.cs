@@ -16,16 +16,9 @@ public class ProjectionEventEnvelopeObserver(IPipelineFactory pipelineFactory) :
 
         var pipeline = await _pipelineFactory.GetPipelineAsync<GetEventEnvelopePipeline>(cancellationToken);
 
-        try
-        {
-            await pipeline.ExecuteAsync(projectionEvent.PrimitiveEvent);
+        await pipeline.ExecuteAsync(projectionEvent.PrimitiveEvent);
 
-            state.SetEventEnvelope(pipeline.State.GetEventEnvelope());
-            state.SetDomainEvent(pipeline.State.GetDomainEvent());
-        }
-        finally
-        {
-            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
-        }
+        state.SetEventEnvelope(pipeline.State.GetEventEnvelope());
+        state.SetDomainEvent(pipeline.State.GetDomainEvent());
     }
 }

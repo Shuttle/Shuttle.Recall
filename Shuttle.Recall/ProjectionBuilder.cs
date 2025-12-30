@@ -46,7 +46,7 @@ public class ProjectionBuilder(IServiceCollection services, IEventProcessorConfi
 
     public ProjectionBuilder AddEventHandler(Type type, Func<Type, ServiceLifetime>? getServiceLifetime = null)
     {
-        getServiceLifetime ??= _ => ServiceLifetime.Singleton;
+        getServiceLifetime ??= _ => ServiceLifetime.Scoped;
 
         var typesAddedCount = 0;
 

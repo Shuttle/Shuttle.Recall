@@ -21,7 +21,7 @@ public class ProjectionEventObserver(IProjectionService projectionService) : IPr
             return;
         }
 
-        state.SetWorking();
+        state.SetWorkPerformed();
         state.SetProjectionEvent(projectionEvent);
     }
 }

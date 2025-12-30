@@ -52,7 +52,7 @@ public class EventProcessor(IPipelineFactory pipelineFactory) : IEventProcessor
 
         await startupPipeline.ExecuteAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
 
-        _eventProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool");
+        _eventProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("ProjectionProcessorThreadPool");
 
         Started = true;
 

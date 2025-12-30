@@ -20,18 +20,9 @@ public class AssembleEventEnvelopesObserver(IPipelineFactory pipelineFactory) : 
 
         pipeline.State.SetEventStreamBuilder(builder);
 
-        try
+        foreach (var appendedEvent in eventStream.GetEvents())
         {
-            foreach (var appendedEvent in eventStream.GetEvents())
-            {
-                eventEnvelopes.Add(await pipeline.ExecuteAsync(appendedEvent).ConfigureAwait(false));
-            }
-
-            state.SetEventEnvelopes(eventEnvelopes);
-        }
-        finally
-        {
-            await _pipelineFactory.ReleasePipelineAsync(pipeline, cancellationToken);
+            eventEnvelopes.Add(await pipeline.ExecuteAsync(appendedEvent).ConfigureAwait(false));
         }
 
         state.SetEventEnvelopes(eventEnvelopes);

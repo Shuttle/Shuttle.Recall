@@ -65,9 +65,9 @@ public static class PipelineStateExtensions
         return state.Get<int>(StateKeys.Version);
     }
 
-    public static bool GetWorking(this IState state)
+    public static bool GetWorkPerformed(this IState state)
     {
-        return state.Contains(StateKeys.Working) && state.Get<bool>(StateKeys.Working);
+        return state.Contains(StateKeys.WorkPerformed) && state.Get<bool>(StateKeys.WorkPerformed);
     }
 
     public static void SetDomainEvent(this IState state, DomainEvent domainEvent)
@@ -130,8 +130,8 @@ public static class PipelineStateExtensions
         state.Replace(StateKeys.Version, value);
     }
 
-    public static void SetWorking(this IState state)
+    public static void SetWorkPerformed(this IState state)
     {
-        state.Replace(StateKeys.Working, true);
+        state.Replace(StateKeys.WorkPerformed, true);
     }
 }
