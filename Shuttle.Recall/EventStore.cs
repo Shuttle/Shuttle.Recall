@@ -32,18 +32,18 @@ public class EventStore(IPipelineFactory pipelineFactory, IEventMethodInvoker ev
         await pipeline.ExecuteAsync(id).ConfigureAwait(false);
     }
 
-    public async Task SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<EventEnvelope>> SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
     {
         if (Guard.AgainstNull(eventStream).Removed)
         {
             await RemoveAsync(eventStream.Id, cancellationToken).ConfigureAwait(false);
 
-            return;
+            return [];
         }
 
         if (!eventStream.ShouldSave())
         {
-            return;
+            return [];
         }
 
         var pipeline = await _pipelineFactory.GetPipelineAsync<SaveEventStreamPipeline>(cancellationToken);
@@ -53,5 +53,7 @@ public class EventStore(IPipelineFactory pipelineFactory, IEventMethodInvoker ev
         builder?.Invoke(eventStreamBuilder);
 
         await pipeline.ExecuteAsync(eventStream, eventStreamBuilder).ConfigureAwait(false);
+
+        return pipeline.State.GetEventEnvelopes() ?? [];
     }
 }

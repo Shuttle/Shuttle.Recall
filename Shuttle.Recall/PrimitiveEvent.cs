@@ -5,7 +5,7 @@ namespace Shuttle.Recall;
 public class PrimitiveEvent
 {
     public Guid? CorrelationId { get; set; }
-    public DateTime DateRegistered { get; set; }
+    public DateTimeOffset RecordedAt { get; set; }
     public byte[] EventEnvelope { get; set; } = [];
     public Guid EventId { get; set; }
     public string EventType { get; set; } = string.Empty;

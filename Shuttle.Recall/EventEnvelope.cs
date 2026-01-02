@@ -7,7 +7,7 @@ public class EventEnvelope
     public string CompressionAlgorithm { get; set; } = string.Empty;
     public string EncryptionAlgorithm { get; set; } = string.Empty;
     public byte[] Event { get; set; } = [];
-    public DateTime EventDate { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset RecordedAt { get; set; } = DateTimeOffset.UtcNow;
     public Guid EventId { get; set; } = Guid.NewGuid();
     public string EventType { get; set; } = string.Empty;
     public List<EnvelopeHeader> Headers { get; set; } = [];

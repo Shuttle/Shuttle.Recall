@@ -38,7 +38,7 @@ public class SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEven
                     EventEnvelope = await (await _serializer.SerializeAsync(eventEnvelope, cancellationToken)).ToBytesAsync(),
                     EventId = eventEnvelope.EventId,
                     EventType = eventEnvelope.EventType,
-                    DateRegistered = eventEnvelope.EventDate
+                    RecordedAt = eventEnvelope.RecordedAt
                 };
 
                 primitiveEvents.Add(primitiveEvent);

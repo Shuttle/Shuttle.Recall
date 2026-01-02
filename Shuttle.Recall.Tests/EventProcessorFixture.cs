@@ -51,12 +51,12 @@ public class EventProcessorFixture
                 Event = await (await serializer.SerializeAsync(sequenceNumber % 2 == 0 ? new EventA { Entry = sequenceNumber } : new EventB { Entry = sequenceNumber })).ToBytesAsync(),
                 EventId = Guid.NewGuid(),
                 Version = sequenceNumber,
-                EventDate = DateTime.Now
+                RecordedAt = DateTimeOffset.Now
             };
 
             primitiveEvent.Id = id;
             primitiveEvent.CorrelationId = id;
-            primitiveEvent.DateRegistered = DateTime.Now;
+            primitiveEvent.RecordedAt = DateTimeOffset.UtcNow;
             primitiveEvent.EventId = Guid.NewGuid();
             primitiveEvent.SequenceNumber = sequenceNumber;
             primitiveEvent.Version = sequenceNumber;
