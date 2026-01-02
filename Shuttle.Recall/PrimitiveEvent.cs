@@ -17,14 +17,17 @@ public class PrimitiveEvent
     {
         private readonly List<string> _eventTypes = [];
         private readonly List<Guid> _ids = [];
+        private readonly List<int> _versions = [];
         private List<long> _sequenceNumbers = [];
 
         public IEnumerable<string> EventTypes => _eventTypes.AsReadOnly();
         public bool HasEventTypes => _eventTypes.Any();
         public bool HasIds => _ids.Any();
+        public bool HasVersions => _versions.Any();
         public bool HasSequenceNumbers => _sequenceNumbers.Any();
 
         public IEnumerable<Guid> Ids => _ids.AsReadOnly();
+        public IEnumerable<int> Versions => _versions.AsReadOnly();
         public int MaximumRows { get; private set; }
         public long SequenceNumberEnd { get; private set; }
         public IEnumerable<long> SequenceNumbers => _sequenceNumbers;
@@ -39,7 +42,7 @@ public class PrimitiveEvent
 
         public Specification AddEventType(string eventType)
         {
-            Guard.AgainstEmpty(eventType, nameof(eventType));
+            Guard.AgainstEmpty(eventType);
 
             if (!_eventTypes.Contains(eventType))
             {
@@ -66,7 +69,7 @@ public class PrimitiveEvent
 
         public Specification AddId(Guid id)
         {
-            Guard.AgainstNull(id, nameof(id));
+            Guard.AgainstNull(id);
 
             if (!_ids.Contains(id))
             {
@@ -78,9 +81,29 @@ public class PrimitiveEvent
 
         public Specification AddIds(IEnumerable<Guid> ids)
         {
-            foreach (var type in ids)
+            foreach (var id in ids)
             {
-                AddId(type);
+                AddId(id);
+            }
+
+            return this;
+        }
+
+        public Specification AddVersion(int version)
+        {
+            if (!_versions.Contains(version))
+            {
+                _versions.Add(version);
+            }
+
+            return this;
+        }
+
+        public Specification AddVersions(IEnumerable<int> versions)
+        {
+            foreach (var version in versions)
+            {
+                AddVersion(version);
             }
 
             return this;
