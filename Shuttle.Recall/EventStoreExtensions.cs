@@ -19,9 +19,9 @@ public static class EventStoreExtensions
             return await eventStore.GetAsync(id, null, cancellationToken);
         }
 
-        public async ValueTask<long> SaveAsync(EventStream eventStream, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<EventEnvelope>> SaveAsync(EventStream eventStream, CancellationToken cancellationToken = default)
         {
-            return await eventStore.SaveAsync(eventStream, cancellationToken);
+            return await eventStore.SaveAsync(eventStream, null, cancellationToken);
         }
     }
 }
