@@ -27,7 +27,7 @@ public class EventProcessingPipeline : Pipeline
         AddObserver(Guard.AgainstNull(handleEventObserver));
         AddObserver(Guard.AgainstNull(acknowledgeEventObserver));
 
-        AddObserver(async (IPipelineContext<PipelineException> context) =>
+        AddObserver(async (IPipelineContext<PipelineFailed> context) =>
         {
             context.Pipeline.Abort();
 

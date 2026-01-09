@@ -1,19 +1,28 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall;
 
-public class EventProcessorHostedService(IEventProcessor eventProcessor) : IHostedService
+public class EventProcessorHostedService(IServiceScopeFactory serviceScopeFactory) : IHostedService
 {
-    private readonly IEventProcessor _eventProcessor = Guard.AgainstNull(eventProcessor);
+    private IEventProcessor? _eventProcessor;
+    private IServiceScope? _serviceScope;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await _eventProcessor.StartAsync(cancellationToken);
+        _serviceScope = Guard.AgainstNull(serviceScopeFactory).CreateScope();
+
+        _eventProcessor = await _serviceScope.ServiceProvider.GetRequiredService<IEventProcessor>().StartAsync(cancellationToken);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        await _eventProcessor.StopAsync(cancellationToken);
+        if (_eventProcessor != null)
+        {
+            await _eventProcessor.DisposeAsync();
+        }
+
+        _serviceScope?.Dispose();
     }
 }

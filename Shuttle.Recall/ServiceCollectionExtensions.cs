@@ -105,18 +105,31 @@ public static class ServiceCollectionExtensions
                 services.AddTransactionScope();
             }
 
-            services.TryAddSingleton<IEventStore, EventStore>();
+            services.TryAddScoped<IEventStore, EventStore>();
             services.TryAddSingleton<IEventProcessor, EventProcessor>();
             services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
             services.TryAddSingleton<IProjectionService, NotImplementedProjectionService>();
 
             services.AddOptions<RecallOptions>().Configure(options =>
             {
-                options.EventProcessing.ProjectionThreadCount = recallBuilder.Options.EventProcessing.ProjectionThreadCount > 1
-                    ? recallBuilder.Options.EventProcessing.ProjectionThreadCount
-                    : 1;
+                options.EventStore = recallBuilder.Options.EventStore;
 
-                options.EventProcessing.ProjectionProcessorIdleDurations = recallBuilder.Options.EventProcessing.ProjectionProcessorIdleDurations;
+                if (options.EventStore.PrimitiveEventSequencerIdleDurations.Count == 0)
+                {
+                    options.EventStore.PrimitiveEventSequencerIdleDurations = EventStoreOptions.DefaultPrimitiveEventSequencerIdleDurations.ToList();
+                }
+
+                options.EventProcessing = recallBuilder.Options.EventProcessing;
+
+                if (options.EventProcessing.ProjectionThreadCount < 1)
+                {
+                    options.EventProcessing.ProjectionThreadCount = 1;
+                }
+
+                if (options.EventProcessing.ProjectionProcessorIdleDurations.Count == 0)
+                {
+                    options.EventProcessing.ProjectionProcessorIdleDurations = EventProcessingOptions.DefaultProjectionProcessorIdleDurations.ToList();
+                }
             });
 
             var eventProcessorConfigurationType = typeof(IEventProcessorConfiguration);

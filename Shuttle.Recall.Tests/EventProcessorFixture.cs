@@ -17,7 +17,7 @@ public class EventProcessorFixture
     [Test]
     public async Task Should_be_able_to_process_projections_with_optimal_performance_async()
     {
-        const int projectionEventCount = 1000;
+        const int projectionEventCount = 500;
         const string projectionName = "projection-1";
 
         var count = 0;

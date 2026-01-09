@@ -1,15 +1,17 @@
-﻿using Shuttle.Core.Contract;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class EventProcessor(IPipelineFactory pipelineFactory) : IEventProcessor
+public class EventProcessor(IServiceScopeFactory serviceScopeFactory) : IEventProcessor
 {
     private CancellationTokenSource _cancellationTokenSource = new();
-    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
+    private IPipelineFactory? _pipelineFactory;
 
     private IProcessorThreadPool? _projectionProcessorThreadPool;
+    private IServiceScope? _serviceScope;
 
     public void Dispose()
     {
@@ -29,6 +31,8 @@ public class EventProcessor(IPipelineFactory pipelineFactory) : IEventProcessor
 
         _projectionProcessorThreadPool?.Dispose();
 
+        _serviceScope?.Dispose();
+
         Started = false;
 
         await Task.CompletedTask;
@@ -46,6 +50,8 @@ public class EventProcessor(IPipelineFactory pipelineFactory) : IEventProcessor
             return this;
         }
 
+        _serviceScope = Guard.AgainstNull(serviceScopeFactory).CreateScope();
+        _pipelineFactory = _serviceScope.ServiceProvider.GetRequiredService<IPipelineFactory>();
         _cancellationTokenSource = new();
 
         var startupPipeline = await _pipelineFactory.GetPipelineAsync<EventProcessorStartupPipeline>(cancellationToken);
