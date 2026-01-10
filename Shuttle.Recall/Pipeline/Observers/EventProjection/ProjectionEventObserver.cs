@@ -5,14 +5,14 @@ namespace Shuttle.Recall;
 
 public interface IProjectionEventObserver : IPipelineObserver<RetrieveEvent>;
 
-public class ProjectionEventObserver(IProjectionService projectionService) : IProjectionEventObserver
+public class ProjectionEventObserver(IProjectionEventService projectionEventService) : IProjectionEventObserver
 {
-    private readonly IProjectionService _projectionService = Guard.AgainstNull(projectionService);
+    private readonly IProjectionEventService _projectionEventService = Guard.AgainstNull(projectionEventService);
 
     public async Task ExecuteAsync(IPipelineContext<RetrieveEvent> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var projectionEvent = await _projectionService.RetrieveEventAsync(pipelineContext, cancellationToken).ConfigureAwait(false);
+        var projectionEvent = await _projectionEventService.RetrieveAsync(pipelineContext, cancellationToken).ConfigureAwait(false);
 
         if (projectionEvent == null)
         {

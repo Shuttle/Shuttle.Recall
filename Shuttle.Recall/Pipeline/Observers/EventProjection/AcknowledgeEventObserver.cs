@@ -5,12 +5,12 @@ namespace Shuttle.Recall;
 
 public interface IAcknowledgeEventObserver : IPipelineObserver<AcknowledgeEvent>;
 
-public class AcknowledgeEventObserver(IProjectionService projectionService) : IAcknowledgeEventObserver
+public class AcknowledgeEventObserver(IProjectionEventService projectionEventService) : IAcknowledgeEventObserver
 {
-    private readonly IProjectionService _service = Guard.AgainstNull(projectionService);
+    private readonly IProjectionEventService _eventService = Guard.AgainstNull(projectionEventService);
 
     public async Task ExecuteAsync(IPipelineContext<AcknowledgeEvent> pipelineContext, CancellationToken cancellationToken = default)
     {
-        await _service.AcknowledgeEventAsync(Guard.AgainstNull(pipelineContext), cancellationToken).ConfigureAwait(false);
+        await _eventService.AcknowledgeAsync(Guard.AgainstNull(pipelineContext), cancellationToken).ConfigureAwait(false);
     }
 }

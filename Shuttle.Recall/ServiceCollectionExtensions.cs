@@ -108,7 +108,7 @@ public static class ServiceCollectionExtensions
             services.TryAddScoped<IEventStore, EventStore>();
             services.TryAddSingleton<IEventProcessor, EventProcessor>();
             services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
-            services.TryAddSingleton<IProjectionService, NotImplementedProjectionService>();
+            services.TryAddSingleton<IProjectionEventService, NotImplementedProjectionEventService>();
 
             services.AddOptions<RecallOptions>().Configure(options =>
             {

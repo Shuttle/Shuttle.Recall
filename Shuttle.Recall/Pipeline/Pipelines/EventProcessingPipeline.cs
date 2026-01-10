@@ -5,16 +5,14 @@ namespace Shuttle.Recall;
 
 public class EventProcessingPipeline : Pipeline
 {
-    public EventProcessingPipeline(IPipelineDependencies pipelineDependencies, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver)
+    public EventProcessingPipeline(IPipelineDependencies pipelineDependencies, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver, IEventProcessingPipelineFailedObserver eventProcessingPipelineFailedObserver)
         : base(pipelineDependencies)
     {
-        AddStage("Read")
+        AddStage("Handle")
             .WithEvent<RetrieveEvent>()
             .WithEvent<EventRetrieved>()
             .WithEvent<RetrieveEventEnvelope>()
-            .WithEvent<EventEnvelopeRetrieved>();
-
-        AddStage("Handle")
+            .WithEvent<EventEnvelopeRetrieved>()
             .WithEvent<HandleEvent>()
             .WithEvent<EventHandled>()
             .WithEvent<AcknowledgeEvent>()
@@ -26,6 +24,7 @@ public class EventProcessingPipeline : Pipeline
         AddObserver(Guard.AgainstNull(projectionEventEnvelopeObserver));
         AddObserver(Guard.AgainstNull(handleEventObserver));
         AddObserver(Guard.AgainstNull(acknowledgeEventObserver));
+        AddObserver(Guard.AgainstNull(eventProcessingPipelineFailedObserver));
 
         AddObserver(async (IPipelineContext<PipelineFailed> context) =>
         {
