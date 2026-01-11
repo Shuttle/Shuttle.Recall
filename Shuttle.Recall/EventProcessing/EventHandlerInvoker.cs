@@ -28,14 +28,15 @@ public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcess
         var eventType = Guard.AgainstNull(Type.GetType(eventEnvelope.AssemblyQualifiedName, true));
         var projectionConfiguration = _eventProcessorConfiguration.GetProjection(projectionEvent.Projection.Name);
 
-        if (!projectionConfiguration.HandlesEventType(eventType))
-        {
-            return false;
-        }
-
         if (!primitiveEvent.SequenceNumber.HasValue)
         {
             throw new ApplicationException(string.Format(Resources.PrimitiveEventSequenceNumberException, projectionEvent.PrimitiveEvent.Id, projectionEvent.PrimitiveEvent.Version));
+        }
+
+        if (!projectionConfiguration.HandlesEventType(eventType))
+        {
+            projectionEvent.Projection.Commit(primitiveEvent.SequenceNumber.Value);
+            return false;
         }
 
         try
