@@ -8,7 +8,7 @@ public class EventStreamBuilder
 
     public EventStreamBuilder AddHeader(string key, string value)
     {
-        Headers.Add(new EnvelopeHeader
+        Headers.Add(new()
         {
             Key = Guard.AgainstEmpty(key),
             Value = value
