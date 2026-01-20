@@ -61,54 +61,64 @@ public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcess
 
             var handlerContext = contextConstructor.CreateHandlerContext(projectionEvent.Projection, eventEnvelope, domainEvent, primitiveEvent);
 
-            if (projectionConfiguration.TryGetDelegate(eventType, out var projectionDelegate))
-            {
-                if (projectionDelegate.HasParameters)
-                {
-                    await (Task)projectionDelegate.Handler.DynamicInvoke(projectionDelegate.GetParameters(_serviceProvider, handlerContext))!;
-                }
-                else
-                {
-                    await (Task)projectionDelegate.Handler.DynamicInvoke()!;
-                }
-
-                return true;
-            }
-
-            var handler = _serviceProvider.GetKeyedServices(EventHandlerType.MakeGenericType(eventType), $"[Shuttle.Recall.Projection/{projectionEvent.Projection.Name}]:{Guard.AgainstEmpty(eventType.FullName)}").FirstOrDefault();
-
-            if (handler == null)
-            {
-                return false;
-            }
-
-            ProcessEventMethodInvoker? processEventMethodInvoker;
-
-            await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
-
             try
             {
-                if (!_processEventMethodInvokers.TryGetValue(eventType, out processEventMethodInvoker))
+                if (projectionConfiguration.TryGetDelegate(eventType, out var projectionDelegate))
                 {
-                    var interfaceType = EventHandlerType.MakeGenericType(eventType);
-                    var methodInfo = handler.GetType().GetInterfaceMap(interfaceType).TargetMethods.SingleOrDefault();
-
-                    if (methodInfo == null)
+                    if (projectionDelegate.HasParameters)
                     {
-                        throw new ProcessEventMethodMissingException(string.Format(Resources.ProcessEventMethodMissingException, handler.GetType().FullName, eventType.FullName));
+                        await (Task)projectionDelegate.Handler.DynamicInvoke(projectionDelegate.GetParameters(_serviceProvider, handlerContext, cancellationToken))!;
+                    }
+                    else
+                    {
+                        await (Task)projectionDelegate.Handler.DynamicInvoke()!;
                     }
 
-                    processEventMethodInvoker = new(methodInfo);
-
-                    _processEventMethodInvokers.Add(eventType, processEventMethodInvoker);
+                    return true;
                 }
+
+                var handler = _serviceProvider.GetKeyedServices(EventHandlerType.MakeGenericType(eventType), $"[Shuttle.Recall.Projection/{projectionEvent.Projection.Name}]:{Guard.AgainstEmpty(eventType.FullName)}").FirstOrDefault();
+
+                if (handler == null)
+                {
+                    return false;
+                }
+
+                ProcessEventMethodInvoker? processEventMethodInvoker;
+
+                await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+                try
+                {
+                    if (!_processEventMethodInvokers.TryGetValue(eventType, out processEventMethodInvoker))
+                    {
+                        var interfaceType = EventHandlerType.MakeGenericType(eventType);
+                        var methodInfo = handler.GetType().GetInterfaceMap(interfaceType).TargetMethods.SingleOrDefault();
+
+                        if (methodInfo == null)
+                        {
+                            throw new ProcessEventMethodMissingException(string.Format(Resources.ProcessEventMethodMissingException, handler.GetType().FullName, eventType.FullName));
+                        }
+
+                        processEventMethodInvoker = new(methodInfo);
+
+                        _processEventMethodInvokers.Add(eventType, processEventMethodInvoker);
+                    }
+                }
+                finally
+                {
+                    _lock.Release();
+                }
+
+                await processEventMethodInvoker.InvokeAsync(handler, handlerContext, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
-                _lock.Release();
+                if (handlerContext is IEventHandlerContext deferredContext && deferredContext.IsDeferred())
+                {
+                    state.SetDeferredUntil(DateTimeOffset.UtcNow.Add(deferredContext.DeferredFor ?? TimeSpan.Zero));
+                }
             }
-
-            await processEventMethodInvoker.InvokeAsync(handler, handlerContext, cancellationToken).ConfigureAwait(false);
         }
         finally
         {

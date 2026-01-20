@@ -13,7 +13,8 @@ public class EventProcessingOptions
         TimeSpan.FromSeconds(1)
     ];
 
-    public List<string> ActiveProjections { get; set; } = [];
+    public List<string> IncludedProjections { get; set; } = [];
+    public List<string> ExcludedProjections { get; set; } = [];
     public List<TimeSpan> ProjectionProcessorIdleDurations { get; set; } = [];
     public int ProjectionThreadCount { get; set; } = 5;
 }

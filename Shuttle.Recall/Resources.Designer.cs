@@ -61,6 +61,15 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Either &apos;IncludedProjections&apos; or &apos;ExcludedProjections&apos; may be specified, but not both..
+        /// </summary>
+        public static string ActiveProjectionsException {
+            get {
+                return ResourceManager.GetString("ActiveProjectionsException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot add projections after the event processor has been started..
         /// </summary>
         public static string AddProjectionEventProcessorStartedException {

@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Shuttle.Recall.Tests;
 
 [TestFixture]
-public class EventStoreOptionsFixture
+public class RecallOptionsFixture
 {
     protected RecallOptions GetOptions()
     {
@@ -24,12 +24,19 @@ public class EventStoreOptionsFixture
     {
         var eventStoreOptions = new RecallOptions();
 
-        Assert.That(eventStoreOptions.HasActiveProjection("not-registered"), Is.True);
+        Assert.That(eventStoreOptions.HasActiveProjection("projection-excluded"), Is.True);
+        Assert.That(eventStoreOptions.HasActiveProjection("projection-included"), Is.True);
 
-        eventStoreOptions.EventProcessing.ActiveProjections.Add("projection-1");
+        eventStoreOptions.EventProcessing.IncludedProjections.Add("projection-included");
 
-        Assert.That(eventStoreOptions.HasActiveProjection("not-registered"), Is.False);
-        Assert.That(eventStoreOptions.HasActiveProjection("projection-1"), Is.True);
+        Assert.That(eventStoreOptions.HasActiveProjection("projection-excluded"), Is.False);
+        Assert.That(eventStoreOptions.HasActiveProjection("projection-included"), Is.True);
+
+        eventStoreOptions.EventProcessing.IncludedProjections.Clear();
+        eventStoreOptions.EventProcessing.ExcludedProjections.Add("projection-excluded");
+
+        Assert.That(eventStoreOptions.HasActiveProjection("projection-excluded"), Is.False);
+        Assert.That(eventStoreOptions.HasActiveProjection("projection-included"), Is.True);
     }
 
     [Test]
@@ -40,7 +47,7 @@ public class EventStoreOptionsFixture
         Assert.That(options, Is.Not.Null);
         Assert.That(options.EventProcessing.ProjectionProcessorIdleDurations[0], Is.EqualTo(TimeSpan.FromSeconds(1)));
 
-        Assert.That(options.EventProcessing.ActiveProjections, Is.Not.Null);
-        Assert.That(options.EventProcessing.ActiveProjections.Count, Is.EqualTo(3));
+        Assert.That(options.EventProcessing.IncludedProjections, Is.Not.Null);
+        Assert.That(options.EventProcessing.IncludedProjections.Count, Is.EqualTo(3));
     }
 }

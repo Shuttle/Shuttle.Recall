@@ -15,7 +15,7 @@
     <PackageReference Include="Shuttle.Access.AspNetCore" Version="8.1.6" />
     <PackageReference Include="Shuttle.Access.RestClient" Version="8.1.8" />
     <PackageReference Include="Shuttle.Core.Data" Version="20.0.0" />
-    <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.0-alpha" />
+    <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.1-beta" />
     <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="20.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />

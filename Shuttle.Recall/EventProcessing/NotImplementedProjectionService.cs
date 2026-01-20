@@ -9,7 +9,12 @@ public class NotImplementedProjectionEventService : IProjectionEventService
         throw new NotImplementedException(Resources.NotImplementedProjectionEventProvider);
     }
 
-    public async Task PipelineFailedAsync(IPipelineContext<PipelineFailed> pipelineContext, CancellationToken cancellationToken = default)
+    public Task DeferAsync(IPipelineContext<HandleEvent> pipelineContext, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task PipelineFailedAsync(IPipelineContext<PipelineFailed> pipelineContext, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException(Resources.NotImplementedProjectionEventProvider);
     }

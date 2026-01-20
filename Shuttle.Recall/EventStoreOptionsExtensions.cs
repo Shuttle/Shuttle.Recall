@@ -8,28 +8,18 @@ public static class RecallOptionsExtensions
     {
         public bool HasActiveProjection(string name)
         {
+            Guard.AgainstNull(recallOptions);
+
             if (string.IsNullOrEmpty(name))
             {
                 return false;
             }
 
-            if (Guard.AgainstNull(recallOptions).EventProcessing.ActiveProjections.Count == 1)
-            {
-                var value = recallOptions.EventProcessing.ActiveProjections.ElementAt(0);
-
-                if (value.Equals("!"))
-                {
-                    return false;
-                }
-
-                if (value.Equals("*"))
-                {
-                    return true;
-                }
-            }
-
-            return !recallOptions.EventProcessing.ActiveProjections.Any() ||
-                   recallOptions.EventProcessing.ActiveProjections.FirstOrDefault(item => item.Equals(name)) != null;
+            return (recallOptions.EventProcessing.IncludedProjections.Count == 0 ||
+                    recallOptions.EventProcessing.IncludedProjections.FirstOrDefault(item => item.Equals(name)) != null)
+                   &&
+                   (recallOptions.EventProcessing.ExcludedProjections.Count == 0 ||
+                    recallOptions.EventProcessing.ExcludedProjections.FirstOrDefault(item => item.Equals(name)) == null);
         }
     }
 }

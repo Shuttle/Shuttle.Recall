@@ -294,4 +294,7 @@
   <data name="PrimitiveEventSequencerException" xml:space="preserve">
     <value>No `IPrimitiveEventSequencer` implementation has been registered.  Please register the dependency before calling `AddRecall()`.</value>
   </data>
+  <data name="ActiveProjectionsException" xml:space="preserve">
+    <value>Either 'IncludedProjections' or 'ExcludedProjections' may be specified, but not both.</value>
+  </data>
 </root>

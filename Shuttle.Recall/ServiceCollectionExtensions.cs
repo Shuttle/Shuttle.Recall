@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Shuttle.Core.Compression;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Encryption;
@@ -109,6 +110,7 @@ public static class ServiceCollectionExtensions
             services.TryAddSingleton<IEventProcessor, EventProcessor>();
             services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
             services.TryAddSingleton<IProjectionEventService, NotImplementedProjectionEventService>();
+            services.AddSingleton<IValidateOptions<RecallOptions>, RecallOptionsValidator>();
 
             services.AddOptions<RecallOptions>().Configure(options =>
             {
