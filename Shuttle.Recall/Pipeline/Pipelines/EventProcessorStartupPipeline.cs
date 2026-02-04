@@ -1,12 +1,14 @@
-﻿using Shuttle.Core.Contract;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
+using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall;
 
 public class EventProcessorStartupPipeline : Pipeline
 {
-    public EventProcessorStartupPipeline(IPipelineDependencies pipelineDependencies, IStartupEventProcessingObserver startupEventProcessingObserver)
-        : base(pipelineDependencies)
+    public EventProcessorStartupPipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider, IStartupEventProcessingObserver startupEventProcessingObserver)
+        : base(pipelineOptions, transactionScopeOptions, transactionScopeFactory, serviceProvider)
     {
         AddStage("Startup")
             .WithEvent<StartEventProcessing>()

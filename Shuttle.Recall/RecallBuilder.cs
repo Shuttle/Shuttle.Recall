@@ -17,7 +17,6 @@ public class RecallBuilder(IServiceCollection services, IEventProcessorConfigura
     public bool ShouldSuppressPrimitiveEventSequencerHostedService { get; private set; }
     public bool ShouldSuppressEventProcessorHostedService { get; private set; }
     public bool ShouldSuppressPipelineProcessing { get; private set; }
-    public bool ShouldSuppressPipelineTransactionScope { get; private set; }
 
     public ProjectionBuilder AddProjection(string name)
     {
@@ -34,13 +33,6 @@ public class RecallBuilder(IServiceCollection services, IEventProcessorConfigura
     public RecallBuilder SuppressPipelineProcessing()
     {
         ShouldSuppressPipelineProcessing = true;
-
-        return this;
-    }
-
-    public RecallBuilder SuppressPipelineTransactionScope()
-    {
-        ShouldSuppressPipelineTransactionScope = true;
 
         return this;
     }

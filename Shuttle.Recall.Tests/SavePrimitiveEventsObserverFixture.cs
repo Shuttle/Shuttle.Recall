@@ -23,11 +23,7 @@ public class SavePrimitiveEventsObserverFixture
             new Mock<ISerializer>().Object,
             specification.Object);
 
-        var pipeline = new Pipeline(new PipelineDependencies(
-            Options.Create(new PipelineOptions()),
-            Options.Create(new TransactionScopeOptions()),
-            new TransactionScopeFactory(Options.Create(new TransactionScopeOptions())), 
-            new Mock<IServiceProvider>().Object));
+        var pipeline = Pipeline.Get();
 
         pipeline.State.SetEventStream(new(Guid.NewGuid(), new Mock<IEventMethodInvoker>().Object));
         pipeline.State.SetEventEnvelopes(new List<EventEnvelope>

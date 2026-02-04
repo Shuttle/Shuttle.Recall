@@ -86,16 +86,6 @@ public static class ServiceCollectionExtensions
                 services.AddPipelines(pipelineBuilder =>
                 {
                     pipelineBuilder.AddAssembly(typeof(EventStore).Assembly);
-
-                    if (!recallBuilder.ShouldSuppressPipelineTransactionScope)
-                    {
-                        pipelineBuilder.Configure(options =>
-                        {
-                            options.UseTransactionScope<EventProcessingPipeline>("Handle");
-                            options.UseTransactionScope<SaveEventStreamPipeline>("Handle");
-                            options.UseTransactionScope<SaveEventStreamPipeline>("Completed");
-                        });
-                    }
                 });
             }
 

@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall.Tests;
 
@@ -44,7 +42,7 @@ public class EventHandlerInvokerFixture
 
         var invoker = serviceProvider.GetRequiredService<IEventHandlerInvoker>();
 
-        var pipeline = GetPipeline(serviceProvider);
+        var pipeline = Pipeline.Get(serviceProvider);
 
         pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
         {
@@ -67,15 +65,6 @@ public class EventHandlerInvokerFixture
         Assert.That(handler.Invoked, Is.True);
     }
 
-    private static Pipeline GetPipeline(IServiceProvider serviceProvider)
-    {
-        return new(new PipelineDependencies(
-            Options.Create(new PipelineOptions()),
-            Options.Create(new TransactionScopeOptions()),
-            new TransactionScopeFactory(Options.Create(new TransactionScopeOptions())),
-            serviceProvider));
-    }
-
     [Test]
     public async Task Should_be_able_to_invoke_delegate_handler_async()
     {
@@ -83,7 +72,7 @@ public class EventHandlerInvokerFixture
         var configuration = new EventProcessorConfiguration();
         var invoker = new EventHandlerInvoker(serviceProvider, configuration);
 
-        var pipeline = GetPipeline(serviceProvider);
+        var pipeline = Pipeline.Get();
 
         pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
         {
@@ -125,7 +114,7 @@ public class EventHandlerInvokerFixture
         var configuration = new EventProcessorConfiguration();
         var invoker = new EventHandlerInvoker(serviceProvider, configuration);
 
-        var pipeline = GetPipeline(serviceProvider);
+        var pipeline = Pipeline.Get(serviceProvider);
 
         pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
         {

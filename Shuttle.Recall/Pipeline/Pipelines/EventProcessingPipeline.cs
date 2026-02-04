@@ -1,12 +1,14 @@
-﻿using Shuttle.Core.Contract;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
+using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall;
 
 public class EventProcessingPipeline : Pipeline
 {
-    public EventProcessingPipeline(IPipelineDependencies pipelineDependencies, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver, IEventProcessingPipelineFailedObserver eventProcessingPipelineFailedObserver)
-        : base(pipelineDependencies)
+    public EventProcessingPipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver, IEventProcessingPipelineFailedObserver eventProcessingPipelineFailedObserver)
+        : base(pipelineOptions, transactionScopeOptions, transactionScopeFactory, serviceProvider)
     {
         AddStage("Handle")
             .WithEvent<RetrieveEvent>()
@@ -18,7 +20,8 @@ public class EventProcessingPipeline : Pipeline
             .WithEvent<AcknowledgeEvent>()
             .WithEvent<EventAcknowledged>()
             .WithEvent<CompleteTransactionScope>()
-            .WithEvent<DisposeTransactionScope>();
+            .WithEvent<DisposeTransactionScope>()
+            .WithTransactionScope();
 
         AddObserver(Guard.AgainstNull(projectionEventObserver));
         AddObserver(Guard.AgainstNull(projectionEventEnvelopeObserver));
