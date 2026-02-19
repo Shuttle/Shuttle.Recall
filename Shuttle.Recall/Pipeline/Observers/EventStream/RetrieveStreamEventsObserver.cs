@@ -5,7 +5,7 @@ namespace Shuttle.Recall;
 
 public interface IRetrieveStreamEventsObserver : IPipelineObserver<RetrieveStreamEvents>;
 
-public class RetrieveStreamEventsObserver(GetEventEnvelopePipeline getEventEnvelopePipeline, IPrimitiveEventRepository primitiveEventRepository)
+public class RetrieveStreamEventsObserver(IGetEventEnvelopePipeline getEventEnvelopePipeline, IPrimitiveEventRepository primitiveEventRepository)
     : IRetrieveStreamEventsObserver
 {
     private readonly IPrimitiveEventRepository _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);

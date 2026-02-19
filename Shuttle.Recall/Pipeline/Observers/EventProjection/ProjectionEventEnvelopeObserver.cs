@@ -5,7 +5,7 @@ namespace Shuttle.Recall;
 
 public interface IProjectionEventEnvelopeObserver : IPipelineObserver<RetrieveEventEnvelope>;
 
-public class ProjectionEventEnvelopeObserver(GetEventEnvelopePipeline getEventEnvelopePipeline) : IProjectionEventEnvelopeObserver
+public class ProjectionEventEnvelopeObserver(IGetEventEnvelopePipeline getEventEnvelopePipeline) : IProjectionEventEnvelopeObserver
 {
     public async Task ExecuteAsync(IPipelineContext<RetrieveEventEnvelope> pipelineContext, CancellationToken cancellationToken = default)
     {

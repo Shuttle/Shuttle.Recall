@@ -5,7 +5,7 @@ namespace Shuttle.Recall;
 
 public interface IAssembleEventEnvelopesObserver : IPipelineObserver<AssembleEventEnvelopes>;
 
-public class AssembleEventEnvelopesObserver(AssembleEventEnvelopePipeline assembleEventEnvelopePipeline) : IAssembleEventEnvelopesObserver
+public class AssembleEventEnvelopesObserver(IAssembleEventEnvelopePipeline assembleEventEnvelopePipeline) : IAssembleEventEnvelopesObserver
 {
     public async Task ExecuteAsync(IPipelineContext<AssembleEventEnvelopes> pipelineContext, CancellationToken cancellationToken = default)
     {

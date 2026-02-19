@@ -4,7 +4,7 @@ using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class ProjectionProcessor(EventProcessingPipeline eventProcessingPipeline, IProcessorContext processorContext, ILogger<ProjectionProcessor> logger) : IProcessor
+public class ProjectionProcessor(IEventProcessingPipeline eventProcessingPipeline, IProcessorContext processorContext, ILogger<ProjectionProcessor> logger) : IProcessor
 {
     private readonly IProcessorContext _processorContext = Guard.AgainstNull(processorContext);
     private readonly ILogger<ProjectionProcessor> _logger = Guard.AgainstNull(logger);

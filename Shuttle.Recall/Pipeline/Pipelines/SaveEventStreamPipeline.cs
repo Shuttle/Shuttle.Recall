@@ -5,7 +5,12 @@ using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall;
 
-public class SaveEventStreamPipeline : Pipeline
+public interface ISaveEventStreamPipeline : IPipeline
+{
+    Task ExecuteAsync(EventStream eventStream, EventStreamBuilder builder);
+}
+
+public class SaveEventStreamPipeline : Pipeline, ISaveEventStreamPipeline
 {
     public SaveEventStreamPipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider, IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver)
         : base(pipelineOptions, transactionScopeOptions, transactionScopeFactory, serviceProvider)
@@ -25,7 +30,8 @@ public class SaveEventStreamPipeline : Pipeline
             .WithEvent<SaveEventStream>()
             .WithEvent<EventStreamSaved>()
             .WithEvent<CompleteTransactionScope>()
-            .WithEvent<DisposeTransactionScope>().WithTransactionScope();
+            .WithEvent<DisposeTransactionScope>()
+            .WithTransactionScope();
 
         AddObserver(Guard.AgainstNull(assembleEventEnvelopesObserver));
         AddObserver(Guard.AgainstNull(savePrimitiveEventsObserver));

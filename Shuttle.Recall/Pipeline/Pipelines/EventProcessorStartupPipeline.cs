@@ -5,7 +5,9 @@ using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall;
 
-public class EventProcessorStartupPipeline : Pipeline
+public interface IEventProcessorStartupPipeline : IPipeline;
+
+public class EventProcessorStartupPipeline : Pipeline, IEventProcessorStartupPipeline
 {
     public EventProcessorStartupPipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider, IStartupEventProcessingObserver startupEventProcessingObserver)
         : base(pipelineOptions, transactionScopeOptions, transactionScopeFactory, serviceProvider)

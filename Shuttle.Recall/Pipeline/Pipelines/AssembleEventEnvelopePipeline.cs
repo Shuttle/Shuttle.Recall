@@ -5,7 +5,12 @@ using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall;
 
-public class AssembleEventEnvelopePipeline : Pipeline
+public interface IAssembleEventEnvelopePipeline : IPipeline
+{
+    Task<EventEnvelope> ExecuteAsync(DomainEvent domainEvent);
+}
+
+public class AssembleEventEnvelopePipeline : Pipeline, IAssembleEventEnvelopePipeline
 {
     public AssembleEventEnvelopePipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider, IAssembleEventEnvelopeObserver assembleEventEnvelopeObserver, ICompressEventObserver compressEventObserver, IEncryptEventObserver encryptEventObserver, ISerializeEventObserver serializeEventObserver)
         : base(pipelineOptions, transactionScopeOptions, transactionScopeFactory, serviceProvider)

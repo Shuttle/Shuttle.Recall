@@ -64,7 +64,7 @@ public class EventProcessor(IServiceScopeFactory serviceScopeFactory, IOptions<R
         _serviceScope = Guard.AgainstNull(serviceScopeFactory).CreateScope();
         _cancellationTokenSource = new();
 
-        var startupPipeline = _serviceScope.ServiceProvider.GetRequiredService<EventProcessorStartupPipeline>();
+        var startupPipeline = _serviceScope.ServiceProvider.GetRequiredService<IEventProcessorStartupPipeline>();
 
         await startupPipeline.ExecuteAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
 

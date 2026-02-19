@@ -4,7 +4,7 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall;
 
-public class EventStore(GetEventStreamPipeline getEventStreamPipeline, RemoveEventStreamPipeline removeEventStreamPipeline, SaveEventStreamPipeline saveEventStreamPipeline, IEventMethodInvoker eventMethodInvoker, IOptions<RecallOptions> recallOptions, ILogger<EventStore> logger)
+public class EventStore(IGetEventStreamPipeline getEventStreamPipeline, IRemoveEventStreamPipeline removeEventStreamPipeline, ISaveEventStreamPipeline saveEventStreamPipeline, IEventMethodInvoker eventMethodInvoker, IOptions<RecallOptions> recallOptions, ILogger<EventStore> logger)
     : IEventStore
 {
     private readonly IEventMethodInvoker _eventMethodInvoker = Guard.AgainstNull(eventMethodInvoker);
