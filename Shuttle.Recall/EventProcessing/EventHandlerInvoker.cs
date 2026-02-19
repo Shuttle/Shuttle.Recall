@@ -1,15 +1,17 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcessorConfiguration eventProcessorConfiguration)
+public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcessorConfiguration eventProcessorConfiguration, ILogger<EventHandlerInvoker> logger)
     : IEventHandlerInvoker
 {
     private static readonly Type EventHandlerType = typeof(IEventHandler<>);
     private readonly Dictionary<Type, HandlerContextConstructorInvoker> _handlerContextConstructorInvokers = new();
     private readonly IEventProcessorConfiguration _eventProcessorConfiguration = Guard.AgainstNull(eventProcessorConfiguration);
+    private readonly ILogger<EventHandlerInvoker> _logger = Guard.AgainstNull(logger);
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly Dictionary<Type, ProcessEventMethodInvoker> _processEventMethodInvokers = new();
     private readonly IServiceProvider _serviceProvider = Guard.AgainstNull(serviceProvider);
@@ -27,6 +29,8 @@ public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcess
         var domainEvent = Guard.AgainstNull(state.GetDomainEvent().Event);
         var eventType = Guard.AgainstNull(Type.GetType(eventEnvelope.AssemblyQualifiedName, true));
         var projectionConfiguration = _eventProcessorConfiguration.GetProjection(projectionEvent.Projection.Name);
+
+        LogMessage.EventHandlerInvokerInvoke(_logger, projectionEvent.Projection.Name, eventType.FullName);
 
         if (!primitiveEvent.SequenceNumber.HasValue)
         {
@@ -65,6 +69,8 @@ public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcess
             {
                 if (projectionConfiguration.TryGetDelegate(eventType, out var projectionDelegate))
                 {
+                    LogMessage.EventHandlerInvokerInvokeDetail(_logger, projectionEvent.Projection.Name, eventType.FullName, "delegate");
+
                     if (projectionDelegate.HasParameters)
                     {
                         await (Task)projectionDelegate.Handler.DynamicInvoke(projectionDelegate.GetParameters(_serviceProvider, handlerContext, cancellationToken))!;
@@ -83,6 +89,8 @@ public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcess
                 {
                     return false;
                 }
+
+                LogMessage.EventHandlerInvokerInvokeHandler(_logger, projectionEvent.Projection.Name, eventType.FullName, "IEventHandler", handler.GetType().FullName);
 
                 ProcessEventMethodInvoker? processEventMethodInvoker;
 

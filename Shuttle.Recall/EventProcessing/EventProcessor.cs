@@ -1,14 +1,17 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class EventProcessor(IServiceScopeFactory serviceScopeFactory) : IEventProcessor
+public class EventProcessor(IServiceScopeFactory serviceScopeFactory, IOptions<RecallOptions> recallOptions, ILogger<EventProcessor> logger) : IEventProcessor
 {
+    private readonly ILogger<EventProcessor> _logger = Guard.AgainstNull(logger);
+    private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);
     private CancellationTokenSource _cancellationTokenSource = new();
-    private IPipelineFactory? _pipelineFactory;
 
     private IProcessorThreadPool? _projectionProcessorThreadPool;
     private IServiceScope? _serviceScope;
@@ -26,6 +29,10 @@ public class EventProcessor(IServiceScopeFactory serviceScopeFactory) : IEventPr
         {
             return;
         }
+
+        LogMessage.EventProcessorStop(_logger);
+
+        await _recallOptions.Operation.InvokeAsync(new("[StopAsync]"), cancellationToken);
 
         await _cancellationTokenSource.CancelAsync();
 
@@ -50,11 +57,14 @@ public class EventProcessor(IServiceScopeFactory serviceScopeFactory) : IEventPr
             return this;
         }
 
+        LogMessage.EventProcessorStart(_logger);
+
+        await _recallOptions.Operation.InvokeAsync(new("[StartAsync]"), cancellationToken);
+
         _serviceScope = Guard.AgainstNull(serviceScopeFactory).CreateScope();
-        _pipelineFactory = _serviceScope.ServiceProvider.GetRequiredService<IPipelineFactory>();
         _cancellationTokenSource = new();
 
-        var startupPipeline = await _pipelineFactory.GetPipelineAsync<EventProcessorStartupPipeline>(cancellationToken);
+        var startupPipeline = _serviceScope.ServiceProvider.GetRequiredService<EventProcessorStartupPipeline>();
 
         await startupPipeline.ExecuteAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
 

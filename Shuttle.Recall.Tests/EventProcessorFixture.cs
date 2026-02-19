@@ -24,6 +24,9 @@ public class EventProcessorFixture
         var id = Guid.NewGuid();
         var serializer = new JsonSerializer(Options.Create(new JsonSerializerOptions()));
         var services = new ServiceCollection();
+
+        services.AddLogging();
+
         var projectionService = new Mock<IProjectionEventService>();
         var sequenceNumber = 1;
         var eventStoreOptions = new RecallOptions

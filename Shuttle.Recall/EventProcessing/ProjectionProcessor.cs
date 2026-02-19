@@ -1,23 +1,25 @@
-﻿using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Microsoft.Extensions.Logging;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class ProjectionProcessor(IPipelineFactory pipelineFactory, IProcessorContext processorContext) : IProcessor
+public class ProjectionProcessor(EventProcessingPipeline eventProcessingPipeline, IProcessorContext processorContext, ILogger<ProjectionProcessor> logger) : IProcessor
 {
-    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
     private readonly IProcessorContext _processorContext = Guard.AgainstNull(processorContext);
+    private readonly ILogger<ProjectionProcessor> _logger = Guard.AgainstNull(logger);
 
     public async ValueTask<bool> ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var pipeline = await _pipelineFactory.GetPipelineAsync<EventProcessingPipeline>(cancellationToken);
+        Guard.AgainstNull(eventProcessingPipeline);
 
-        pipeline.State.Clear();
-        pipeline.State.SetProcessorThreadManagedThreadId(_processorContext.ManagedThreadId);
+        LogMessage.ProjectionProcessorExecute(_logger);
 
-        await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+        eventProcessingPipeline.State.Clear();
+        eventProcessingPipeline.State.SetProcessorThreadManagedThreadId(_processorContext.ManagedThreadId);
 
-        return !pipeline.Aborted && pipeline.State.GetWorkPerformed();
+        await eventProcessingPipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+
+        return !eventProcessingPipeline.Aborted && eventProcessingPipeline.State.GetWorkPerformed();
     }
 }

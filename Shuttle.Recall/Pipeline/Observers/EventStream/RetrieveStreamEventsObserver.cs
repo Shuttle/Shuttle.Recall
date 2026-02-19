@@ -5,17 +5,17 @@ namespace Shuttle.Recall;
 
 public interface IRetrieveStreamEventsObserver : IPipelineObserver<RetrieveStreamEvents>;
 
-public class RetrieveStreamEventsObserver(IPipelineFactory pipelineFactory, IPrimitiveEventRepository primitiveEventRepository)
+public class RetrieveStreamEventsObserver(GetEventEnvelopePipeline getEventEnvelopePipeline, IPrimitiveEventRepository primitiveEventRepository)
     : IRetrieveStreamEventsObserver
 {
-    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
     private readonly IPrimitiveEventRepository _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
 
     public async Task ExecuteAsync(IPipelineContext<RetrieveStreamEvents> pipelineContext, CancellationToken cancellationToken = default)
     {
+        Guard.AgainstNull(getEventEnvelopePipeline);
+
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var events = new List<DomainEvent>();
-        var pipeline = await _pipelineFactory.GetPipelineAsync<GetEventEnvelopePipeline>(cancellationToken);
 
         var version = 0;
 
@@ -28,9 +28,9 @@ public class RetrieveStreamEventsObserver(IPipelineFactory pipelineFactory, IPri
                 throw new InvalidOperationException(string.Format(Resources.InvalidEventOrderingException, primitiveEvent.Version, version));
             }
 
-            await pipeline.ExecuteAsync(primitiveEvent).ConfigureAwait(false);
+            await getEventEnvelopePipeline.ExecuteAsync(primitiveEvent).ConfigureAwait(false);
 
-            events.Add(pipeline.State.GetDomainEvent());
+            events.Add(getEventEnvelopePipeline.State.GetDomainEvent());
 
             version = primitiveEvent.Version;
         }

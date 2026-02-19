@@ -5,20 +5,16 @@ namespace Shuttle.Recall;
 
 public interface IProjectionEventEnvelopeObserver : IPipelineObserver<RetrieveEventEnvelope>;
 
-public class ProjectionEventEnvelopeObserver(IPipelineFactory pipelineFactory) : IProjectionEventEnvelopeObserver
+public class ProjectionEventEnvelopeObserver(GetEventEnvelopePipeline getEventEnvelopePipeline) : IProjectionEventEnvelopeObserver
 {
-    private readonly IPipelineFactory _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-
     public async Task ExecuteAsync(IPipelineContext<RetrieveEventEnvelope> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent());
 
-        var pipeline = await _pipelineFactory.GetPipelineAsync<GetEventEnvelopePipeline>(cancellationToken);
+        await Guard.AgainstNull(getEventEnvelopePipeline).ExecuteAsync(projectionEvent.PrimitiveEvent);
 
-        await pipeline.ExecuteAsync(projectionEvent.PrimitiveEvent);
-
-        state.SetEventEnvelope(pipeline.State.GetEventEnvelope());
-        state.SetDomainEvent(pipeline.State.GetDomainEvent());
+        state.SetEventEnvelope(getEventEnvelopePipeline.State.GetEventEnvelope());
+        state.SetDomainEvent(getEventEnvelopePipeline.State.GetDomainEvent());
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Core.Pipelines;
@@ -14,7 +15,7 @@ public class EventHandlerInvokerFixture
     {
         public bool Invoked { get; private set; }
 
-        public async Task ProcessEventAsync(IEventHandlerContext<EventA> context, CancellationToken cancellationToken = default)
+        public async Task HandleAsync(IEventHandlerContext<EventA> context, CancellationToken cancellationToken = default)
         {
             Invoked = true;
 
@@ -28,6 +29,8 @@ public class EventHandlerInvokerFixture
         var handler = new EventHandlerA();
 
         var services = new ServiceCollection();
+
+        services.AddLogging();
 
         services.AddRecall(builder =>
         {
@@ -70,7 +73,7 @@ public class EventHandlerInvokerFixture
     {
         var serviceProvider = new Mock<IServiceProvider>().Object;
         var configuration = new EventProcessorConfiguration();
-        var invoker = new EventHandlerInvoker(serviceProvider, configuration);
+        var invoker = new EventHandlerInvoker(serviceProvider, configuration, NullLogger<EventHandlerInvoker>.Instance);
 
         var pipeline = Pipeline.Get();
 
@@ -112,7 +115,7 @@ public class EventHandlerInvokerFixture
         var serviceProvider = services.BuildServiceProvider();
 
         var configuration = new EventProcessorConfiguration();
-        var invoker = new EventHandlerInvoker(serviceProvider, configuration);
+        var invoker = new EventHandlerInvoker(serviceProvider, configuration, NullLogger<EventHandlerInvoker>.Instance);
 
         var pipeline = Pipeline.Get(serviceProvider);
 
