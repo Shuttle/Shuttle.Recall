@@ -1,8 +1,13 @@
-﻿using Asp.Versioning;
+﻿using System.Data;
+using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Shuttle.Access.AspNetCore;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 using Shuttle.Recall.WebApi.Models;
 using EventType = Shuttle.Recall.WebApi.Models.EventType;
 
@@ -14,43 +19,56 @@ public static class EventTypeEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPost("/eventtypes/search", async (HttpContext httpContext, IAccessService accessService, IDatabaseContextFactory databaseContextFactory, IEventTypeQuery eventTypeQuery, EventType.Specification model) =>
+        app.MapPost("/event-types/search", async (IOptions<SqlServerStorageOptions> sqlServerStorageOptions, ISessionContext sessionContext, SqlServerStorageDbContext dbContext, EventType.Specification specification, CancellationToken cancellationToken) =>
             {
-                Guard.AgainstNull(httpContext);
-                Guard.AgainstNull(accessService);
-                Guard.AgainstNull(databaseContextFactory);
-                Guard.AgainstNull(eventTypeQuery);
+                Guard.AgainstNull(sessionContext);
+                Guard.AgainstNull(dbContext);
 
-                var sessionTokenResult = httpContext.GetAccessSessionToken();
-
-                if (!sessionTokenResult.Ok || !await accessService.HasPermissionAsync(sessionTokenResult.SessionToken, "recall://default/events"))
+                if (!(sessionContext.Session?.HasPermission("recall://default/events") ?? false))
                 {
-                    return Results.Ok(new EventStoreResponse<Sql.Storage.EventType>());
+                    return Results.Ok(new EventStoreResponse<EventType>());
                 }
 
-                var specification = new Sql.Storage.EventType.Specification();
+                var connection = dbContext.Database.GetDbConnection();
 
-                if (model.MaximumRows > 0)
+                await using var command = connection.CreateCommand();
+
+                command.CommandText = $@"
+SELECT {(specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : string.Empty)}
+    Id,
+    TypeName
+FROM
+    [{sqlServerStorageOptions.Value.Schema}].[EventType]
+WHERE
+(
+    @TypeNameMatch IS NULL
+    OR
+    TypeName LIKE '%' + @TypeNameMatch + '%'
+)
+";
+
+                command.Parameters.Add(new SqlParameter("@TypeNameMatch", specification.TypeNameMatch));
+
+                if (connection.State != ConnectionState.Open)
                 {
-                    specification.WithMaximumRows(model.MaximumRows);
+                    await connection.OpenAsync(cancellationToken);
                 }
 
-                if (!string.IsNullOrEmpty(model.TypeNameMatch))
+                List<EventType> result = [];
+
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+                while (await reader.ReadAsync(cancellationToken))
                 {
-                    specification.WithTypeNameMatch(model.TypeNameMatch);
+                    result.Add(new()
+                    {
+                        Id = reader.GetGuid(0),
+                        TypeName = reader.GetString(1)
+                    });
                 }
 
-                List<Sql.Storage.EventType> result;
-
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
+                return Results.Ok(new EventStoreResponse<EventType>
                 {
-                    result = (await eventTypeQuery.SearchAsync(specification)).ToList();
-                }
-
-                return Results.Ok(new EventStoreResponse<Sql.Storage.EventType>
-                {
-                    Authorized = true,
                     Items = result
                 });
             })

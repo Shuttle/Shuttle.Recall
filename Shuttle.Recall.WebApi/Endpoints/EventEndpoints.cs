@@ -1,10 +1,11 @@
 ﻿using System.Text;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Shuttle.Access.AspNetCore;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
 using Shuttle.Core.Serialization;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 using Shuttle.Recall.WebApi.Models;
 
 namespace Shuttle.Recall.WebApi;
@@ -17,17 +18,14 @@ public static class EventEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPost("/events/search", async (HttpContext httpContext, IAccessService accessService, IDatabaseContextFactory databaseContextFactory, IPrimitiveEventQuery primitiveEventQuery, ISerializer serializer, Models.PrimitiveEvent.Specification model) =>
+        app.MapPost("/events/search", async (IConfiguration configuration, ISessionContext sessionContext, IPrimitiveEventQuery primitiveEventQuery, ISerializer serializer, Models.PrimitiveEvent.Specification model) =>
             {
-                Guard.AgainstNull(httpContext);
-                Guard.AgainstNull(accessService);
-                Guard.AgainstNull(databaseContextFactory);
+                Guard.AgainstNull(configuration);
+                Guard.AgainstNull(sessionContext);
                 Guard.AgainstNull(primitiveEventQuery);
                 Guard.AgainstNull(serializer);
 
-                var sessionTokenResult = httpContext.GetAccessSessionToken();
-
-                if (!sessionTokenResult.Ok || !await accessService.HasPermissionAsync(sessionTokenResult.SessionToken, "recall://default/events"))
+                if (!(sessionContext.Session?.HasPermission("recall://default/events") ?? false))
                 {
                     return Results.Ok(new EventStoreResponse<Event>());
                 }
@@ -46,13 +44,7 @@ public static class EventEndpoints
                     specification.AddEventType(eventTypeName);
                 }
 
-                IEnumerable<PrimitiveEvent> primitiveEvents;
-
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    primitiveEvents = await primitiveEventQuery.SearchAsync(specification);
-                }
+                var primitiveEvents = await primitiveEventQuery.SearchAsync(specification);
 
                 var result = new List<Event>();
 
@@ -75,7 +67,6 @@ public static class EventEndpoints
 
                 return Results.Ok(new EventStoreResponse<Event>
                 {
-                    Authorized = true,
                     Items = result
                 });
             })

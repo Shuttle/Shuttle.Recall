@@ -1,12 +1,12 @@
-using System.Data.Common;
 using Asp.Versioning;
+using Azure.Identity;
 using Microsoft.Data.SqlClient;
+using Scalar.AspNetCore;
 using Serilog;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.RestClient;
-using Shuttle.Core.Data;
-using Shuttle.Recall.Sql.EventProcessing;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
+using System.Data.Common;
 
 namespace Shuttle.Recall.WebApi;
 
@@ -57,63 +57,57 @@ public class Program
                 options.SubstituteApiVersionInUrl = true;
             });
 
+        var accessConnectionString = webApplicationBuilder.Configuration.GetConnectionString("Recall") ?? throw new ApplicationException("Missing connection string 'Recall'.");
+
         webApplicationBuilder.Services
             .AddLogging(builder =>
             {
                 builder.AddSerilog();
             })
             .AddEndpointsApiExplorer()
-            .AddSwaggerGen(options =>
+            .AddOpenApi(options =>
             {
-                options.CustomSchemaIds(type => type.FullName);
-
-                options.AddSecurityDefinition("Shuttle.Access", new()
+                options.AddSchemaTransformer((schema, _, _) =>
                 {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Shuttle.Access",
-                    In = ParameterLocation.Header,
-                    Description = "Custom authorization header using the Shuttle.Access scheme. Example: 'Shuttle.Access token=GUID'."
+                    schema.Title = schema.Title?.Replace("+", "_");
+                    return Task.CompletedTask;
                 });
+            })
+            .AddAccessAuthorization(authorizationBuilder =>
+            {
+                webApplicationBuilder.Configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(authorizationBuilder.Options);
+            })
+            .AddAccessClient(clientBuilder =>
+            {
+                webApplicationBuilder.Configuration.GetSection(AccessClientOptions.SectionName).Bind(clientBuilder.Options);
 
-                options.AddSecurityRequirement(new()
+                clientBuilder.UseBearerAuthenticationProvider(providerBuilder =>
                 {
+                    providerBuilder.Options.GetBearerAuthenticationContextAsync = async (_, _) =>
                     {
-                        new()
-                        {
-                            Reference = new()
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Shuttle.Access"
-                            }
-                        },
-                        []
-                    }
+                        var token = (await new DefaultAzureCredential().GetTokenAsync(new(["https://management.azure.com/.default"]), CancellationToken.None)).Token;
+
+                        return new(token);
+                    };
                 });
             })
-            .AddDataAccess(builder =>
+            .AddRecall(recallBuilder =>
             {
-                builder.AddConnectionString("Recall", "Microsoft.Data.SqlClient");
-                builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Recall";
-            })
-            .AddEventStore()
-            .AddSqlEventStorage(builder =>
-            {
-                builder.Options.ConnectionStringName = "Recall";
+                webApplicationBuilder.Configuration.GetSection(RecallOptions.SectionName).Bind(recallBuilder.Options);
 
-                builder.UseSqlServer();
-            })
-            .AddSqlEventProcessing(builder =>
-            {
-                builder.Options.ConnectionStringName = "Recall";
+                recallBuilder
+                    .UseSqlServerEventStorage(builder =>
+                    {
+                        webApplicationBuilder.Configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(builder.Options);
 
-                builder.UseSqlServer();
+                        builder.Options.ConnectionString = accessConnectionString;
+                        builder.Options.Schema = "access";
+                        builder.Options.DbConnectionServiceKey = "AccessDbConnection";
+                    });
+
+                recallBuilder.SuppressEventProcessorHostedService();
+                recallBuilder.SuppressPrimitiveEventSequencerHostedService();
             })
-            .AddAccessClient(builder =>
-            {
-                webApplicationBuilder.Configuration.GetSection(AccessClientOptions.SectionName).Bind(builder.Options);
-            })
-            .AddAccessAuthorization()
             .AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
@@ -133,16 +127,23 @@ public class Program
             .Build();
 
         app.UseCors("AllowAll");
+
+        app.MapOpenApi();
+        app.MapScalarApiReference(options =>
+        {
+            options
+                .WithTitle("Shuttle Access API")
+                .WithTheme(ScalarTheme.DeepSpace)
+                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+        });
+
+
         app.UseAccessAuthorization();
 
         app
             .MapEventEndpoints(versionSet)
             .MapEventTypeEndpoints(versionSet)
             .MapServerEndpoints(versionSet);
-
-        app
-            .UseSwagger()
-            .UseSwaggerUI();
 
         app.Run();
     }

@@ -5,6 +5,7 @@ import vueDevTools from "vite-plugin-vue-devtools";
 import Vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 import ViteFonts from "unplugin-fonts/vite";
 import AutoImport from "unplugin-auto-import/vite";
+import tailwindcss from "@tailwindcss/vite";
 
 // Utilities
 import { defineConfig } from "vite";
@@ -22,7 +23,6 @@ export default defineConfig({
       template: { transformAssetUrls },
     }),
     vueDevTools(),
-    // https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin#readme
     Vuetify({
       autoImport: true,
       styles: {
@@ -53,6 +53,7 @@ export default defineConfig({
       },
       vueTemplate: true,
     }),
+    tailwindcss(),
   ],
   define: { "process.env": {} },
   resolve: {
@@ -62,13 +63,11 @@ export default defineConfig({
     extensions: [".js", ".json", ".jsx", ".mjs", ".ts", ".tsx", ".vue"],
   },
   server: {
-    port: 3001,
+    port: 3000,
   },
   css: {
     preprocessorOptions: {
-      sass: {
-        api: "modern-compiler",
-      },
+      sass: {},
     },
   },
 });
