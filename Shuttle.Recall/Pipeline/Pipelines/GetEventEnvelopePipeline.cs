@@ -12,23 +12,17 @@ public interface IGetEventEnvelopePipeline : IPipeline
 
 public class GetEventEnvelopePipeline : Pipeline, IGetEventEnvelopePipeline
 {
-    public GetEventEnvelopePipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider, IDeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver, IDecompressEventObserver decompressEventObserver, IDecryptEventObserver decryptEventObserver, IDeserializeEventObserver deserializeEventObserver)
+    public GetEventEnvelopePipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider)
         : base(pipelineOptions, transactionScopeOptions, transactionScopeFactory, serviceProvider)
     {
         AddStage("GetEventEnvelope")
             .WithEvent<DeserializeEventEnvelope>()
             .WithEvent<EventEnvelopeDeserialized>()
-            .WithEvent<DecompressEvent>()
-            .WithEvent<EventDecompressed>()
-            .WithEvent<DecryptEvent>()
-            .WithEvent<EventDecrypted>()
             .WithEvent<DeserializeEvent>()
             .WithEvent<EventDeserialized>();
 
-        AddObserver(Guard.AgainstNull(deserializeEventEnvelopeObserver));
-        AddObserver(Guard.AgainstNull(decompressEventObserver));
-        AddObserver(Guard.AgainstNull(decryptEventObserver));
-        AddObserver(Guard.AgainstNull(deserializeEventObserver));
+        AddObserver<IDeserializeEventEnvelopeObserver>();
+        AddObserver<IDeserializeEventObserver>();
     }
 
     public async Task ExecuteAsync(PrimitiveEvent? primitiveEvent)

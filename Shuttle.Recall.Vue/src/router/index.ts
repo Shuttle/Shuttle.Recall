@@ -12,7 +12,18 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/events",
     name: "events",
+    meta: { authenticated: true },
     component: () => import("../views/Events.vue"),
+  },
+  {
+    path: "/sign-in",
+    name: "sign-in",
+    component: () => import("../views/SignIn.vue"),
+  },
+  {
+    path: "/oauth",
+    name: "oauth",
+    component: () => import("../views/OAuth.vue"),
   },
   {
     path: "/session/:token",
@@ -31,6 +42,10 @@ router.beforeEach(async (to) => {
   const sessionStore = useSessionStore();
 
   if (!sessionStore.initialized) {
+    await sessionStore.initialize();
+  }
+
+  if (to.name === "sign-in" || to.name === "oauth") {
     return;
   }
 
@@ -47,12 +62,11 @@ router.beforeEach(async (to) => {
     return false;
   }
 
-  if (!!to.meta.authenticated && !sessionStore.authenticated) {
-    useAlertStore().add({
-      message: i18n.global.t("exceptions.session-required"),
-      type: "info",
-      name: "insufficient-permission",
-    });
+  if (
+    (to.meta.authenticated || to.name === "events") &&
+    !sessionStore.authenticated
+  ) {
+    return { name: "sign-in" };
   }
 });
 

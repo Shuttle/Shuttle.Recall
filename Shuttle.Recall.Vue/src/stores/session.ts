@@ -7,7 +7,8 @@ import type {
   SessionStoreState,
   Credentials,
   SessionResponse,
-} from "@/stores";
+  OAuthData,
+} from "@/stores.d";
 
 export const useSessionStore = defineStore("session", {
   state: (): SessionStoreState => {
@@ -81,33 +82,6 @@ export const useSessionStore = defineStore("session", {
 
       this.authenticated = true;
     },
-    signInExchangeToken(
-      exchangeToken: string
-    ): Promise<AxiosResponse<Session>> {
-      const self = this;
-
-      return new Promise((resolve, reject) => {
-        if (!exchangeToken) {
-          reject(new Error(i18n.global.t("exceptions.missing-exchange-token")));
-          return;
-        }
-
-        return axios
-          .get(
-            configuration.getAccessApiUrl(
-              `v1/sessions/exchange/${exchangeToken}`
-            )
-          )
-          .then(function (response) {
-            self.register(response.data);
-
-            resolve(response);
-          })
-          .catch(function (error) {
-            reject(error);
-          });
-      });
-    },
     signIn(credentials: Credentials): Promise<AxiosResponse<SessionResponse>> {
       const self = this;
 
@@ -143,6 +117,31 @@ export const useSessionStore = defineStore("session", {
             reject(error);
           });
       });
+    },
+    async oauth(oauthData: OAuthData): Promise<AxiosResponse<SessionResponse>> {
+      const self = this;
+
+      if (!oauthData || !oauthData.state || !oauthData.code) {
+        throw new Error(i18n.global.t("exceptions.oauth-missing-data"));
+      }
+
+      const response = await axios.get<SessionResponse>(
+        configuration.getAccessApiUrl(
+          `v1/oauth/session/${oauthData.state}/${oauthData.code}`,
+        ),
+      );
+
+      if (!response?.data) {
+        throw new Error("Invalid response data.");
+      }
+
+      self.register({
+        identityName: response.data.identityName,
+        token: response.data.token,
+        permissions: response.data.permissions,
+      });
+
+      return response;
     },
     signOut() {
       this.identityName = undefined;

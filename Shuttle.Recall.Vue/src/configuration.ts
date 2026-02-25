@@ -1,4 +1,4 @@
-import type { Configuration } from "./recall";
+import type { Configuration } from "@/stores.d";
 
 const configuration: Configuration = {
   signInUrl: import.meta.env.VITE_SIGN_IN_URL,

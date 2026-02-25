@@ -48,17 +48,9 @@ public class DeserializeEventEnvelope;
 
 public class EventEnvelopeDeserialized;
 
-public class DecryptEvent;
-
-public class EventDecrypted;
-
 public class DeserializeEvent;
 
 public class EventDeserialized;
-
-public class DecompressEvent;
-
-public class EventDecompressed;
 
 public class SerializeEvent;
 
@@ -67,14 +59,6 @@ public class EventSerialized;
 public class AssembleEventEnvelope;
 
 public class EventEnvelopeAssembled;
-
-public class CompressEvent;
-
-public class EventCompressed;
-
-public class EncryptEvent;
-
-public class EventEncrypted;
 
 public class StartEventProcessing;
 

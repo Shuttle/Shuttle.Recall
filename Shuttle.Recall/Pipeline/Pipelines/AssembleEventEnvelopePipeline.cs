@@ -12,23 +12,17 @@ public interface IAssembleEventEnvelopePipeline : IPipeline
 
 public class AssembleEventEnvelopePipeline : Pipeline, IAssembleEventEnvelopePipeline
 {
-    public AssembleEventEnvelopePipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider, IAssembleEventEnvelopeObserver assembleEventEnvelopeObserver, ICompressEventObserver compressEventObserver, IEncryptEventObserver encryptEventObserver, ISerializeEventObserver serializeEventObserver)
+    public AssembleEventEnvelopePipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider)
         : base(pipelineOptions, transactionScopeOptions, transactionScopeFactory, serviceProvider)
     {
         AddStage("Get")
             .WithEvent<SerializeEvent>()
             .WithEvent<EventSerialized>()
             .WithEvent<AssembleEventEnvelope>()
-            .WithEvent<EventEnvelopeAssembled>()
-            .WithEvent<EncryptEvent>()
-            .WithEvent<EventEncrypted>()
-            .WithEvent<CompressEvent>()
-            .WithEvent<EventCompressed>();
+            .WithEvent<EventEnvelopeAssembled>();
 
-        AddObserver(Guard.AgainstNull(serializeEventObserver));
-        AddObserver(Guard.AgainstNull(encryptEventObserver));
-        AddObserver(Guard.AgainstNull(compressEventObserver));
-        AddObserver(Guard.AgainstNull(assembleEventEnvelopeObserver));
+        AddObserver<ISerializeEventObserver>();
+        AddObserver<IAssembleEventEnvelopeObserver>();
     }
 
     public async Task<EventEnvelope> ExecuteAsync(DomainEvent domainEvent)

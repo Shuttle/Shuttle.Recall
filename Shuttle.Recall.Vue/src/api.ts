@@ -19,6 +19,12 @@ api.interceptors.request.use(function (config) {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      router.push({ name: "sign-in" });
+
+      return error;
+    }
+
     alertStore.add({
       message:
         error.response?.data ||
