@@ -1,69 +1,74 @@
-import type { Alert, AlertStoreState } from "@/stores";
+import type { Alert } from "@/types/app";
 import { defineStore } from "pinia";
-
-export const messages = {
-  requestSent:
-    "The request has been submitted.  It may take a moment to process.",
-  working:
-    "Please wait until the current operation completes and then try again.",
-};
+import { i18n } from "@/i18n";
 
 let key = 0;
 
-export const useAlertStore = defineStore("alert", {
-  state: (): AlertStoreState => {
-    return {
-      alerts: [],
-    };
-  },
-  actions: {
-    add(alert: Alert) {
-      if (!alert || !alert.message) {
-        return;
-      }
+export const useAlertStore = defineStore("alert", () => {
+  const alerts = ref<Alert[]>([]);
 
-      this.remove(alert.name);
+  const add = (alert: Alert) => {
+    if (!alert || !alert.message) {
+      return;
+    }
 
-      alert.expire = alert.expire ?? true;
-      alert.expirySeconds = alert.expirySeconds ?? 10;
-      alert.dismissable = alert.dismissable || !!alert.name;
+    remove(alert.name);
 
-      alert.key = `${alert.name}-${key++}`;
+    alert.expire = alert.expire ?? true;
+    alert.expirySeconds = alert.expirySeconds ?? 10;
+    alert.dismissable = alert.dismissable || !!alert.name;
 
-      this.alerts.push(alert);
+    alert.key = `${alert.name}-${key++}`;
 
-      if (alert.expire) {
-        setTimeout(() => {
-          this.remove(alert.name);
-        }, alert.expirySeconds * 1000);
-      }
-    },
-    remove(name: String) {
-      if (!name) {
-        return false;
-      }
+    alerts.value.push(alert);
 
-      const index = this.alerts.findIndex((item) => item.name === name);
+    if (alert.expire) {
+      setTimeout(() => {
+        remove(alert.name);
+      }, alert.expirySeconds * 1000);
+    }
+  };
 
-      if (index < 0) {
-        return false;
-      }
+  const remove = (name: string) => {
+    if (!name) {
+      return false;
+    }
 
-      this.alerts.splice(index, 1);
+    const index = alerts.value.findIndex((item) => item.name === name);
 
-      return true;
-    },
-    requestSent() {
-      this.add({
-        message: messages.requestSent,
-        name: "request-sent",
-      });
-    },
-    working() {
-      this.add({
-        message: messages.working,
-        name: "working-message",
-      });
-    },
-  },
+    if (index < 0) {
+      return false;
+    }
+
+    alerts.value.splice(index, 1);
+
+    return true;
+  };
+
+  const clear = () => {
+    alerts.value = [];
+  };
+
+  const requestSent = () => {
+    add({
+      message: i18n.global.t("system-messages.request-sent"),
+      name: "request-sent",
+    });
+  };
+
+  const working = () => {
+    add({
+      message: i18n.global.t("system-messages.working"),
+      name: "working-message",
+    });
+  };
+
+  return {
+    alerts: readonly(alerts),
+    add,
+    remove,
+    clear,
+    requestSent,
+    working,
+  };
 });

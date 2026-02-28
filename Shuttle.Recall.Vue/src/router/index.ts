@@ -25,12 +25,6 @@ const routes: Array<RouteRecordRaw> = [
     name: "oauth",
     component: () => import("../views/OAuth.vue"),
   },
-  {
-    path: "/session/:token",
-    name: "session",
-    props: true,
-    component: () => import("../views/Session.vue"),
-  },
 ];
 
 const router = createRouter({
@@ -41,11 +35,11 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const sessionStore = useSessionStore();
 
-  if (!sessionStore.initialized) {
-    await sessionStore.initialize();
-  }
-
-  if (to.name === "sign-in" || to.name === "oauth") {
+  if (
+    to.name === "sign-in" ||
+    to.name === "oauth" ||
+    !sessionStore.isInitialized
+  ) {
     return;
   }
 
@@ -64,7 +58,7 @@ router.beforeEach(async (to) => {
 
   if (
     (to.meta.authenticated || to.name === "events") &&
-    !sessionStore.authenticated
+    !sessionStore.isAuthenticated
   ) {
     return { name: "sign-in" };
   }
@@ -85,7 +79,7 @@ router.afterEach(async (to) => {
   }
 
   const existingIndex = breadcrumbStore.breadcrumbs.findIndex(
-    (route: Breadcrumb) => route.path === to.path
+    (route: Breadcrumb) => route.path === to.path,
   );
 
   if (existingIndex === -1) {

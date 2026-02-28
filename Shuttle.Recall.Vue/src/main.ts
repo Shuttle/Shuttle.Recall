@@ -4,10 +4,9 @@ import { registerPlugins } from "@/plugins";
 import App from "./App.vue";
 import router from "./router";
 import { loadLocaleMessages } from "@/i18n";
-
-import { useAlertStore } from "@/stores/alert";
-import { useSessionStore } from "@/stores/session";
 import { i18n } from "@/i18n";
+import { useSessionStore } from "./stores/session";
+import { useAlertStore } from "./stores/alert";
 
 const app = createApp(App);
 
@@ -20,16 +19,22 @@ app.use(router);
 
 registerPlugins(app);
 
-const alertStore = useAlertStore();
 const sessionStore = useSessionStore();
 
-await sessionStore.initialize().catch((error) => {
-  alertStore.add({
-    message: error.message,
-    type: "error",
-    name: "session-initialize",
-  });
-});
+if (!sessionStore.isInitialized && window.location.pathname !== "/oauth") {
+  try {
+    await sessionStore.initialize();
+  } catch (error: any) {
+    useAlertStore().add({
+      message: error.toString(),
+      type: "error",
+      name: "session-initialize",
+    });
+    if (!window.location.pathname.startsWith("/signin")) {
+      router.push({ path: "/signin" });
+    }
+  }
+}
 
 if (window.location.pathname === "/") {
   router.push({ path: "/events" });

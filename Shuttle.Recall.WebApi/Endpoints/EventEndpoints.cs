@@ -37,7 +37,14 @@ public static class EventEndpoints
                     maximumRows = 1000;
                 }
 
-                var specification = new PrimitiveEvent.Specification().WithSequenceNumberStart(model.SequenceNumberStart).WithMaximumRows(maximumRows);
+                var specification = new PrimitiveEvent.Specification()
+                    .WithSequenceNumberStart(model.SequenceNumberStart)
+                    .WithMaximumRows(maximumRows);
+
+                if (model.Id.HasValue)
+                {
+                    specification.AddId(model.Id.Value);
+                }
 
                 foreach (var eventTypeName in model.EventTypes)
                 {

@@ -1,43 +1,36 @@
 <template>
+  <r-filter-drawer @filter="refreshEvents">
+    <v-text-field :label="$t('id')" v-model="specification.id" hide-details></v-text-field>
+    <v-text-field :label="$t('sequence-number-start')" v-model="specification.sequenceNumberStart"
+      hide-details></v-text-field>
+    <v-text-field :label="$t('maximum-rows')" v-model="specification.maximumRows" hide-details></v-text-field>
+    <v-select v-model="specification.eventTypes" multiple :label="$t('event-type')" :items="eventTypes"
+      item-title="typeName" item-value="typeName" hide-details>
+      <template v-slot:selection="{ item, index }">
+        <v-chip v-if="index < 2" class="whitespace-nowrap">
+          <span>{{ item.title }}</span>
+        </v-chip>
+        <span v-if="index === 2" class="text-grey text-caption align-self-center">
+          (+{{ selectedEventTypes.length - 2 }})
+        </span>
+      </template>
+    </v-select>
+  </r-filter-drawer>
   <v-card flat>
-    <v-card-title class="sv-card-title">
-      <div class="sv-title">{{ $t("events") }}</div>
-      <div class="mb-2">
-        <v-chip>{{ $t("sequence-number-start") }} : {{ sequenceNumberStartDisplay }}</v-chip>
-        <v-chip class="ml-2">{{ $t("sequence-number-end") }} : {{ sequenceNumberEndDisplay }}</v-chip>
-        <v-chip class="ml-2">{{ $t("event-count") }} : {{ events.length }}</v-chip>
-      </div>
+    <v-card-title>
+      <div class="text-red-500">TEST</div>
+      <r-title :title="$t('events')"></r-title>
       <div class="mb-2">
         <v-text-field v-model="search" :label="$t('search')" :prepend-inner-icon="mdiMagnify" flat hide-details
           density="compact" single-line></v-text-field>
       </div>
-      <form class="sv-strip" @submit.prevent="refreshEvents">
-        <v-btn :icon="mdiRefresh" size="small" @click="refreshEvents" type="submit"></v-btn>
-        <div class="w-48">
-          <v-text-field :label="$t('sequence-number-start')" v-model="sequenceNumberStart" hide-details></v-text-field>
-        </div>
-        <div class="w-32">
-          <v-text-field :label="$t('maximum-rows')" v-model="maximumRows" hide-details></v-text-field>
-        </div>
-        <div class="w-96">
-          <v-select v-model="selectedEventTypes" multiple :label="$t('event-type')" :items="eventTypes"
-            item-title="typeName" item-value="typeName" :append-icon="mdiRefresh" @click:append="refreshEventTypes"
-            hide-details>
-            <template v-slot:selection="{ item, index }">
-              <v-chip v-if="index < 2">
-                <span>{{ item.title }}</span>
-              </v-chip>
-              <span v-if="index === 2" class="text-grey text-caption align-self-center">
-                (+{{ selectedEventTypes.length - 2 }})
-              </span>
-            </template>
-          </v-select>
-        </div>
-      </form>
     </v-card-title>
     <v-divider></v-divider>
     <v-data-table :items="events" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" :row-props="rowProps">
+      <template v-slot:header.sequenceNumber>
+        #{{ sequenceNumberStartDisplay }}-{{ sequenceNumberEndDisplay }}
+      </template>
       <template v-slot:item.domainEvent="{ value }">
         <pre class="font-mono font-thin">{{ value }}</pre>
       </template>
@@ -48,8 +41,8 @@
 <script setup lang="ts">
 import { mdiMagnify, mdiRefresh } from '@mdi/js';
 import { useI18n } from "vue-i18n";
-import api from '@/api'
-import type { Event, EventStoreResponse, EventType } from '@/recall';
+import { recallApi } from '@/api'
+import type { Event, EventStoreResponse, EventType, EventSpecification } from '@/recall';
 import { useAlertStore } from '@/stores/alert';
 import { useSessionStore } from '@/stores/session';
 
@@ -62,15 +55,15 @@ const busy = ref(false);
 const sequenceNumberStartDisplay = ref(0);
 const sequenceNumberEndDisplay = ref(0);
 const sequenceNumberStart = ref(0);
-const maximumRows = ref(0);
-const selectedEventTypes: Ref<EventType[]> = ref([]);
+const specification: Ref<EventSpecification> = ref({})
 
 const headers: any = [
   {
     title: "#",
+    key: "sequenceNumber",
     value: "primitiveEvent.sequenceNumber",
     headerProps: {
-      class: "w-2"
+      class: "w-2 whitespace-nowrap"
     },
   },
   {
@@ -112,52 +105,38 @@ const rowProps = () => {
 const events: Ref<Event[]> = ref([]);
 const eventTypes: Ref<EventType[]> = ref([]);
 
-const refreshEvents = () => {
+const refreshEvents = async () => {
   busy.value = true;
 
   events.value = [];
 
-  api.post<EventStoreResponse<Event>>('/events/search', {
-    sequenceNumberStart: sequenceNumberStart.value,
-    maximumRows: maximumRows.value,
-    eventTypes: selectedEventTypes.value,
-  })
-    .then((response) => {
-      if (!response.data.authorized) {
-        unauthorized();
-        return;
-      }
+  try {
+    const { data } = await recallApi.post<EventStoreResponse<Event>>('/events/search', specification);
 
-      events.value = response.data.items;
+    events.value = data.items;
 
-      if (events.value.length > 0) {
-        sequenceNumberStartDisplay.value = events.value[0].primitiveEvent.sequenceNumber;
-        sequenceNumberEndDisplay.value = events.value[events.value.length - 1].primitiveEvent.sequenceNumber;
-        sequenceNumberStart.value = sequenceNumberEndDisplay.value + 1;
-      }
-    })
-    .finally(() => {
-      busy.value = false;
-    });
+    if (events.value.length > 0) {
+      sequenceNumberStartDisplay.value = events.value[0].primitiveEvent.sequenceNumber;
+      sequenceNumberEndDisplay.value = events.value[events.value.length - 1].primitiveEvent.sequenceNumber;
+      sequenceNumberStart.value = sequenceNumberEndDisplay.value + 1;
+    }
+  } finally {
+    busy.value = false;
+  };
 }
 
-const refreshEventTypes = () => {
+const refreshEventTypes = async () => {
   busy.value = true;
 
   eventTypes.value = [];
 
-  api.post<EventStoreResponse<EventType>>('/eventtypes/search', {})
-    .then((response) => {
-      if (!response.data.authorized) {
-        unauthorized();
-        return;
-      }
+  try {
+    const { data } = await recallApi.post<EventStoreResponse<EventType>>('/event-types/search', {})
 
-      eventTypes.value = response.data.items;
-    })
-    .finally(() => {
-      busy.value = false;
-    });
+    eventTypes.value = data.items;
+  } finally {
+    busy.value = false;
+  };
 }
 
 onMounted(() => {
@@ -167,7 +146,7 @@ onMounted(() => {
 
 const unauthorized = () => {
   alertStore.add({
-    message: t(sessionStore.authenticated ? "exceptions.insufficient-permission" : "exceptions.session-required"),
+    message: t(sessionStore.isAuthenticated ? "exceptions.insufficient-permission" : "exceptions.session-required"),
     type: "error",
     name: "insufficient-permission",
   });

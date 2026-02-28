@@ -9,7 +9,22 @@ declare module 'vue' {
   export interface GlobalComponents {
     Breadcrumb: typeof import('./src/components/Breadcrumb.vue')['default']
     Navbar: typeof import('./src/components/Navbar.vue')['default']
+    RecallContainer: typeof import('./src/components/RecallContainer.vue')['default']
+    RecallDataTable: typeof import('./src/components/RecallDataTable.vue')['default']
+    RecallDrawer: typeof import('./src/components/RecallDrawer.vue')['default']
+    RecallFilterDrawer: typeof import('./src/components/RecallFilterDrawer.vue')['default']
+    RecallFilterToggle: typeof import('./src/components/RecallFilterToggle.vue')['default']
+    RecallNavbar: typeof import('./src/components/RecallNavbar.vue')['default']
+    RecallStrip: typeof import('./src/components/RecallStrip.vue')['default']
+    RecallTitle: typeof import('./src/components/RecallTitle.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SciethicaContainer: typeof import('./src/components/SciethicaContainer.vue')['default']
+    SciethicaDataTable: typeof import('./src/components/SciethicaDataTable.vue')['default']
+    SciethicaDrawer: typeof import('./src/components/SciethicaDrawer.vue')['default']
+    SciethicaFilterDrawer: typeof import('./src/components/SciethicaFilterDrawer.vue')['default']
+    SciethicaFilterToggle: typeof import('./src/components/SciethicaFilterToggle.vue')['default']
+    SciethicaStrip: typeof import('./src/components/SciethicaStrip.vue')['default']
+    SciethicaTitle: typeof import('./src/components/SciethicaTitle.vue')['default']
   }
 }

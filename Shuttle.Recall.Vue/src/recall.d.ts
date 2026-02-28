@@ -22,8 +22,14 @@ export type EventEnvelope = {
 };
 
 export type EventStoreResponse<T> = {
-  authorized: boolean;
   items: T[];
+};
+
+export type EventSpecification = {
+  id?: string;
+  eventTypes?: string[];
+  maximumRows?: number;
+  sequenceNumberStart?: number;
 };
 
 export type EventType = {
