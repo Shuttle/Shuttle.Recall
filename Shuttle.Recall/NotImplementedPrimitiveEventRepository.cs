@@ -2,7 +2,7 @@
 
 public class NotImplementedPrimitiveEventRepository : IPrimitiveEventRepository
 {
-    public Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
+    public Task RemoveAsync(PrimitiveEvent.Specification specification, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException(Resources.NotImplementedPrimitiveEventRepository);
     }

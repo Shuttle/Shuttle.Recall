@@ -132,7 +132,7 @@ public class Program
         app.MapScalarApiReference(options =>
         {
             options
-                .WithTitle("Shuttle Access API")
+                .WithTitle("Shuttle Recall API")
                 .WithTheme(ScalarTheme.DeepSpace)
                 .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
         });

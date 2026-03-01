@@ -40,7 +40,7 @@ export const useSessionStore = defineStore("session", () => {
         storedToken &&
         window.location.pathname != "/oauth"
       ) {
-        await signIn({
+        return await signIn({
           identityName: storedIdentityName,
           token: storedToken,
         });
@@ -48,8 +48,6 @@ export const useSessionStore = defineStore("session", () => {
     } finally {
       isInitialized.value = true;
     }
-
-    return Promise.resolve();
   };
 
   const addPermission = (permission: string) => {
@@ -127,7 +125,9 @@ export const useSessionStore = defineStore("session", () => {
       throw new Error("Invalid response data.");
     }
 
-    register(sessionResponse);
+    if (sessionResponse.result === "Registered") {
+      register(sessionResponse);
+    }
 
     return sessionResponse;
   };

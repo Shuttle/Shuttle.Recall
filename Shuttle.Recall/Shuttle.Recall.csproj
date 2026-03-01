@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -47,7 +47,7 @@
 
   <PropertyGroup>
     <Description>Event sourcing mechanism.</Description>
-    <Version>21.0.1-rc1</Version>
+    <Version>21.0.2-rc1</Version>
     <PackageProjectUrl>https://github.com/Shuttle/Shuttle.Recall</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Shuttle/Shuttle.Recall.git</RepositoryUrl>
     <PackageTags>eventsourcing eventsource event-sourcing event-source eventstore event-store</PackageTags>

@@ -16,14 +16,19 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("../views/Events.vue"),
   },
   {
+    path: "/oauth",
+    name: "oauth",
+    component: () => import("../views/OAuth.vue"),
+  },
+  {
     path: "/sign-in",
     name: "sign-in",
     component: () => import("../views/SignIn.vue"),
   },
   {
-    path: "/oauth",
-    name: "oauth",
-    component: () => import("../views/OAuth.vue"),
+    path: "/tenant-selection",
+    name: "tenant-selection",
+    component: () => import("../views/TenantSelection.vue"),
   },
 ];
 

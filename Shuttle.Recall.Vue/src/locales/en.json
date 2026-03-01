@@ -1,7 +1,8 @@
 {
-  "confirmation-remove": {
+  "cancel": "Cancel",
+  "confirmation": {
     "title": "Confirmation",
-    "message": "Are you sure that you want to remove the selected item(s)?"
+    "remove": "Are you sure that you want to remove the selected item(s)?"
   },
   "domain-event": "Domain event",
   "events": "Events",
@@ -14,7 +15,9 @@
     "insufficient-permission": "You do not have permission to access the requested view.  Please contact your system administrator if you require access.",
     "missing-credentials": "Incomplete credentials specified.",
     "missing-exchange-token": "No exchange token has been specified.",
-    "session-required": "Please sign in before accessing the functionality."
+    "session-required": "Please sign in before accessing the functionality.",
+    "tenant-selection": "Could not select tenant.",
+    "unauthorised": "You do not have access to the requested endpoint, or your session has expired."
   },
   "filter": "Filter",
   "id": "Id",
@@ -29,6 +32,7 @@
     "oauth-unknown-identity-registered": "Unknown identity '{identityName}' received from OAuth provider.  This identity has been submitted for registration.  Please wait a few seconds and then try logging in again.",
     "registration-requested": "Registration requested.",
     "request-sent": "The request has been submitted.  It may take a moment to process.",
+    "signing-in": "Signing-in",
     "working": "Please wait until the current operation completes and then try again."
   },
   "search": "Search",
@@ -38,5 +42,6 @@
   "signing-in": "Signing in",
   "sign-in": "Sign in",
   "sign-out": "Sign out",
-  "version": "Version"
+  "version": "Version",
+  "yes": "Yes"
 }

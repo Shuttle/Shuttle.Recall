@@ -1,7 +1,7 @@
 import vuetify from "./vuetify";
 import pinia from "@/stores";
 import router from "@/router";
-import { loadLocaleMessages, i18n } from "@/i18n";
+import { i18n } from "@/i18n";
 
 import type { App } from "vue";
 
@@ -14,8 +14,6 @@ import RecallStrip from "@/components/RecallStrip.vue";
 import RecallTitle from "@/components/RecallTitle.vue";
 
 document.querySelector("html")?.setAttribute("lang", i18n.global.locale.value);
-
-await loadLocaleMessages(i18n, "en");
 
 export function registerPlugins(app: App) {
   app.use(vuetify).use(router).use(pinia).use(i18n);

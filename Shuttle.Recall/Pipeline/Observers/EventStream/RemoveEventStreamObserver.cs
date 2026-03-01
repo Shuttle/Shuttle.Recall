@@ -11,6 +11,6 @@ public class RemoveEventStreamObserver(IPrimitiveEventRepository primitiveEventR
 
     public async Task ExecuteAsync(IPipelineContext<RemoveEventStream> pipelineContext, CancellationToken cancellationToken = default)
     {
-        await _primitiveEventRepository.RemoveAsync(Guard.AgainstNull(pipelineContext).Pipeline.State.GetId(), cancellationToken).ConfigureAwait(false);
+        await _primitiveEventRepository.RemoveAsync(new PrimitiveEvent.Specification().AddId(Guard.AgainstNull(pipelineContext).Pipeline.State.GetId()), cancellationToken).ConfigureAwait(false);
     }
 }

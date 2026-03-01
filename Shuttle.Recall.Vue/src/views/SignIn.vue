@@ -39,7 +39,7 @@ const oauthAuthenticate = async (name: string) => {
 
   try {
     const redirectUri = encodeURIComponent(`${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}/oauth`)
-    const response = await accessApi.get(`v1/oauth/authenticate/Recall/${name}?redirectUri=${redirectUri}`)
+    const response = await accessApi.get(`v1/oauth/authenticate/${name}?redirectUri=${redirectUri}`)
 
     window.location.replace(response?.data?.authorizationUrl);
   } finally {
@@ -51,7 +51,7 @@ const refreshOAuthProviders = async () => {
   fetchingOAuthProviders.value = true;
 
   try {
-    const response = await accessApi.get("v1/oauth/providers/Recall")
+    const response = await accessApi.get("v1/oauth/providers/recall")
 
     oauthProviders.value = response?.data;
 
