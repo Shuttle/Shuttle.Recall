@@ -119,7 +119,6 @@ export type SessionResponse = {
   registrationRequested: boolean;
   result: string;
   token: string;
-  sessionTokenExchangeUrl?: string;
   tenantId?: string;
   tenants?: Tenant[];
   permissions: string[];

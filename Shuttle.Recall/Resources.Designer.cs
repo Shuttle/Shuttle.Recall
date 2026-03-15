@@ -214,6 +214,24 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Event stream with id &apos;{0}&apos; is expected to have events..
+        /// </summary>
+        public static string EventStreamEmptyException {
+            get {
+                return ResourceManager.GetString("EventStreamEmptyException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event stream with id &apos;{0}&apos; is expected to be empty..
+        /// </summary>
+        public static string EventStreamNotEmptyException {
+            get {
+                return ResourceManager.GetString("EventStreamNotEmptyException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot release the projection since it either has not been assigned for processing or it has been assigned using another queue identifier..
         /// </summary>
         public static string ExceptionInvalidProjectionRelease {

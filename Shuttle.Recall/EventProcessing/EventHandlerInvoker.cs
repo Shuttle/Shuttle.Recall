@@ -1,17 +1,18 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcessorConfiguration eventProcessorConfiguration, ILogger<EventHandlerInvoker> logger)
+public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcessorConfiguration eventProcessorConfiguration, ILogger<EventHandlerInvoker>? logger = null)
     : IEventHandlerInvoker
 {
     private static readonly Type EventHandlerType = typeof(IEventHandler<>);
     private readonly Dictionary<Type, HandlerContextConstructorInvoker> _handlerContextConstructorInvokers = new();
     private readonly IEventProcessorConfiguration _eventProcessorConfiguration = Guard.AgainstNull(eventProcessorConfiguration);
-    private readonly ILogger<EventHandlerInvoker> _logger = Guard.AgainstNull(logger);
+    private readonly ILogger<EventHandlerInvoker> _logger = logger ?? NullLogger<EventHandlerInvoker>.Instance;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly Dictionary<Type, ProcessEventMethodInvoker> _processEventMethodInvokers = new();
     private readonly IServiceProvider _serviceProvider = Guard.AgainstNull(serviceProvider);

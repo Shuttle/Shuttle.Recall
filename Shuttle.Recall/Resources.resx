@@ -297,4 +297,11 @@
   <data name="ActiveProjectionsException" xml:space="preserve">
     <value>Either 'IncludedProjections' or 'ExcludedProjections' may be specified, but not both.</value>
   </data>
+  <data name="EventStreamEmptyException" xml:space="preserve">
+    <value>Event stream with id '{0}' is expected to have events.</value>
+    <comment>0 = stream id</comment>
+  </data>
+  <data name="EventStreamNotEmptyException" xml:space="preserve">
+    <value>Event stream with id '{0}' is expected to be empty.</value>
+  </data>
 </root>

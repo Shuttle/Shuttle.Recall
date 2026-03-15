@@ -34,7 +34,6 @@ const select = async (tenant: Tenant) => {
     })
 
     sessionStore.tenantSelected(sessionResponse);
-    router.push({ name: "events" });
   } catch (error: any) {
     useAlertStore().add({
       message: t("exceptions.tenant-selection"),
@@ -44,6 +43,9 @@ const select = async (tenant: Tenant) => {
 
     sessionStore.signOut();
     router.push({ name: 'sign-in' })
+    return;
   }
+
+  router.push({ name: "events" });
 }
 </script>

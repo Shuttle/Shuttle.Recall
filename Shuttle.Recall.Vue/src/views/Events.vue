@@ -47,12 +47,8 @@ import { mdiMagnify, mdiTrashCanOutline } from '@mdi/js';
 import { useI18n } from "vue-i18n";
 import { recallApi } from '@/api'
 import type { Event, EventStoreResponse, EventType, EventSpecification } from '@/recall';
-import { useAlertStore } from '@/stores/alert';
-import { useSessionStore } from '@/stores/session';
 import { useConfirmationStore } from '@/stores/confirmation';
 
-const alertStore = useAlertStore();
-const sessionStore = useSessionStore();
 const confirmationStore = useConfirmationStore();
 
 const { t } = useI18n({ useScope: 'global' });
