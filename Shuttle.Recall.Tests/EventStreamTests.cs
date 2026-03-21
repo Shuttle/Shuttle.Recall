@@ -22,11 +22,16 @@ public class EventStreamTests
     {
         EventStream? stream = null;
 
-        Assert.Throws<EventStreamEmptyException>(() => stream!.MustBeEmpty());
+        Assert.Throws<ArgumentNullException>(() => stream!.MustBeEmpty());
 
         stream = new(Guid.Empty, new Mock<IEventMethodInvoker>().Object);
 
-        Assert.Throws<EventStreamEmptyException>(() => stream.MustBeEmpty());
+        Assert.DoesNotThrow(() => stream.MustBeEmpty());
+        Assert.Throws<EventStreamException>(() => stream.MustHaveEvents());
+
+        stream.Add(new());
+
+        Assert.Throws<EventStreamException>(() => stream.MustBeEmpty());
     }
 
     [Test]

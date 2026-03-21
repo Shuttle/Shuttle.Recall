@@ -2,9 +2,7 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Shuttle.Core.Compression;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Encryption;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Serialization;
 using Shuttle.Core.Threading;
@@ -41,8 +39,6 @@ public static class ServiceCollectionExtensions
             services.TryAddSingleton<IEventMethodInvoker, EventMethodInvoker>();
             services.TryAddSingleton<ISerializer, JsonSerializer>();
             services.TryAddSingleton<IConcurrencyExceptionSpecification, DefaultConcurrencyExceptionSpecification>();
-            services.TryAddSingleton<IEncryptionService, EncryptionService>();
-            services.TryAddSingleton<ICompressionService, CompressionService>();
             services.TryAddScoped<IEventHandlerInvoker, EventHandlerInvoker>();
 
             services.TryAddKeyedScoped<IProcessor, ProjectionProcessor>("ProjectionProcessor");
