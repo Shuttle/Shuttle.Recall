@@ -5,18 +5,20 @@ namespace Shuttle.Recall;
 
 public class RecallBuilder(IServiceCollection services, IEventProcessorConfiguration eventProcessorConfiguration)
 {
-    public IEventProcessorConfiguration EventProcessorConfiguration { get; } = Guard.AgainstNull(eventProcessorConfiguration);
+    private readonly List<Action<RecallOptions>> _configureActions = [];
 
-    public RecallOptions Options
-    {
-        get;
-        set => field = Guard.AgainstNull(value);
-    } = new();
+    public IEventProcessorConfiguration EventProcessorConfiguration { get; } = Guard.AgainstNull(eventProcessorConfiguration);
 
     public IServiceCollection Services { get; } = Guard.AgainstNull(services);
     public bool ShouldSuppressPrimitiveEventSequencerHostedService { get; private set; }
     public bool ShouldSuppressEventProcessorHostedService { get; private set; }
     public bool ShouldSuppressPipelineProcessing { get; private set; }
+
+    public RecallBuilder Configure(Action<RecallOptions> configureOptions)
+    {
+        _configureActions.Add(Guard.AgainstNull(configureOptions));
+        return this;
+    }
 
     public ProjectionBuilder AddProjection(string name)
     {

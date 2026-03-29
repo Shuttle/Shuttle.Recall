@@ -29,14 +29,6 @@ public class EventProcessorFixture
 
         var projectionService = new Mock<IProjectionEventService>();
         var sequenceNumber = 1;
-        var eventStoreOptions = new RecallOptions
-        {
-            EventProcessing = new()
-            {
-                ProjectionThreadCount = 1
-            }
-        };
-
         var projection = new Projection(projectionName, 0);
 
         async Task<ProjectionEvent?> GetProjectionEvent()
@@ -76,7 +68,13 @@ public class EventProcessorFixture
 
         services.AddRecall(builder =>
         {
-            builder.Options = eventStoreOptions;
+            builder.Configure(options =>
+            {
+                options.EventProcessing = new()
+                {
+                    ProjectionThreadCount = 1
+                };
+            });
             
             builder.SuppressPrimitiveEventSequencerHostedService();
 

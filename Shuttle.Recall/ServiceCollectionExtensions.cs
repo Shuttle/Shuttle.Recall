@@ -59,19 +59,21 @@ public static class ServiceCollectionExtensions
             
             services.AddThreading(threadingBuilder =>
             {
-                threadingBuilder.ConfigureProcessorIdle("ProjectionProcessor", options =>
+                threadingBuilder.Configure("ProjectionProcessor", (options, serviceProvider) =>
                 {
-                    options.Durations = recallBuilder.Options.EventProcessing.ProjectionProcessorIdleDurations.Any()
-                        ? recallBuilder.Options.EventProcessing.ProjectionProcessorIdleDurations
+                    var recallOptions = serviceProvider.GetRequiredService<IOptions<RecallOptions>>().Value;
+                    options.Durations = recallOptions.EventProcessing.ProjectionProcessorIdleDurations.Count > 0
+                        ? recallOptions.EventProcessing.ProjectionProcessorIdleDurations
                         : [TimeSpan.FromSeconds(1)];
                 });
 
                 if (!recallBuilder.ShouldSuppressPrimitiveEventSequencerHostedService)
                 {
-                    threadingBuilder.ConfigureProcessorIdle("PrimitiveEventSequencerProcessor", options =>
+                    threadingBuilder.Configure("PrimitiveEventSequencerProcessor", (options, serviceProvider) =>
                     {
-                        options.Durations = recallBuilder.Options.EventStore.PrimitiveEventSequencerIdleDurations.Any()
-                            ? recallBuilder.Options.EventStore.PrimitiveEventSequencerIdleDurations
+                        var recallOptions = serviceProvider.GetRequiredService<IOptions<RecallOptions>>().Value;
+                        options.Durations = recallOptions.EventStore.PrimitiveEventSequencerIdleDurations.Count > 0
+                            ? recallOptions.EventStore.PrimitiveEventSequencerIdleDurations
                             : [TimeSpan.FromSeconds(1)];
                     });
                 }
@@ -97,28 +99,6 @@ public static class ServiceCollectionExtensions
             services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
             services.TryAddSingleton<IProjectionEventService, NotImplementedProjectionEventService>();
             services.AddSingleton<IValidateOptions<RecallOptions>, RecallOptionsValidator>();
-
-            services.AddOptions<RecallOptions>().Configure(options =>
-            {
-                options.EventStore = recallBuilder.Options.EventStore;
-
-                if (options.EventStore.PrimitiveEventSequencerIdleDurations.Count == 0)
-                {
-                    options.EventStore.PrimitiveEventSequencerIdleDurations = EventStoreOptions.DefaultPrimitiveEventSequencerIdleDurations.ToList();
-                }
-
-                options.EventProcessing = recallBuilder.Options.EventProcessing;
-
-                if (options.EventProcessing.ProjectionThreadCount < 1)
-                {
-                    options.EventProcessing.ProjectionThreadCount = 1;
-                }
-
-                if (options.EventProcessing.ProjectionProcessorIdleDurations.Count == 0)
-                {
-                    options.EventProcessing.ProjectionProcessorIdleDurations = EventProcessingOptions.DefaultProjectionProcessorIdleDurations.ToList();
-                }
-            });
 
             var eventProcessorConfigurationType = typeof(IEventProcessorConfiguration);
 
