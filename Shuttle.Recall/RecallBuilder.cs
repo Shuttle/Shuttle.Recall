@@ -1,48 +1,38 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Shuttle.Core.Contract;
+using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
 public class RecallBuilder(IServiceCollection services, IEventProcessorConfiguration eventProcessorConfiguration)
 {
-    private readonly List<Action<RecallOptions>> _configureActions = [];
-
     public IEventProcessorConfiguration EventProcessorConfiguration { get; } = Guard.AgainstNull(eventProcessorConfiguration);
 
     public IServiceCollection Services { get; } = Guard.AgainstNull(services);
-    public bool ShouldSuppressPrimitiveEventSequencerHostedService { get; private set; }
-    public bool ShouldSuppressEventProcessorHostedService { get; private set; }
-    public bool ShouldSuppressPipelineProcessing { get; private set; }
 
-    public RecallBuilder Configure(Action<RecallOptions> configureOptions)
+    public RecallBuilder AddProjection(string name, Action<ProjectionBuilder> builder)
     {
-        _configureActions.Add(Guard.AgainstNull(configureOptions));
-        return this;
-    }
+        services.TryAddKeyedScoped<IProcessor, ProjectionProcessor>("ProjectionProcessor");
 
-    public ProjectionBuilder AddProjection(string name)
-    {
-        return new(Services, EventProcessorConfiguration, name);
-    }
-
-    public RecallBuilder SuppressEventProcessorHostedService()
-    {
-        ShouldSuppressEventProcessorHostedService = true;
+        builder.Invoke(new(services, EventProcessorConfiguration, name));
 
         return this;
     }
 
-    public RecallBuilder SuppressPipelineProcessing()
+    public RecallBuilder RegisterPrimitiveEventSequencing()
     {
-        ShouldSuppressPipelineProcessing = true;
+        var primitiveEventSequencerType = typeof(IPrimitiveEventSequencer);
 
-        return this;
-    }
+        if (services.All(item => item.ServiceType != primitiveEventSequencerType))
+        {
+            throw new ApplicationException(Resources.PrimitiveEventSequencerException);
+        }
 
-    public RecallBuilder SuppressPrimitiveEventSequencerHostedService()
-    {
-        ShouldSuppressPrimitiveEventSequencerHostedService = true;
-        
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, PrimitiveEventSequencerHostedService>());
+        services.TryAddKeyedScoped<IProcessor, PrimitiveEventSequencerProcessor>("PrimitiveEventSequencerProcessor");
+
         return this;
     }
 }

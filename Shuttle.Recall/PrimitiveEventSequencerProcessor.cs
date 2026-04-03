@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class PrimitiveEventSequencerProcessor(IPrimitiveEventSequencer primitiveEventSequencer, ILogger<PrimitiveEventSequencerProcessor> logger) : IProcessor
+public class PrimitiveEventSequencerProcessor(IPrimitiveEventSequencer primitiveEventSequencer, ILogger<PrimitiveEventSequencerProcessor>? logger) : IProcessor
 {
     private readonly IPrimitiveEventSequencer _primitiveEventSequencer = Guard.AgainstNull(primitiveEventSequencer);
-    private readonly ILogger<PrimitiveEventSequencerProcessor> _logger = Guard.AgainstNull(logger);
+    private readonly ILogger<PrimitiveEventSequencerProcessor> _logger = logger ?? NullLogger<PrimitiveEventSequencerProcessor>.Instance;
 
     public async ValueTask<bool> ExecuteAsync(CancellationToken cancellationToken = default)
     {

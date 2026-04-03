@@ -32,14 +32,12 @@ public class EventHandlerInvokerFixture
 
         services.AddLogging();
 
-        services.AddRecall(builder =>
-        {
-            builder.SuppressPrimitiveEventSequencerHostedService();
-
-            builder
-                .AddProjection("projection-1")
-                .AddEventHandler(handler);
-        });
+        services.AddRecall()
+            .AddProjection("projection-1", builder =>
+            {
+                builder.AddEventHandler(handler);
+            });
+                
 
         var serviceProvider = services.BuildServiceProvider();
 

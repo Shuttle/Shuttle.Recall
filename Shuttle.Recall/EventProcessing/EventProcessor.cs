@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
@@ -7,9 +8,9 @@ using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class EventProcessor(IServiceScopeFactory serviceScopeFactory, IOptions<RecallOptions> recallOptions, ILogger<EventProcessor> logger) : IEventProcessor
+public class EventProcessor(IServiceScopeFactory serviceScopeFactory, IOptions<RecallOptions> recallOptions, ILogger<EventProcessor>? logger) : IEventProcessor
 {
-    private readonly ILogger<EventProcessor> _logger = Guard.AgainstNull(logger);
+    private readonly ILogger<EventProcessor> _logger = logger ?? NullLogger<EventProcessor>.Instance;
     private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);
     private CancellationTokenSource _cancellationTokenSource = new();
 

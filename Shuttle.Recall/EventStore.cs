@@ -1,14 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall;
 
-public class EventStore(IGetEventStreamPipeline getEventStreamPipeline, IRemoveEventStreamPipeline removeEventStreamPipeline, ISaveEventStreamPipeline saveEventStreamPipeline, IEventMethodInvoker eventMethodInvoker, IOptions<RecallOptions> recallOptions, ILogger<EventStore> logger)
+public class EventStore(IGetEventStreamPipeline getEventStreamPipeline, IRemoveEventStreamPipeline removeEventStreamPipeline, ISaveEventStreamPipeline saveEventStreamPipeline, IEventMethodInvoker eventMethodInvoker, IOptions<RecallOptions> recallOptions, ILogger<EventStore>? logger)
     : IEventStore
 {
     private readonly IEventMethodInvoker _eventMethodInvoker = Guard.AgainstNull(eventMethodInvoker);
-    private readonly ILogger<EventStore> _logger = Guard.AgainstNull(logger);
+    private readonly ILogger<EventStore> _logger = logger ?? NullLogger<EventStore>.Instance;
     private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);
 
     public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)

@@ -66,32 +66,30 @@ public class EventProcessorFixture
 
         services.AddSingleton(projectionService.Object);
 
-        services.AddRecall(builder =>
-        {
-            builder.Configure(options =>
+        services
+            .AddRecall(options =>
             {
                 options.EventProcessing = new()
                 {
                     ProjectionThreadCount = 1
                 };
+            })
+            .AddProjection("projection-1", builder =>
+            {
+                builder
+                    .AddEventHandler((IEventHandlerContext<EventA> _) =>
+                    {
+                        count++;
+
+                        return Task.CompletedTask;
+                    })
+                    .AddEventHandler((IEventHandlerContext<EventB> _) =>
+                    {
+                        count++;
+
+                        return Task.CompletedTask;
+                    });
             });
-            
-            builder.SuppressPrimitiveEventSequencerHostedService();
-
-            builder.AddProjection("projection-1")
-                .AddEventHandler((IEventHandlerContext<EventA> _) =>
-                {
-                    count++;
-
-                    return Task.CompletedTask;
-                })
-                .AddEventHandler((IEventHandlerContext<EventB> _) =>
-                {
-                    count++;
-
-                    return Task.CompletedTask;
-                });
-        });
 
         var serviceProvider = services.BuildServiceProvider();
         var processor = serviceProvider.GetRequiredService<IEventProcessor>();
