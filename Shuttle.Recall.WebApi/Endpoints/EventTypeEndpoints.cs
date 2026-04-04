@@ -5,7 +5,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Recall.SqlServer.Storage;
 using Shuttle.Recall.WebApi.Models;

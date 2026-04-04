@@ -191,12 +191,6 @@
     <value>Module could not be instantiated: {0}</value>
     <comment>{0} = full type name of module type to be instanced</comment>
   </data>
-  <data name="NotImplementedPrimitiveEventRepository" xml:space="preserve">
-    <value>No implementation of the `IPrimitiveEventRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventStorage(), before calling `ServiceCollection.AddEventStore()`.</value>
-  </data>
-  <data name="NotImplementedProjectionRepository" xml:space="preserve">
-    <value>No implementation of the `IProjectionRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`.</value>
-  </data>
   <data name="ObserverInterfaceMissingException" xml:space="preserve">
     <value>Observer with type name '{0}' does not have an interface with name 'I{0}'.</value>
     <comment>{0} = observer type name</comment>
@@ -268,9 +262,6 @@
   </data>
   <data name="EventHandlerTypeException" xml:space="preserve">
     <value>The delegate must contain a parameter of type `IEventHandlerContext&lt;TMessage&gt;`.</value>
-  </data>
-  <data name="NotImplementedProjectionEventProvider" xml:space="preserve">
-    <value>No implementation of the `ProjectionEventProvider` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`.</value>
   </data>
   <data name="DuplicateProjectionDelegateException" xml:space="preserve">
     <value>A delegate that handles event type '{0}' has already been registered for projection name '{1}'.</value>

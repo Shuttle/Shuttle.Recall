@@ -64,8 +64,6 @@ public static class ServiceCollectionExtensions
 
             services.TryAddScoped<IEventStore, EventStore>();
             services.TryAddSingleton<IEventProcessor, EventProcessor>();
-            services.TryAddSingleton<IPrimitiveEventRepository, NotImplementedPrimitiveEventRepository>();
-            services.TryAddSingleton<IProjectionEventService, NotImplementedProjectionEventService>();
             services.AddSingleton<IValidateOptions<RecallOptions>, RecallOptionsValidator>();
 
             var eventProcessorConfigurationType = typeof(IEventProcessorConfiguration);
