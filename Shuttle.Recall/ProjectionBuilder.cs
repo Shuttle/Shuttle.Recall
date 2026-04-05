@@ -36,12 +36,9 @@ public class ProjectionBuilder(IServiceCollection services, IEventProcessorConfi
             typesAddedCount++;
         }
 
-        if (typesAddedCount == 0)
-        {
-            throw new EventProcessingException(string.Format(Resources.InvalidEventHandlerTypeExpection, type.FullName ?? type.Name));
-        }
-
-        return this;
+        return typesAddedCount == 0 
+            ? throw new EventProcessingException(string.Format(Resources.InvalidEventHandlerTypeExpection, type.FullName ?? type.Name)) 
+            : this;
     }
 
     public ProjectionBuilder AddEventHandler(Type type, Func<Type, ServiceLifetime>? getServiceLifetime = null)
@@ -68,12 +65,9 @@ public class ProjectionBuilder(IServiceCollection services, IEventProcessorConfi
             typesAddedCount++;
         }
 
-        if (typesAddedCount == 0)
-        {
-            throw new EventProcessingException(string.Format(Resources.InvalidEventHandlerTypeExpection, type.FullName ?? type.Name));
-        }
-
-        return this;
+        return typesAddedCount == 0 
+            ? throw new EventProcessingException(string.Format(Resources.InvalidEventHandlerTypeExpection, type.FullName ?? type.Name)) 
+            : this;
     }
 
     public ProjectionBuilder AddEventHandler(Delegate handler)

@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Asp.Versioning;
 using Azure.Identity;
 using Microsoft.Data.SqlClient;
@@ -6,7 +7,6 @@ using Serilog;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.RestClient;
 using Shuttle.Recall.SqlServer.Storage;
-using System.Data.Common;
 
 namespace Shuttle.Recall.WebApi;
 
@@ -33,13 +33,14 @@ public class Program
         }
 
         var webApplicationBuilder = WebApplication.CreateBuilder(args);
+        var configuration = webApplicationBuilder.Configuration;
 
-        webApplicationBuilder.Configuration
+        configuration
             .AddUserSecrets<Program>(true)
             .AddJsonFile(appsettingsPath);
 
         Log.Logger = new LoggerConfiguration()
-            .ReadFrom.Configuration(webApplicationBuilder.Configuration)
+            .ReadFrom.Configuration(configuration)
             .CreateLogger();
 
         var apiVersion1 = new ApiVersion(1, 0);
@@ -57,7 +58,7 @@ public class Program
                 options.SubstituteApiVersionInUrl = true;
             });
 
-        var accessConnectionString = webApplicationBuilder.Configuration.GetConnectionString("Recall") ?? throw new ApplicationException("Missing connection string 'Recall'.");
+        var accessConnectionString = configuration.GetConnectionString("Recall") ?? throw new ApplicationException("Missing connection string 'Recall'.");
 
         webApplicationBuilder.Services
             .AddLogging(builder =>
@@ -75,11 +76,11 @@ public class Program
             })
             .AddAccessAuthorization(authorizationBuilder =>
             {
-                webApplicationBuilder.Configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(authorizationBuilder.Options);
+                configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(authorizationBuilder.Options);
             })
             .AddAccessClient(clientBuilder =>
             {
-                webApplicationBuilder.Configuration.GetSection(AccessClientOptions.SectionName).Bind(clientBuilder.Options);
+                configuration.GetSection(AccessClientOptions.SectionName).Bind(clientBuilder.Options);
 
                 clientBuilder.UseBearerAuthenticationProvider(providerBuilder =>
                 {
@@ -91,23 +92,19 @@ public class Program
                     };
                 });
             })
-            .AddRecall(recallBuilder =>
+            .AddRecall(options =>
             {
-                webApplicationBuilder.Configuration.GetSection(RecallOptions.SectionName).Bind(recallBuilder.Options);
-
-                recallBuilder
-                    .UseSqlServerEventStorage(builder =>
-                    {
-                        webApplicationBuilder.Configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(builder.Options);
-
-                        builder.Options.ConnectionString = accessConnectionString;
-                        builder.Options.Schema = "access";
-                        builder.Options.DbConnectionServiceKey = "AccessDbConnection";
-                    });
-
-                recallBuilder.SuppressEventProcessorHostedService();
-                recallBuilder.SuppressPrimitiveEventSequencerHostedService();
+                configuration.GetSection(RecallOptions.SectionName).Bind(options);
             })
+            .UseSqlServerEventStorage(options =>
+            {
+                configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(options);
+
+                options.ConnectionString = accessConnectionString;
+                options.Schema = "access";
+                options.DbConnectionServiceKey = "AccessDbConnection";
+            })
+            .Services
             .AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>

@@ -21,6 +21,26 @@ public class RecallBuilder(IServiceCollection services, IEventProcessorConfigura
         return this;
     }
 
+    public RecallBuilder AddProjection(string name, object handler)
+    {
+        return AddProjection(name, projection => projection.AddEventHandler(handler));
+    }
+
+    public RecallBuilder AddProjection(string name, Type handlerType, Func<Type, ServiceLifetime>? getServiceLifetime = null)
+    {
+        return AddProjection(name, projection => projection.AddEventHandler(handlerType, getServiceLifetime));
+    }
+
+    public RecallBuilder AddProjection<THandler>(string name, Func<Type, ServiceLifetime>? getServiceLifetime = null)
+    {
+        return AddProjection(name, typeof(THandler), getServiceLifetime);
+    }
+
+    public RecallBuilder AddProjection(string name, Delegate handler)
+    {
+        return AddProjection(name, projection => projection.AddEventHandler(handler));
+    }
+
     public RecallBuilder RegisterPrimitiveEventSequencing()
     {
         var primitiveEventSequencerType = typeof(IPrimitiveEventSequencer);
