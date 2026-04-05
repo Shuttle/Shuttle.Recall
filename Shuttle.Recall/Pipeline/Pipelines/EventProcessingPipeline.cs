@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall;
 
@@ -9,8 +8,8 @@ public interface IEventProcessingPipeline : IPipeline;
 
 public class EventProcessingPipeline : Pipeline, IEventProcessingPipeline
 {
-    public EventProcessingPipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver, IEventProcessingPipelineFailedObserver eventProcessingPipelineFailedObserver)
-        : base(pipelineOptions, transactionScopeOptions, transactionScopeFactory, serviceProvider)
+    public EventProcessingPipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver, IEventProcessingPipelineFailedObserver eventProcessingPipelineFailedObserver)
+        : base(pipelineOptions, serviceProvider)
     {
         AddStage("Handle")
             .WithEvent<RetrieveEvent>()
@@ -20,10 +19,7 @@ public class EventProcessingPipeline : Pipeline, IEventProcessingPipeline
             .WithEvent<HandleEvent>()
             .WithEvent<EventHandled>()
             .WithEvent<AcknowledgeEvent>()
-            .WithEvent<EventAcknowledged>()
-            .WithEvent<CompleteTransactionScope>()
-            .WithEvent<DisposeTransactionScope>()
-            .WithTransactionScope();
+            .WithEvent<EventAcknowledged>();
 
         AddObserver(Guard.AgainstNull(projectionEventObserver));
         AddObserver(Guard.AgainstNull(projectionEventEnvelopeObserver));

@@ -5,7 +5,7 @@ using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class PrimitiveEventSequencerProcessor(IPrimitiveEventSequencer primitiveEventSequencer, ILogger<PrimitiveEventSequencerProcessor>? logger) : IProcessor
+public class PrimitiveEventSequencerProcessor(IPrimitiveEventSequencer primitiveEventSequencer, ILogger<PrimitiveEventSequencerProcessor>? logger = null) : IProcessor
 {
     private readonly IPrimitiveEventSequencer _primitiveEventSequencer = Guard.AgainstNull(primitiveEventSequencer);
     private readonly ILogger<PrimitiveEventSequencerProcessor> _logger = logger ?? NullLogger<PrimitiveEventSequencerProcessor>.Instance;

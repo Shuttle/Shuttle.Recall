@@ -2,11 +2,9 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Serialization;
 using Shuttle.Core.Threading;
-using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall;
 
@@ -16,7 +14,7 @@ public static class ServiceCollectionExtensions
     {
         public RecallBuilder AddRecall(Action<RecallOptions>? configureOptions = null)
         {
-            var eventProcessorConfigurationServiceDescriptor = services.FirstOrDefault(sd => sd.ServiceType == typeof(IEventProcessorConfiguration));
+            var eventProcessorConfigurationServiceDescriptor = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(IEventProcessorConfiguration));
 
             IEventProcessorConfiguration eventProcessorConfiguration;
 
@@ -44,7 +42,6 @@ public static class ServiceCollectionExtensions
             services.TryAddSingleton<IConcurrencyExceptionSpecification, DefaultConcurrencyExceptionSpecification>();
             services.TryAddScoped<IEventHandlerInvoker, EventHandlerInvoker>();
 
-            services.AddTransactionScope();
             services.AddPipelines().AddPipelinesFrom(typeof(EventStore).Assembly);
             services.AddThreading()
                 .ConfigureProcessor("ProjectionProcessor", (options, serviceProvider) =>

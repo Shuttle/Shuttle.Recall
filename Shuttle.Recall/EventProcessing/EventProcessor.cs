@@ -8,7 +8,7 @@ using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall;
 
-public class EventProcessor(IServiceScopeFactory serviceScopeFactory, IOptions<RecallOptions> recallOptions, ILogger<EventProcessor>? logger) : IEventProcessor
+public class EventProcessor(IServiceScopeFactory serviceScopeFactory, IOptions<RecallOptions> recallOptions, ILogger<EventProcessor>? logger = null) : IEventProcessor
 {
     private readonly ILogger<EventProcessor> _logger = logger ?? NullLogger<EventProcessor>.Instance;
     private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);

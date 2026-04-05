@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall;
 
@@ -9,8 +8,8 @@ public interface IEventProcessorStartupPipeline : IPipeline;
 
 public class EventProcessorStartupPipeline : Pipeline, IEventProcessorStartupPipeline
 {
-    public EventProcessorStartupPipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider, IStartupEventProcessingObserver startupEventProcessingObserver)
-        : base(pipelineOptions, transactionScopeOptions, transactionScopeFactory, serviceProvider)
+    public EventProcessorStartupPipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider, IStartupEventProcessingObserver startupEventProcessingObserver)
+        : base(pipelineOptions, serviceProvider)
     {
         AddStage("Startup")
             .WithEvent<StartEventProcessing>()

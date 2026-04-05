@@ -1,9 +1,7 @@
-﻿using Microsoft.Extensions.Options;
-using Moq;
+﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.Serialization;
-using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall.Tests;
 

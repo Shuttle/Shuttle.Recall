@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall;
 
@@ -12,26 +11,20 @@ public interface ISaveEventStreamPipeline : IPipeline
 
 public class SaveEventStreamPipeline : Pipeline, ISaveEventStreamPipeline
 {
-    public SaveEventStreamPipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider, IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver)
-        : base(pipelineOptions, transactionScopeOptions, transactionScopeFactory, serviceProvider)
+    public SaveEventStreamPipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider, IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver)
+        : base(pipelineOptions, serviceProvider)
     {
-        AddStage("Handle")
+        AddStage("Assemble")
             .WithEvent<AssembleEventEnvelopes>()
             .WithEvent<EventEnvelopesAssembled>()
             .WithEvent<SavePrimitiveEvents>()
             .WithEvent<PrimitiveEventsSaved>()
-            .WithEvent<CompleteTransactionScope>()
-            .WithEvent<DisposeTransactionScope>()
             .WithEvent<CommitEventStream>()
-            .WithEvent<EventStreamCommitted>()
-            .WithTransactionScope();
+            .WithEvent<EventStreamCommitted>();
 
-        AddStage("Completed")
+        AddStage("Persist")
             .WithEvent<SaveEventStream>()
-            .WithEvent<EventStreamSaved>()
-            .WithEvent<CompleteTransactionScope>()
-            .WithEvent<DisposeTransactionScope>()
-            .WithTransactionScope();
+            .WithEvent<EventStreamSaved>();
 
         AddObserver(Guard.AgainstNull(assembleEventEnvelopesObserver));
         AddObserver(Guard.AgainstNull(savePrimitiveEventsObserver));

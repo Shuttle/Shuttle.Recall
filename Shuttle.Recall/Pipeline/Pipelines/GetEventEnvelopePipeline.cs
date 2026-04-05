@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Recall;
 
@@ -12,8 +11,8 @@ public interface IGetEventEnvelopePipeline : IPipeline
 
 public class GetEventEnvelopePipeline : Pipeline, IGetEventEnvelopePipeline
 {
-    public GetEventEnvelopePipeline(IOptions<PipelineOptions> pipelineOptions, IOptions<TransactionScopeOptions> transactionScopeOptions, ITransactionScopeFactory transactionScopeFactory, IServiceProvider serviceProvider)
-        : base(pipelineOptions, transactionScopeOptions, transactionScopeFactory, serviceProvider)
+    public GetEventEnvelopePipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider)
+        : base(pipelineOptions, serviceProvider)
     {
         AddStage("GetEventEnvelope")
             .WithEvent<DeserializeEventEnvelope>()
