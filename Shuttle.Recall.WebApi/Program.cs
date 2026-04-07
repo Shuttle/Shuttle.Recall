@@ -102,7 +102,6 @@ public class Program
 
                 options.ConnectionString = accessConnectionString;
                 options.Schema = "access";
-                options.DbConnectionServiceKey = "AccessDbConnection";
             })
             .Services
             .AddCors(options =>

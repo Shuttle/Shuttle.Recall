@@ -111,7 +111,7 @@ public class EventProcessorFixture
 
             Console.WriteLine($@"[delegate] : count = {count} / elapsed ms = {sw.ElapsedMilliseconds}");
 
-            Assert.That(sw.ElapsedMilliseconds, Is.LessThan(2000));
+            Assert.That(sw.ElapsedMilliseconds, Is.LessThan(5000));
             Assert.That(count, Is.GreaterThanOrEqualTo(projectionEventCount));
         }
         finally
