@@ -3,8 +3,8 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Query;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Serialization;
+using Shuttle.Contract;
+using Shuttle.Serialization;
 using Shuttle.Recall.SqlServer.Storage;
 using Shuttle.Recall.WebApi.Models;
 

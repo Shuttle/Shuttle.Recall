@@ -1,4 +1,4 @@
-﻿using Shuttle.Core.Pipelines;
+﻿using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 

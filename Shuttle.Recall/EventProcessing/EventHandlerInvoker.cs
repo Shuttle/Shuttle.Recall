@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 

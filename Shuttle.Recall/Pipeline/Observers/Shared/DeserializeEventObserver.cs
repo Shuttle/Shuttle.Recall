@@ -1,6 +1,6 @@
-﻿using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
-using Shuttle.Core.Serialization;
+﻿using Shuttle.Contract;
+using Shuttle.Pipelines;
+using Shuttle.Serialization;
 
 namespace Shuttle.Recall;
 

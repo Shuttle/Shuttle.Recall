@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Query;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 using Shuttle.Recall.SqlServer.Storage;
 using Shuttle.Recall.WebApi.Models;
 using EventType = Shuttle.Recall.WebApi.Models.EventType;

@@ -2,9 +2,9 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Shuttle.Core.Pipelines;
-using Shuttle.Core.Serialization;
-using Shuttle.Core.Threading;
+using Shuttle.Pipelines;
+using Shuttle.Serialization;
+using Shuttle.Threading;
 
 namespace Shuttle.Recall;
 

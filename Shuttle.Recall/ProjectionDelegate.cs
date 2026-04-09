@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Shuttle.Core.Reflection;
+using Shuttle.Reflection;
 
 namespace Shuttle.Recall;
 

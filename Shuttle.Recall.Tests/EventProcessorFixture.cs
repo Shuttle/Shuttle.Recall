@@ -4,10 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
-using Shuttle.Core.Streams;
-using JsonSerializer = Shuttle.Core.Serialization.JsonSerializer;
+using Shuttle.Contract;
+using Shuttle.Pipelines;
+using Shuttle.Streams;
+using JsonSerializer = Shuttle.Serialization.JsonSerializer;
 
 namespace Shuttle.Recall.Tests;
 

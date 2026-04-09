@@ -1,5 +1,5 @@
-﻿using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 

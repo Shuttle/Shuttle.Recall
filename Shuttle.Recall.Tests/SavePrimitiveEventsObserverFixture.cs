@@ -1,7 +1,7 @@
 ﻿using Moq;
 using NUnit.Framework;
-using Shuttle.Core.Pipelines;
-using Shuttle.Core.Serialization;
+using Shuttle.Pipelines;
+using Shuttle.Serialization;
 
 namespace Shuttle.Recall.Tests;
 

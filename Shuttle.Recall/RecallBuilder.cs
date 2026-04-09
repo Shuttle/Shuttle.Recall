@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Threading;
+using Shuttle.Contract;
+using Shuttle.Threading;
 
 namespace Shuttle.Recall;
 

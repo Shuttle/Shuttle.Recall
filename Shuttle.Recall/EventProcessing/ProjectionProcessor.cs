@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Threading;
+using Shuttle.Contract;
+using Shuttle.Threading;
 
 namespace Shuttle.Recall;
 
