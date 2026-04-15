@@ -30,12 +30,10 @@ public static class ServiceCollectionExtensions
 
             var builder = new RecallBuilder(services, eventProcessorConfiguration);
 
-            services.AddOptions();
             services.AddOptions<RecallOptions>().Configure(options =>
             {
                 configureOptions?.Invoke(options);
             });
-
 
             services.TryAddSingleton<IEventMethodInvoker, EventMethodInvoker>();
             services.TryAddSingleton<ISerializer, JsonSerializer>();
