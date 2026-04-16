@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Moq;
+﻿using Moq;
 using NUnit.Framework;
-using Shuttle.Core.Pipelines;
-using Shuttle.Core.Serialization;
+using Shuttle.Pipelines;
+using Shuttle.Serialization;
 
 namespace Shuttle.Recall.Tests;
 
@@ -16,14 +14,14 @@ public class SavePrimitiveEventsObserverFixture
         var specification = new Mock<IConcurrencyExceptionSpecification>();
         var repository = new Mock<IPrimitiveEventRepository>();
 
-        repository.Setup(m => m.SaveAsync(It.IsAny<IEnumerable<PrimitiveEvent>>())).Throws<Exception>();
+        repository.Setup(m => m.SaveAsync(It.IsAny<IEnumerable<PrimitiveEvent>>(), It.IsAny<CancellationToken>())).Throws<Exception>();
 
         var observer = new SavePrimitiveEventsObserver(
             repository.Object,
             new Mock<ISerializer>().Object,
             specification.Object);
 
-        var pipeline = new Pipeline(new Mock<IServiceProvider>().Object);
+        var pipeline = Pipeline.Get();
 
         pipeline.State.SetEventStream(new(Guid.NewGuid(), new Mock<IEventMethodInvoker>().Object));
         pipeline.State.SetEventEnvelopes(new List<EventEnvelope>
@@ -31,7 +29,7 @@ public class SavePrimitiveEventsObserverFixture
             new()
         });
 
-        var pipelineContext = new PipelineContext<OnSavePrimitiveEvents>(pipeline);
+        var pipelineContext = new PipelineContext<SavePrimitiveEvents>(pipeline);
 
         specification.Setup(m => m.IsSatisfiedBy(It.IsAny<Exception>())).Returns(false);
 

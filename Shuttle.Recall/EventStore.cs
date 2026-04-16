@@ -1,22 +1,18 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Shuttle.Contract;
 
 namespace Shuttle.Recall;
 
-public class EventStore : IEventStore
+public class EventStore(IGetEventStreamPipeline getEventStreamPipeline, IRemoveEventStreamPipeline removeEventStreamPipeline, ISaveEventStreamPipeline saveEventStreamPipeline, IEventMethodInvoker eventMethodInvoker, IOptions<RecallOptions> recallOptions, ILogger<EventStore>? logger = null)
+    : IEventStore
 {
-    private readonly IEventMethodInvoker _eventMethodInvoker;
-    private readonly IPipelineFactory _pipelineFactory;
+    private readonly IEventMethodInvoker _eventMethodInvoker = Guard.AgainstNull(eventMethodInvoker);
+    private readonly ILogger<EventStore> _logger = logger ?? NullLogger<EventStore>.Instance;
+    private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);
 
-    public EventStore(IPipelineFactory pipelineFactory, IEventMethodInvoker eventMethodInvoker)
-    {
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-        _eventMethodInvoker = Guard.AgainstNull(eventMethodInvoker);
-    }
-
-    public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder>? builder = null)
+    public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
     {
         if (id.Equals(Guid.Empty))
         {
@@ -27,61 +23,46 @@ public class EventStore : IEventStore
 
         builder?.Invoke(eventStreamBuilder);
 
-        var pipeline = _pipelineFactory.GetPipeline<GetEventStreamPipeline>();
+        LogMessage.EventStoreGet(_logger, id);
 
-        try
-        {
-            return await pipeline.ExecuteAsync(id, eventStreamBuilder).ConfigureAwait(false);
-        }
-        finally
-        {
-            _pipelineFactory.ReleasePipeline(pipeline);
-        }
+        await _recallOptions.Operation.InvokeAsync(new($"[GetAsync] : id = '{id}'"), cancellationToken);
+
+        return await Guard.AgainstNull(getEventStreamPipeline).ExecuteAsync(id, eventStreamBuilder).ConfigureAwait(false);
     }
 
-    public async Task RemoveAsync(Guid id)
+    public async Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var pipeline = _pipelineFactory.GetPipeline<RemoveEventStreamPipeline>();
+        LogMessage.EventStoreRemove(_logger, id);
 
-        try
-        {
-            await pipeline.ExecuteAsync(id).ConfigureAwait(false);
-        }
-        finally
-        {
-            _pipelineFactory.ReleasePipeline(pipeline);
-        }
+        await _recallOptions.Operation.InvokeAsync(new($"[RemoveAsync] : id = '{id}'"), cancellationToken);
+
+        await Guard.AgainstNull(removeEventStreamPipeline).ExecuteAsync(id).ConfigureAwait(false);
     }
 
-    public async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null)
+    public async Task<IEnumerable<EventEnvelope>> SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
     {
         if (Guard.AgainstNull(eventStream).Removed)
         {
-            await RemoveAsync(eventStream.Id).ConfigureAwait(false);
+            await RemoveAsync(eventStream.Id, cancellationToken).ConfigureAwait(false);
 
-            return -1;
+            return [];
         }
 
         if (!eventStream.ShouldSave())
         {
-            return -1;
+            return [];
         }
 
-        var pipeline = _pipelineFactory.GetPipeline<SaveEventStreamPipeline>();
+        LogMessage.EventStoreSave(_logger, eventStream.Id);
 
-        try
-        {
-            var eventStreamBuilder = new EventStreamBuilder();
+        await _recallOptions.Operation.InvokeAsync(new($"[SaveAsync] : id = '{eventStream.Id}'"), cancellationToken);
 
-            builder?.Invoke(eventStreamBuilder);
+        var eventStreamBuilder = new EventStreamBuilder();
 
-            await pipeline.ExecuteAsync(eventStream, eventStreamBuilder).ConfigureAwait(false);
+        builder?.Invoke(eventStreamBuilder);
 
-            return pipeline.State.GetSequenceNumber();
-        }
-        finally
-        {
-            _pipelineFactory.ReleasePipeline(pipeline);
-        }
+        await Guard.AgainstNull(saveEventStreamPipeline).ExecuteAsync(eventStream, eventStreamBuilder).ConfigureAwait(false);
+
+        return saveEventStreamPipeline.State.GetEventEnvelopes() ?? [];
     }
 }

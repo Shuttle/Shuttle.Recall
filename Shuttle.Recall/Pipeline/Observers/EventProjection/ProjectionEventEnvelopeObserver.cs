@@ -1,39 +1,20 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IProjectionEventEnvelopeObserver : IPipelineObserver<OnGetEventEnvelope>
+public interface IProjectionEventEnvelopeObserver : IPipelineObserver<RetrieveEventEnvelope>;
+
+public class ProjectionEventEnvelopeObserver(IGetEventEnvelopePipeline getEventEnvelopePipeline) : IProjectionEventEnvelopeObserver
 {
-}
-
-public class ProjectionEventEnvelopeObserver : IProjectionEventEnvelopeObserver
-{
-    private readonly IPipelineFactory _pipelineFactory;
-
-    public ProjectionEventEnvelopeObserver(IPipelineFactory pipelineFactory)
-    {
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnGetEventEnvelope> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<RetrieveEventEnvelope> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var projectionEvent = Guard.AgainstNull(state.GetProjectionEvent());
 
-        var pipeline = _pipelineFactory.GetPipeline<GetEventEnvelopePipeline>();
+        await Guard.AgainstNull(getEventEnvelopePipeline).ExecuteAsync(projectionEvent.PrimitiveEvent);
 
-        try
-        {
-            await pipeline.ExecuteAsync(projectionEvent.PrimitiveEvent);
-
-            state.SetEventEnvelope(pipeline.State.GetEventEnvelope());
-            state.SetDomainEvent(pipeline.State.GetDomainEvent());
-        }
-        finally
-        {
-            _pipelineFactory.ReleasePipeline(pipeline);
-        }
+        state.SetEventEnvelope(getEventEnvelopePipeline.State.GetEventEnvelope());
+        state.SetDomainEvent(getEventEnvelopePipeline.State.GetDomainEvent());
     }
 }

@@ -1,7 +1,5 @@
-using System;
 using System.Reflection.Emit;
-using System.Threading;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Recall;
 
@@ -13,14 +11,12 @@ public class HandlerContextConstructorInvoker
     public HandlerContextConstructorInvoker(Type eventType)
     {
         var dynamicMethod = new DynamicMethod(string.Empty, typeof(object),
-            new[]
-            {
-                typeof(Projection),
+        [
+            typeof(Projection),
                 typeof(EventEnvelope),
                 typeof(object),
-                typeof(PrimitiveEvent),
-                typeof(CancellationToken)
-            }, HandlerContextType.Module);
+                typeof(PrimitiveEvent)
+        ], HandlerContextType.Module);
 
         var il = dynamicMethod.GetILGenerator();
 
@@ -28,17 +24,14 @@ public class HandlerContextConstructorInvoker
         il.Emit(OpCodes.Ldarg_1);
         il.Emit(OpCodes.Ldarg_2);
         il.Emit(OpCodes.Ldarg_3);
-        il.Emit(OpCodes.Ldarg, 4);
 
         var contextType = HandlerContextType.MakeGenericType(eventType);
-        var constructorInfo = contextType.GetConstructor(new[]
-        {
+        var constructorInfo = contextType.GetConstructor([
             typeof(Projection),
             typeof(EventEnvelope),
             eventType,
-            typeof(PrimitiveEvent),
-            typeof(CancellationToken)
-        });
+            typeof(PrimitiveEvent)
+        ]);
 
         il.Emit(OpCodes.Newobj, Guard.AgainstNull(constructorInfo));
         il.Emit(OpCodes.Ret);
@@ -46,10 +39,10 @@ public class HandlerContextConstructorInvoker
         _constructorInvoker = (ConstructorInvokeHandler)dynamicMethod.CreateDelegate(typeof(ConstructorInvokeHandler));
     }
 
-    public object CreateHandlerContext(Projection projection, EventEnvelope eventEnvelope, object @event, PrimitiveEvent primitiveEvent, CancellationToken cancellationToken)
+    public object CreateHandlerContext(Projection projection, EventEnvelope eventEnvelope, object @event, PrimitiveEvent primitiveEvent)
     {
-        return _constructorInvoker(projection, eventEnvelope, @event, primitiveEvent, cancellationToken);
+        return _constructorInvoker(projection, eventEnvelope, @event, primitiveEvent);
     }
 
-    private delegate object ConstructorInvokeHandler(Projection projection, EventEnvelope eventEnvelope, object message, PrimitiveEvent primitiveEvent, CancellationToken cancellationToken);
+    private delegate object ConstructorInvokeHandler(Projection projection, EventEnvelope eventEnvelope, object message, PrimitiveEvent primitiveEvent);
 }

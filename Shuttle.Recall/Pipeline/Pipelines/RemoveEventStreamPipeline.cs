@@ -1,19 +1,22 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class RemoveEventStreamPipeline : Pipeline
+public interface IRemoveEventStreamPipeline : IPipeline
 {
-    public RemoveEventStreamPipeline(IServiceProvider serviceProvider, IRemoveEventStreamObserver removeEventStreamObserver) 
-        : base(serviceProvider)
+    Task ExecuteAsync(Guid id);
+}
+
+public class RemoveEventStreamPipeline : Pipeline, IRemoveEventStreamPipeline
+{
+    public RemoveEventStreamPipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider, IRemoveEventStreamObserver removeEventStreamObserver)
+        : base(pipelineOptions, serviceProvider)
     {
         AddStage("RemoveEventStream")
-            .WithEvent<OnBeforeRemoveEventStream>()
-            .WithEvent<OnRemoveEventStream>()
-            .WithEvent<OnAfterRemoveEventStream>();
+            .WithEvent<RemoveEventStream>()
+            .WithEvent<EventStreamRemoved>();
 
         AddObserver(Guard.AgainstNull(removeEventStreamObserver));
     }

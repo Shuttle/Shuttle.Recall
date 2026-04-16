@@ -1,24 +1,21 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Core.Pipelines;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall.Tests;
 
 [TestFixture]
 public class EventHandlerInvokerFixture
 {
-    public class EventA
-    {
-    }
+    public class EventA;
 
     public class EventHandlerA : IEventHandler<EventA>
     {
         public bool Invoked { get; private set; }
 
-        public async Task ProcessEventAsync(IEventHandlerContext<EventA> context)
+        public async Task HandleAsync(IEventHandlerContext<EventA> context, CancellationToken cancellationToken = default)
         {
             Invoked = true;
 
@@ -33,17 +30,20 @@ public class EventHandlerInvokerFixture
 
         var services = new ServiceCollection();
 
-        services.AddEventStore(builder =>
-        {
-            builder.AddProjection("projection-1")
-                .AddEventHandler(handler);
-        });
+        services.AddLogging();
+
+        services.AddRecall()
+            .AddProjection("projection-1", builder =>
+            {
+                builder.AddEventHandler(handler);
+            });
+                
 
         var serviceProvider = services.BuildServiceProvider();
 
         var invoker = serviceProvider.GetRequiredService<IEventHandlerInvoker>();
 
-        var pipeline = new Pipeline(serviceProvider);
+        var pipeline = Pipeline.Get(serviceProvider);
 
         pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
         {
@@ -60,7 +60,7 @@ public class EventHandlerInvokerFixture
 
         Assert.That(handler.Invoked, Is.False);
 
-        var result = await invoker.InvokeAsync(new PipelineContext<OnHandleEvent>(pipeline));
+        var result = await invoker.InvokeAsync(new PipelineContext<HandleEvent>(pipeline));
 
         Assert.That(result, Is.True);
         Assert.That(handler.Invoked, Is.True);
@@ -71,9 +71,9 @@ public class EventHandlerInvokerFixture
     {
         var serviceProvider = new Mock<IServiceProvider>().Object;
         var configuration = new EventProcessorConfiguration();
-        var invoker = new EventHandlerInvoker(serviceProvider, configuration);
+        var invoker = new EventHandlerInvoker(serviceProvider, configuration, NullLogger<EventHandlerInvoker>.Instance);
 
-        var pipeline = new Pipeline(serviceProvider);
+        var pipeline = Pipeline.Get();
 
         pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
         {
@@ -96,7 +96,7 @@ public class EventHandlerInvokerFixture
             await Task.CompletedTask;
         });
 
-        var result = await invoker.InvokeAsync(new PipelineContext<OnHandleEvent>(pipeline));
+        var result = await invoker.InvokeAsync(new PipelineContext<HandleEvent>(pipeline));
 
         Assert.That(result, Is.True);
         Assert.That(invoked, Is.True);
@@ -113,9 +113,9 @@ public class EventHandlerInvokerFixture
         var serviceProvider = services.BuildServiceProvider();
 
         var configuration = new EventProcessorConfiguration();
-        var invoker = new EventHandlerInvoker(serviceProvider, configuration);
+        var invoker = new EventHandlerInvoker(serviceProvider, configuration, NullLogger<EventHandlerInvoker>.Instance);
 
-        var pipeline = new Pipeline(serviceProvider);
+        var pipeline = Pipeline.Get(serviceProvider);
 
         pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
         {
@@ -133,7 +133,7 @@ public class EventHandlerInvokerFixture
 
         configuration.GetProjection("projection-1").AddHandlerEventType(typeof(EventA));
 
-        var result = await invoker.InvokeAsync(new PipelineContext<OnHandleEvent>(pipeline));
+        var result = await invoker.InvokeAsync(new PipelineContext<HandleEvent>(pipeline));
 
         Assert.That(result, Is.True);
         Assert.That(handler.Invoked, Is.True);

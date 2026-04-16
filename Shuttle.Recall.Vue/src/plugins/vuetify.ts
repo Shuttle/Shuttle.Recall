@@ -8,9 +8,14 @@
 import "@mdi/font/css/materialdesignicons.css";
 import "vuetify/styles";
 import { aliases, mdi } from "vuetify/iconsets/mdi-svg";
+import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
+import { i18n } from "@/i18n";
+import { VDateInput } from "vuetify/labs/VDateInput";
+import { VBtn } from "vuetify/components/VBtn";
 
 // Composables
 import { createVuetify, type ThemeDefinition } from "vuetify";
+import { useI18n } from "vue-i18n";
 
 const colors = {
   primary: "#F97316",
@@ -38,18 +43,37 @@ const lightTheme: ThemeDefinition = {
 
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
-  theme: {
-    defaultTheme: "shuttleDark",
-    themes: {
-      shuttleDark: darkTheme,
-      shuttleLight: lightTheme,
+  components: {
+    VDateInput,
+  },
+  aliases: {
+    VBtnPrimary: VBtn,
+  },
+  defaults: {
+    VBtn: {
+      variant: "flat",
     },
+    VBtnPrimary: {
+      variant: "flat",
+      color: "primary",
+    },
+    VTextField: {},
+  },
+  locale: {
+    adapter: createVueI18nAdapter({ i18n, useI18n }),
   },
   icons: {
     defaultSet: "mdi",
     aliases,
     sets: {
       mdi,
+    },
+  },
+  theme: {
+    defaultTheme: "dark",
+    themes: {
+      dark: darkTheme,
+      light: lightTheme,
     },
   },
 });

@@ -12,13 +12,23 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/events",
     name: "events",
+    meta: { authenticated: true },
     component: () => import("../views/Events.vue"),
   },
   {
-    path: "/session/:token",
-    name: "session",
-    props: true,
-    component: () => import("../views/Session.vue"),
+    path: "/oauth",
+    name: "oauth",
+    component: () => import("../views/OAuth.vue"),
+  },
+  {
+    path: "/sign-in",
+    name: "sign-in",
+    component: () => import("../views/SignIn.vue"),
+  },
+  {
+    path: "/tenant-selection",
+    name: "tenant-selection",
+    component: () => import("../views/TenantSelection.vue"),
   },
 ];
 
@@ -30,7 +40,11 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const sessionStore = useSessionStore();
 
-  if (!sessionStore.initialized) {
+  if (
+    to.name === "sign-in" ||
+    to.name === "oauth" ||
+    !sessionStore.isInitialized
+  ) {
     return;
   }
 
@@ -47,12 +61,11 @@ router.beforeEach(async (to) => {
     return false;
   }
 
-  if (!!to.meta.authenticated && !sessionStore.authenticated) {
-    useAlertStore().add({
-      message: i18n.global.t("exceptions.session-required"),
-      type: "info",
-      name: "insufficient-permission",
-    });
+  if (
+    (to.meta.authenticated || to.name === "events") &&
+    !sessionStore.isAuthenticated
+  ) {
+    return { name: "sign-in" };
   }
 });
 
@@ -71,7 +84,7 @@ router.afterEach(async (to) => {
   }
 
   const existingIndex = breadcrumbStore.breadcrumbs.findIndex(
-    (route: Breadcrumb) => route.path === to.path
+    (route: Breadcrumb) => route.path === to.path,
   );
 
   if (existingIndex === -1) {

@@ -1,183 +1,226 @@
+import { Api } from "@/enums";
 import { defineStore } from "pinia";
-import axios, { type AxiosResponse } from "axios";
+import { ref, computed } from "vue";
+import axios from "axios";
 import configuration from "@/configuration";
 import { i18n } from "@/i18n";
 import type {
-  Session,
-  SessionStoreState,
   Credentials,
+  OAuthData,
   SessionResponse,
-} from "@/stores";
+  Tenant,
+} from "@/types/app";
 
-export const useSessionStore = defineStore("session", {
-  state: (): SessionStoreState => {
-    return {
-      authenticated: false,
-      initialized: false,
-      identityName: "",
-      token: "",
-      permissions: [],
-    };
-  },
-  getters: {
-    status(): string {
-      return !this.token ? "not-signed-in" : "signed-in";
-    },
-  },
-  actions: {
-    async initialize() {
-      const self = this;
+export const useSessionStore = defineStore("session", () => {
+  const isAuthenticated = ref(false);
+  const isInitialized = ref(false);
+  const identityName = ref<string | undefined>("");
+  const token = ref<string | undefined>("");
+  const permissions = ref<string[]>([]);
+  const tenants = ref<Tenant[] | undefined>([]);
+  const tenant = ref<Tenant | undefined>();
 
-      if (this.initialized) {
-        return;
-      }
+  const status = computed(() => {
+    return !token.value ? "not-signed-in" : "signed-in";
+  });
 
-      const identityName = localStorage.getItem("shuttle-access.identityName");
-      const token = localStorage.getItem("shuttle-access.token");
+  const initialize = async () => {
+    if (isInitialized.value) {
+      return;
+    }
 
-      if (!!identityName && !!token) {
-        return self
-          .signIn({ identityName: identityName, token: token })
-          .then(function (response: any) {
-            return response;
-          })
-          .finally(() => {
-            self.initialized = true;
-          });
-      }
+    const storedIdentityName = localStorage.getItem(
+      "shuttle-access.identityName",
+    );
+    const storedToken = localStorage.getItem("shuttle-access.token");
 
-      return Promise.resolve();
-    },
-    addPermission(type: string, permission: string) {
-      if (this.hasPermission(permission)) {
-        return;
-      }
-
-      this.permissions.push({ type: type, permission: permission });
-    },
-    register(session: Session) {
-      const self = this;
-
+    try {
       if (
-        !session ||
-        !session.identityName ||
-        !session.token ||
-        !session.permissions
+        storedIdentityName &&
+        storedToken &&
+        window.location.pathname != "/oauth"
       ) {
-        throw Error(i18n.global.t("exceptions.invalid-session"));
+        return await signIn({
+          identityName: storedIdentityName,
+          token: storedToken,
+        });
+      }
+    } finally {
+      isInitialized.value = true;
+    }
+  };
+
+  const addPermission = (permission: string) => {
+    if (hasPermission(permission)) {
+      return;
+    }
+
+    permissions.value.push(permission);
+  };
+
+  const removePermissions = () => {
+    permissions.value = [];
+  };
+
+  const register = (sessionResponse: SessionResponse) => {
+    if (
+      !sessionResponse ||
+      !sessionResponse.identityId ||
+      !sessionResponse.identityName ||
+      !sessionResponse.token
+    ) {
+      throw Error(i18n.global.t("messages.invalid-session"));
+    }
+
+    localStorage.setItem(
+      "shuttle-access.identityName",
+      sessionResponse.identityName,
+    );
+    localStorage.setItem("shuttle-access.token", sessionResponse.token);
+
+    identityName.value = sessionResponse.identityName;
+    token.value = sessionResponse.token;
+    tenant.value = tenants.value?.find(
+      (t) => t.id === sessionResponse.tenantId,
+    );
+
+    removePermissions();
+    sessionResponse.permissions.forEach((item) => addPermission(item));
+
+    isAuthenticated.value = true;
+  };
+
+  const tenantSelected = (sessionResponse: SessionResponse) => {
+    if (!sessionResponse) {
+      throw Error(i18n.global.t("messages.invalid-session"));
+    }
+
+    tenant.value = tenants.value?.find(
+      (t) => t.id === sessionResponse.tenantId,
+    );
+
+    removePermissions();
+    sessionResponse.permissions.forEach((item) => addPermission(item));
+  };
+
+  const signIn = async (credentials: Credentials): Promise<SessionResponse> => {
+    if (
+      !credentials ||
+      !credentials.identityName ||
+      !(credentials.password || credentials.token)
+    ) {
+      throw new Error(i18n.global.t("messages.missing-credentials"));
+    }
+
+    const { data: sessionResponse } = await axios.post<SessionResponse>(
+      configuration.getApiUrl(Api.Access, "v1/sessions"),
+      {
+        identityName: credentials.identityName,
+        password: credentials.password,
+        token: credentials.token,
+      },
+    );
+
+    if (!sessionResponse) {
+      throw new Error("Invalid response data.");
+    }
+
+    if (sessionResponse.result === "Registered") {
+      register(sessionResponse);
+    }
+
+    return sessionResponse;
+  };
+
+  const oauth = async (oauthData: OAuthData): Promise<SessionResponse> => {
+    if (!oauthData || !oauthData.state || !oauthData.code) {
+      throw new Error(i18n.global.t("messages.oauth-missing-data"));
+    }
+
+    const { data: sessionResponse } = await axios.get<SessionResponse>(
+      configuration.getApiUrl(
+        Api.Access,
+        `v1/oauth/session/${oauthData.state}/${oauthData.code}`,
+      ),
+    );
+
+    if (!sessionResponse) {
+      throw new Error("Invalid response data.");
+    }
+
+    register(sessionResponse);
+
+    tenants.value = sessionResponse.tenants;
+    isInitialized.value = true;
+
+    return sessionResponse;
+  };
+
+  const signOut = () => {
+    identityName.value = undefined;
+    token.value = undefined;
+    tenant.value = undefined;
+
+    localStorage.removeItem("shuttle-access.identityName");
+    localStorage.removeItem("shuttle-access.token");
+
+    removePermissions();
+
+    isAuthenticated.value = false;
+  };
+
+  const hasSession = () => {
+    return !!token.value;
+  };
+
+  const hasPermission = (permission: string) => {
+    const required = permission.toLowerCase();
+    let result = false;
+
+    permissions.value.forEach((item) => {
+      if (result) {
+        return;
       }
 
-      localStorage.setItem("shuttle-access.identityName", session.identityName);
-      localStorage.setItem("shuttle-access.token", session.token);
+      if (item.toLowerCase() === required) {
+        result = true;
+        return;
+      }
 
-      self.identityName = session.identityName;
-      self.token = session.token;
+      if (item.includes("*")) {
+        const escaped = item
+          .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+          .replace(/\\\*/g, ".*");
 
-      self.removePermissions("identity");
+        const regex = new RegExp(`^${escaped}$`, "i");
 
-      session.permissions.forEach((item: string) => {
-        self.addPermission("identity", item);
-      });
-
-      this.authenticated = true;
-    },
-    signInExchangeToken(
-      exchangeToken: string
-    ): Promise<AxiosResponse<Session>> {
-      const self = this;
-
-      return new Promise((resolve, reject) => {
-        if (!exchangeToken) {
-          reject(new Error(i18n.global.t("exceptions.missing-exchange-token")));
-          return;
+        if (regex.test(required)) {
+          result = true;
         }
+      }
+    });
 
-        return axios
-          .get(
-            configuration.getAccessApiUrl(
-              `v1/sessions/exchange/${exchangeToken}`
-            )
-          )
-          .then(function (response) {
-            self.register(response.data);
+    return result;
+  };
 
-            resolve(response);
-          })
-          .catch(function (error) {
-            reject(error);
-          });
-      });
-    },
-    signIn(credentials: Credentials): Promise<AxiosResponse<SessionResponse>> {
-      const self = this;
-
-      return new Promise((resolve, reject) => {
-        if (!credentials || !credentials.identityName || !credentials.token) {
-          reject(new Error(i18n.global.t("exceptions.missing-credentials")));
-          return;
-        }
-
-        return axios
-          .post(configuration.getAccessApiUrl("v1/sessions"), {
-            identityName: credentials.identityName,
-            token: credentials.token,
-          })
-          .then(function (response) {
-            if (!response?.data) {
-              throw new Error("Argument 'response.data' may not be undefined.");
-            }
-
-            const data = response.data;
-
-            if (data.result === "Registered") {
-              self.register({
-                identityName: credentials.identityName,
-                token: data.token,
-                permissions: data.permissions,
-              });
-            }
-
-            resolve(response);
-          })
-          .catch(function (error) {
-            reject(error);
-          });
-      });
-    },
-    signOut() {
-      this.identityName = undefined;
-      this.token = undefined;
-
-      localStorage.removeItem("shuttle-access.identityName");
-      localStorage.removeItem("shuttle-access.token");
-
-      this.removePermissions("identity");
-
-      this.authenticated = false;
-    },
-    removePermissions(type: string) {
-      this.permissions = this.permissions.filter(function (item) {
-        return item.type !== type;
-      });
-    },
-    hasSession() {
-      return !!this.token;
-    },
-    hasPermission(permission: string) {
-      let result = false;
-      const permissionCompare = permission.toLowerCase();
-
-      this.permissions.forEach(function (item) {
-        if (result) {
-          return;
-        }
-
-        result =
-          item.permission === "*" ||
-          item.permission.toLowerCase() === permissionCompare;
-      });
-
-      return result;
-    },
-  },
+  return {
+    isAuthenticated,
+    isInitialized,
+    identityName,
+    token,
+    tenant,
+    permissions,
+    status,
+    tenants,
+    initialize,
+    addPermission,
+    removePermissions,
+    register,
+    signIn,
+    signOut,
+    oauth,
+    hasSession,
+    hasPermission,
+    tenantSelected,
+  };
 });

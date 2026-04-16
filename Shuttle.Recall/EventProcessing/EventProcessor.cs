@@ -1,41 +1,45 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
-using Shuttle.Core.Threading;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Shuttle.Contract;
+using Shuttle.Pipelines;
+using Shuttle.Threading;
 
 namespace Shuttle.Recall;
 
-public class EventProcessor : IEventProcessor
+public class EventProcessor(IServiceScopeFactory serviceScopeFactory, IOptions<RecallOptions> recallOptions, ILogger<EventProcessor>? logger = null) : IEventProcessor
 {
-    private readonly IPipelineFactory _pipelineFactory;
+    private readonly ILogger<EventProcessor> _logger = logger ?? NullLogger<EventProcessor>.Instance;
+    private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);
+    private CancellationTokenSource _cancellationTokenSource = new();
 
-    private CancellationToken _cancellationToken;
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private IProcessorThreadPool? _eventProcessorThreadPool;
-
-    public EventProcessor(IPipelineFactory pipelineFactory)
-    {
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-    }
+    private IProcessorThreadPool? _projectionProcessorThreadPool;
+    private IServiceScope? _serviceScope;
 
     public void Dispose()
     {
-        StopAsync().GetAwaiter().GetResult();
+        StopAsync(CancellationToken.None).GetAwaiter().GetResult();
     }
 
     public bool Started { get; private set; }
 
-    public async Task StopAsync()
+    public async Task StopAsync(CancellationToken cancellationToken = default)
     {
         if (!Started)
         {
             return;
         }
 
+        LogMessage.EventProcessorStop(_logger);
+
+        await _recallOptions.Operation.InvokeAsync(new("[StopAsync]"), cancellationToken);
+
         await _cancellationTokenSource.CancelAsync();
 
-        _eventProcessorThreadPool?.Dispose();
+        _projectionProcessorThreadPool?.Dispose();
+
+        _serviceScope?.Dispose();
 
         Started = false;
 
@@ -44,23 +48,28 @@ public class EventProcessor : IEventProcessor
 
     public async ValueTask DisposeAsync()
     {
-        await StopAsync().ConfigureAwait(false);
+        await StopAsync(CancellationToken.None).ConfigureAwait(false);
     }
 
-    public async Task<IEventProcessor> StartAsync()
+    public async Task<IEventProcessor> StartAsync(CancellationToken cancellationToken = default)
     {
         if (Started)
         {
             return this;
         }
 
-        var startupPipeline = _pipelineFactory.GetPipeline<EventProcessorStartupPipeline>();
+        LogMessage.EventProcessorStart(_logger);
 
-        await startupPipeline.ExecuteAsync(_cancellationToken).ConfigureAwait(false);
+        await _recallOptions.Operation.InvokeAsync(new("[StartAsync]"), cancellationToken);
 
-        _cancellationToken = _cancellationTokenSource.Token;
+        _serviceScope = Guard.AgainstNull(serviceScopeFactory).CreateScope();
+        _cancellationTokenSource = new();
 
-        _eventProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool");
+        var startupPipeline = _serviceScope.ServiceProvider.GetRequiredService<IEventProcessorStartupPipeline>();
+
+        await startupPipeline.ExecuteAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
+
+        _projectionProcessorThreadPool = startupPipeline.State.Get<IProcessorThreadPool>("ProjectionProcessorThreadPool");
 
         Started = true;
 

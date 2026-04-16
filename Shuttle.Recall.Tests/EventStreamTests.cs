@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Recall.Tests.Implementation;
@@ -23,11 +22,16 @@ public class EventStreamTests
     {
         EventStream? stream = null;
 
-        Assert.Throws<EventStreamEmptyException>(() => stream!.EmptyInvariant());
+        Assert.Throws<ArgumentNullException>(() => stream!.MustBeEmpty());
 
-        stream = new(new(), new Mock<IEventMethodInvoker>().Object);
+        stream = new(Guid.Empty, new Mock<IEventMethodInvoker>().Object);
 
-        Assert.Throws<EventStreamEmptyException>(() => stream.EmptyInvariant());
+        Assert.DoesNotThrow(() => stream.MustBeEmpty());
+        Assert.Throws<EventStreamException>(() => stream.MustHaveEvents());
+
+        stream.Add(new());
+
+        Assert.Throws<EventStreamException>(() => stream.MustBeEmpty());
     }
 
     [Test]
@@ -36,7 +40,7 @@ public class EventStreamTests
         var aggregate = new AggregateOne();
 
         var stream = new EventStream(Guid.NewGuid(),
-            new EventMethodInvoker(new EventMethodInvokerConfiguration()));
+            new EventMethodInvoker(Options.Create(new RecallOptions())));
 
         stream.Add(new ThisHappened
         {

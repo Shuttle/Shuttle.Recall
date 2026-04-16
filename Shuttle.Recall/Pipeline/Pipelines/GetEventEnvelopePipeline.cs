@@ -1,29 +1,27 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class GetEventEnvelopePipeline : Pipeline
+public interface IGetEventEnvelopePipeline : IPipeline
 {
-    public GetEventEnvelopePipeline(IServiceProvider serviceProvider, IDeserializeEventEnvelopeObserver deserializeEventEnvelopeObserver, IDecompressEventObserver decompressEventObserver, IDecryptEventObserver decryptEventObserver, IDeserializeEventObserver deserializeEventObserver) 
-        : base(serviceProvider)
+    Task ExecuteAsync(PrimitiveEvent? primitiveEvent);
+}
+
+public class GetEventEnvelopePipeline : Pipeline, IGetEventEnvelopePipeline
+{
+    public GetEventEnvelopePipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider)
+        : base(pipelineOptions, serviceProvider)
     {
         AddStage("GetEventEnvelope")
-            .WithEvent<OnDeserializeEventEnvelope>()
-            .WithEvent<OnAfterDeserializeEventEnvelope>()
-            .WithEvent<OnDecompressEvent>()
-            .WithEvent<OnAfterDecompressEvent>()
-            .WithEvent<OnDecryptEvent>()
-            .WithEvent<OnAfterDecryptEvent>()
-            .WithEvent<OnDeserializeEvent>()
-            .WithEvent<OnAfterDeserializeEvent>();
+            .WithEvent<DeserializeEventEnvelope>()
+            .WithEvent<EventEnvelopeDeserialized>()
+            .WithEvent<DeserializeEvent>()
+            .WithEvent<EventDeserialized>();
 
-        AddObserver(Guard.AgainstNull(deserializeEventEnvelopeObserver));
-        AddObserver(Guard.AgainstNull(decompressEventObserver));
-        AddObserver(Guard.AgainstNull(decryptEventObserver));
-        AddObserver(Guard.AgainstNull(deserializeEventObserver));
+        AddObserver<IDeserializeEventEnvelopeObserver>();
+        AddObserver<IDeserializeEventObserver>();
     }
 
     public async Task ExecuteAsync(PrimitiveEvent? primitiveEvent)

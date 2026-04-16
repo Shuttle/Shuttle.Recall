@@ -1,29 +1,27 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class AssembleEventEnvelopePipeline : Pipeline
+public interface IAssembleEventEnvelopePipeline : IPipeline
 {
-    public AssembleEventEnvelopePipeline(IServiceProvider serviceProvider, IAssembleEventEnvelopeObserver assembleEventEnvelopeObserver, ICompressEventObserver compressEventObserver, IEncryptEventObserver encryptEventObserver, ISerializeEventObserver serializeEventObserver) 
-        : base(serviceProvider)
+    Task<EventEnvelope> ExecuteAsync(DomainEvent domainEvent);
+}
+
+public class AssembleEventEnvelopePipeline : Pipeline, IAssembleEventEnvelopePipeline
+{
+    public AssembleEventEnvelopePipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider)
+        : base(pipelineOptions, serviceProvider)
     {
         AddStage("Get")
-            .WithEvent<OnSerializeEvent>()
-            .WithEvent<OnAfterSerializeEvent>()
-            .WithEvent<OnAssembleEventEnvelope>()
-            .WithEvent<OnAfterAssembleEventEnvelope>()
-            .WithEvent<OnEncryptEvent>()
-            .WithEvent<OnAfterEncryptEvent>()
-            .WithEvent<OnCompressEvent>()
-            .WithEvent<OnAfterCompressEvent>();
+            .WithEvent<SerializeEvent>()
+            .WithEvent<EventSerialized>()
+            .WithEvent<AssembleEventEnvelope>()
+            .WithEvent<EventEnvelopeAssembled>();
 
-        AddObserver(Guard.AgainstNull(serializeEventObserver));
-        AddObserver(Guard.AgainstNull(encryptEventObserver));
-        AddObserver(Guard.AgainstNull(compressEventObserver));
-        AddObserver(Guard.AgainstNull(assembleEventEnvelopeObserver));
+        AddObserver<ISerializeEventObserver>();
+        AddObserver<IAssembleEventEnvelopeObserver>();
     }
 
     public async Task<EventEnvelope> ExecuteAsync(DomainEvent domainEvent)

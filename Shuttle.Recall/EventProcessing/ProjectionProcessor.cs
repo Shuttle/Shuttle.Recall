@@ -1,47 +1,26 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
-using Shuttle.Core.Threading;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Shuttle.Contract;
+using Shuttle.Threading;
 
 namespace Shuttle.Recall;
 
-public class ProjectionProcessor : IProcessor
+public class ProjectionProcessor(IEventProcessingPipeline eventProcessingPipeline, IProcessorContext processorContext, ILogger<ProjectionProcessor>? logger = null) : IProcessor
 {
-    private readonly IPipelineFactory _pipelineFactory;
-    private readonly IThreadActivity _threadActivity;
+    private readonly IProcessorContext _processorContext = Guard.AgainstNull(processorContext);
+    private readonly ILogger<ProjectionProcessor> _logger = logger ?? NullLogger<ProjectionProcessor>.Instance;
 
-    public ProjectionProcessor(EventStoreOptions eventStoreOptions, IPipelineFactory pipelineFactory)
+    public async ValueTask<bool> ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        _threadActivity = new ThreadActivity(Guard.AgainstNull(eventStoreOptions).DurationToSleepWhenIdle);
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-    }
+        Guard.AgainstNull(eventProcessingPipeline);
 
-    public async Task ExecuteAsync(IProcessorThreadContext context, CancellationToken cancellationToken = new())
-    {
-        var pipeline = _pipelineFactory.GetPipeline<EventProcessingPipeline>();
+        LogMessage.ProjectionProcessorExecute(_logger);
 
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            var waiting = true;
+        eventProcessingPipeline.State.Clear();
+        eventProcessingPipeline.State.SetProcessorThreadManagedThreadId(_processorContext.ManagedThreadId);
 
-            pipeline.State.Clear();
-            pipeline.State.SetProcessorThreadManagedThreadId((int)(context.State.Get("ManagedThreadId") ?? 0));
+        await eventProcessingPipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
-            await pipeline.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-
-            if (!pipeline.Aborted && pipeline.State.GetWorking())
-            {
-                _threadActivity.Working();
-                waiting = false;
-            }
-
-            if (waiting)
-            {
-                await _threadActivity.WaitingAsync(cancellationToken);
-            }
-        }
-
-        _pipelineFactory.ReleasePipeline(pipeline);
+        return !eventProcessingPipeline.Aborted && eventProcessingPipeline.State.GetWorkPerformed();
     }
 }

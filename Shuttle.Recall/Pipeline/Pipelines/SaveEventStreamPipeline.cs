@@ -1,28 +1,30 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class SaveEventStreamPipeline : Pipeline
+public interface ISaveEventStreamPipeline : IPipeline
 {
-    public SaveEventStreamPipeline(IServiceProvider serviceProvider, IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver) 
-        : base(serviceProvider)
-    {
-        AddStage("Handle")
-            .WithEvent<OnAssembleEventEnvelopes>()
-            .WithEvent<OnAfterAssembleEventEnvelopes>()
-            .WithEvent<OnBeforeSavePrimitiveEvents>()
-            .WithEvent<OnSavePrimitiveEvents>()
-            .WithEvent<OnAfterSavePrimitiveEvents>()
-            .WithEvent<OnCommitEventStream>()
-            .WithEvent<OnAfterCommitEventStream>();
+    Task ExecuteAsync(EventStream eventStream, EventStreamBuilder builder);
+}
 
-        AddStage("Completed")
-            .WithEvent<OnBeforeSaveEventStreamCompleted>()
-            .WithEvent<OnSaveEventStreamCompleted>()
-            .WithEvent<OnAfterSaveEventStreamCompleted>();
+public class SaveEventStreamPipeline : Pipeline, ISaveEventStreamPipeline
+{
+    public SaveEventStreamPipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider, IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver)
+        : base(pipelineOptions, serviceProvider)
+    {
+        AddStage("Assemble")
+            .WithEvent<AssembleEventEnvelopes>()
+            .WithEvent<EventEnvelopesAssembled>()
+            .WithEvent<SavePrimitiveEvents>()
+            .WithEvent<PrimitiveEventsSaved>()
+            .WithEvent<CommitEventStream>()
+            .WithEvent<EventStreamCommitted>();
+
+        AddStage("Persist")
+            .WithEvent<SaveEventStream>()
+            .WithEvent<EventStreamSaved>();
 
         AddObserver(Guard.AgainstNull(assembleEventEnvelopesObserver));
         AddObserver(Guard.AgainstNull(savePrimitiveEventsObserver));

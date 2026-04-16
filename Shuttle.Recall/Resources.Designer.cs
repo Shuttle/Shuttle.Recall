@@ -19,7 +19,7 @@ namespace Shuttle.Recall {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -57,6 +57,15 @@ namespace Shuttle.Recall {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Either &apos;IncludedProjections&apos; or &apos;ExcludedProjections&apos; may be specified, but not both..
+        /// </summary>
+        public static string ActiveProjectionsException {
+            get {
+                return ResourceManager.GetString("ActiveProjectionsException", resourceCulture);
             }
         }
         
@@ -205,6 +214,24 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Event stream with id &apos;{0}&apos; is expected to have events..
+        /// </summary>
+        public static string EventStreamEmptyException {
+            get {
+                return ResourceManager.GetString("EventStreamEmptyException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event stream with id &apos;{0}&apos; is expected to be empty..
+        /// </summary>
+        public static string EventStreamNotEmptyException {
+            get {
+                return ResourceManager.GetString("EventStreamNotEmptyException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot release the projection since it either has not been assigned for processing or it has been assigned using another queue identifier..
         /// </summary>
         public static string ExceptionInvalidProjectionRelease {
@@ -286,33 +313,6 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No implementation of the `IPrimitiveEventRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventStorage(), before calling `ServiceCollection.AddEventStore()`..
-        /// </summary>
-        public static string NotImplementedPrimitiveEventRepository {
-            get {
-                return ResourceManager.GetString("NotImplementedPrimitiveEventRepository", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No implementation of the `ProjectionEventProvider` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`..
-        /// </summary>
-        public static string NotImplementedProjectionEventProvider {
-            get {
-                return ResourceManager.GetString("NotImplementedProjectionEventProvider", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No implementation of the `IProjectionRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`..
-        /// </summary>
-        public static string NotImplementedProjectionRepository {
-            get {
-                return ResourceManager.GetString("NotImplementedProjectionRepository", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Observer with type name &apos;{0}&apos; does not have an interface with name &apos;I{0}&apos;..
         /// </summary>
         public static string ObserverInterfaceMissingException {
@@ -327,6 +327,24 @@ namespace Shuttle.Recall {
         public static string OpenSectionException {
             get {
                 return ResourceManager.GetString("OpenSectionException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PrimitiveEvent with id &apos;{0}&apos; and version number &apos;{1}&apos; has no sequence number and cannot be projected..
+        /// </summary>
+        public static string PrimitiveEventSequenceNumberException {
+            get {
+                return ResourceManager.GetString("PrimitiveEventSequenceNumberException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No `IPrimitiveEventSequencer` implementation has been registered.  Please register the dependency before calling `AddRecall()`..
+        /// </summary>
+        public static string PrimitiveEventSequencerException {
+            get {
+                return ResourceManager.GetString("PrimitiveEventSequencerException", resourceCulture);
             }
         }
         

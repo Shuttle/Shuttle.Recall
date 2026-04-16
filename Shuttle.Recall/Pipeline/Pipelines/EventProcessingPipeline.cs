@@ -1,33 +1,33 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class EventProcessingPipeline : Pipeline
-{
-    public EventProcessingPipeline(IServiceProvider serviceProvider, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver) 
-        : base(serviceProvider)
-    {
-        AddStage("Read")
-            .WithEvent<OnGetEvent>()
-            .WithEvent<OnAfterGetEvent>()
-            .WithEvent<OnGetEventEnvelope>()
-            .WithEvent<OnAfterGetEventEnvelope>();
+public interface IEventProcessingPipeline : IPipeline;
 
+public class EventProcessingPipeline : Pipeline, IEventProcessingPipeline
+{
+    public EventProcessingPipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider, IProjectionEventObserver projectionEventObserver, IProjectionEventEnvelopeObserver projectionEventEnvelopeObserver, IHandleEventObserver handleEventObserver, IAcknowledgeEventObserver acknowledgeEventObserver, IEventProcessingPipelineFailedObserver eventProcessingPipelineFailedObserver)
+        : base(pipelineOptions, serviceProvider)
+    {
         AddStage("Handle")
-            .WithEvent<OnHandleEvent>()
-            .WithEvent<OnAfterHandleEvent>()
-            .WithEvent<OnAcknowledgeEvent>()
-            .WithEvent<OnAfterAcknowledgeEvent>();
+            .WithEvent<RetrieveEvent>()
+            .WithEvent<EventRetrieved>()
+            .WithEvent<RetrieveEventEnvelope>()
+            .WithEvent<EventEnvelopeRetrieved>()
+            .WithEvent<HandleEvent>()
+            .WithEvent<EventHandled>()
+            .WithEvent<AcknowledgeEvent>()
+            .WithEvent<EventAcknowledged>();
 
         AddObserver(Guard.AgainstNull(projectionEventObserver));
         AddObserver(Guard.AgainstNull(projectionEventEnvelopeObserver));
         AddObserver(Guard.AgainstNull(handleEventObserver));
         AddObserver(Guard.AgainstNull(acknowledgeEventObserver));
+        AddObserver(Guard.AgainstNull(eventProcessingPipelineFailedObserver));
 
-        AddObserver(async (IPipelineContext<OnPipelineException> context) =>
+        AddObserver(async (IPipelineContext<PipelineFailed> context) =>
         {
             context.Pipeline.Abort();
 

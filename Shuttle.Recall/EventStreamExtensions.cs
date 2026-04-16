@@ -1,38 +1,63 @@
-﻿using System;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Contract;
 
 namespace Shuttle.Recall;
 
 public static class EventStreamExtensions
 {
-    public static void EmptyInvariant(this EventStream stream)
+    extension(EventStream stream)
     {
-        if (stream == null || stream.IsEmpty)
+        public EventStream MustHaveEvents()
         {
-            throw new EventStreamEmptyException();
-        }
-    }
+            ArgumentNullException.ThrowIfNull(stream);
 
-    public static T Get<T>(this EventStream stream) where T : class
-    {
-        Guard.AgainstNull(stream).EmptyInvariant();
-
-        T result;
-
-        try
-        {
-            result = Guard.AgainstNull(Activator.CreateInstance(typeof(T), stream.Id) as T);
-        }
-        catch (Exception ex)
-        {
-            throw new AggregateConstructorException(Resources.AggregateConstructorException, ex);
+            return stream.IsEmpty ? throw new EventStreamException(string.Format(Resources.EventStreamEmptyException, stream.Id)) : stream;
         }
 
-        if (!stream.IsEmpty)
+        public EventStream MustBeEmpty()
         {
-            stream.Apply(result);
+            ArgumentNullException.ThrowIfNull(stream);
+
+            return !stream.IsEmpty ? throw new EventStreamException(string.Format(Resources.EventStreamNotEmptyException, stream.Id)) : stream;
         }
 
-        return result;
+        public T Get<T>() where T : class
+        {
+            ArgumentNullException.ThrowIfNull(stream);
+
+            T result;
+
+            try
+            {
+                var type = typeof(T);
+
+                if (type.GetConstructor([typeof(Guid)]) != null)
+                {
+                    result = Guard.AgainstNull(Activator.CreateInstance(type, stream.Id) as T);
+                }
+                else if (type.GetConstructor(Type.EmptyTypes) != null)
+                {
+                    result = Guard.AgainstNull(Activator.CreateInstance(type) as T);
+                }
+                else
+                {
+                    throw new AggregateConstructorException(Resources.AggregateConstructorException);
+                }
+            }
+            catch (AggregateConstructorException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new AggregateConstructorException(Resources.AggregateConstructorException, ex);
+            }
+
+            if (!stream.IsEmpty)
+            {
+                stream.Apply(result);
+            }
+
+            return result;
+        }
     }
 }

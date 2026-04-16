@@ -1,11 +1,15 @@
-﻿using System.Text;
+﻿using System.Data;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
-using Shuttle.Access;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Access.Query;
+using Shuttle.Contract;
+using Shuttle.Recall.SqlServer.Storage;
+using Shuttle.Recall.WebApi.Models;
+using EventType = Shuttle.Recall.WebApi.Models.EventType;
 
 namespace Shuttle.Recall.WebApi;
 
@@ -15,49 +19,62 @@ public static class EventTypeEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPost("/eventtypes/search", async (HttpContext httpContext, IAccessService accessService, IDatabaseContextFactory databaseContextFactory, IEventTypeQuery eventTypeQuery, Models.EventType.Specification model) =>
-        {
-            Guard.AgainstNull(httpContext);
-            Guard.AgainstNull(accessService);
-            Guard.AgainstNull(databaseContextFactory);
-            Guard.AgainstNull(eventTypeQuery);
-
-            var sessionTokenResult = httpContext.GetAccessSessionToken();
-
-            if (!sessionTokenResult.Ok || !await accessService.HasPermissionAsync(sessionTokenResult.SessionToken, "recall://default/events"))
+        app.MapPost("/event-types/search", async (IOptions<SqlServerStorageOptions> sqlServerStorageOptions, ISessionContext sessionContext, SqlServerStorageDbContext dbContext, EventType.Specification specification, CancellationToken cancellationToken) =>
             {
-                return Results.Ok(new Models.EventStoreResponse<EventType>());
-            }
+                Guard.AgainstNull(sessionContext);
+                Guard.AgainstNull(dbContext);
 
-            var specification = new EventType.Specification();
+                if (!(sessionContext.Session?.HasPermission("recall://default/events") ?? false))
+                {
+                    return Results.Ok(new EventStoreResponse<EventType>());
+                }
 
-            if (model.MaximumRows > 0)
-            {
-                specification.WithMaximumRows(model.MaximumRows);
-            }
+                var connection = dbContext.Database.GetDbConnection();
 
-            if (!string.IsNullOrEmpty(model.TypeNameMatch))
-            {
-                specification.WithTypeNameMatch(model.TypeNameMatch);
-            }
-            
-            List<EventType> result;
+                await using var command = connection.CreateCommand();
 
-            using (new DatabaseContextScope())
-            await using (databaseContextFactory.Create())
-            {
-                result = (await eventTypeQuery.SearchAsync(specification)).ToList();
-            }
+                command.CommandText = $@"
+SELECT {(specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : string.Empty)}
+    Id,
+    TypeName
+FROM
+    [{sqlServerStorageOptions.Value.Schema}].[EventType]
+WHERE
+(
+    @TypeNameMatch IS NULL
+    OR
+    TypeName LIKE '%' + @TypeNameMatch + '%'
+)
+";
 
-            return Results.Ok(new Models.EventStoreResponse<EventType>
-            {
-                Authorized = true,
-                Items = result
-            });
-        })
-        .WithTags("EventTypes")
-        .WithApiVersionSet(versionSet)
-        .MapToApiVersion(apiVersion1);
+                command.Parameters.Add(new SqlParameter("@TypeNameMatch", specification.TypeNameMatch));
+
+                if (connection.State != ConnectionState.Open)
+                {
+                    await connection.OpenAsync(cancellationToken);
+                }
+
+                List<EventType> result = [];
+
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    result.Add(new()
+                    {
+                        Id = reader.GetGuid(0),
+                        TypeName = reader.GetString(1)
+                    });
+                }
+
+                return Results.Ok(new EventStoreResponse<EventType>
+                {
+                    Items = result
+                });
+            })
+            .WithTags("EventTypes")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1);
 
         return app;
     }

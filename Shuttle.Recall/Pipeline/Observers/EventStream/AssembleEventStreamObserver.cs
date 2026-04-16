@@ -1,23 +1,15 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IAssembleEventStreamObserver : IPipelineObserver<OnAssembleEventStream>
+public interface IAssembleEventStreamObserver : IPipelineObserver<AssembleEventStream>;
+
+public class AssembleEventStreamObserver(IEventMethodInvoker eventMethodInvoker) : IAssembleEventStreamObserver
 {
-}
+    private readonly IEventMethodInvoker _eventMethodInvoker = Guard.AgainstNull(eventMethodInvoker);
 
-public class AssembleEventStreamObserver : IAssembleEventStreamObserver
-{
-    private readonly IEventMethodInvoker _eventMethodInvoker;
-
-    public AssembleEventStreamObserver(IEventMethodInvoker eventMethodInvoker)
-    {
-        _eventMethodInvoker = Guard.AgainstNull(eventMethodInvoker);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnAssembleEventStream> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<AssembleEventStream> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
 

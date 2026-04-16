@@ -1,32 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
-using Shuttle.Core.Reflection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Shuttle.Reflection;
 
 namespace Shuttle.Recall;
 
-public class ProjectionDelegate
+public class ProjectionDelegate(Delegate handler, IEnumerable<Type> parameterTypes)
 {
-    private readonly IEnumerable<Type> _parameterTypes;
-    private readonly Type _eventHandlerContextType = typeof(IEventHandlerContext<>);
+    private static readonly Type CancellationTokenType = typeof(CancellationToken);
+    private static readonly Type EventHandlerContextType = typeof(IEventHandlerContext<>);
 
-    public ProjectionDelegate(Delegate handler, IEnumerable<Type> parameterTypes)
+    public Delegate Handler { get; } = handler;
+    public bool HasParameters { get; } = parameterTypes.Any();
+
+    public object[] GetParameters(IServiceProvider serviceProvider, object handlerContext, CancellationToken cancellationToken)
     {
-        Handler = handler;
-        HasParameters = parameterTypes.Any();
-        _parameterTypes = parameterTypes;
-    }
-
-    public Delegate Handler { get; }
-    public bool HasParameters { get; }
-
-    public object[] GetParameters(IServiceProvider serviceProvider, object pipelineContext)
-    {
-        return _parameterTypes
-            .Select(parameterType => !parameterType.IsCastableTo(_eventHandlerContextType)
-                ? serviceProvider.GetRequiredService(parameterType)
-                : pipelineContext
+        return parameterTypes
+            .Select(parameterType => parameterType.IsCastableTo(EventHandlerContextType)
+                ? handlerContext
+                : parameterType == CancellationTokenType
+                    ? cancellationToken
+                    : serviceProvider.GetRequiredService(parameterType)
             ).ToArray();
     }
 }

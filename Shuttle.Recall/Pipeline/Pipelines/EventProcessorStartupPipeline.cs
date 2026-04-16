@@ -1,21 +1,23 @@
-﻿using System;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class EventProcessorStartupPipeline : Pipeline
+public interface IEventProcessorStartupPipeline : IPipeline;
+
+public class EventProcessorStartupPipeline : Pipeline, IEventProcessorStartupPipeline
 {
-    public EventProcessorStartupPipeline(IServiceProvider serviceProvider, IStartupEventProcessingObserver startupEventProcessingObserver) 
-        : base(serviceProvider)
+    public EventProcessorStartupPipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider, IStartupEventProcessingObserver startupEventProcessingObserver)
+        : base(pipelineOptions, serviceProvider)
     {
         AddStage("Startup")
-            .WithEvent<OnStartEventProcessing>()
-            .WithEvent<OnAfterStartEventProcessing>()
-            .WithEvent<OnConfigureThreadPools>()
-            .WithEvent<OnAfterConfigureThreadPools>()
-            .WithEvent<OnStartThreadPools>()
-            .WithEvent<OnAfterStartThreadPools>();
+            .WithEvent<StartEventProcessing>()
+            .WithEvent<EventProcessingStarted>()
+            .WithEvent<ConfigureThreadPools>()
+            .WithEvent<ThreadPoolsConfigured>()
+            .WithEvent<StartThreadPools>()
+            .WithEvent<ThreadPoolsStarted>();
 
         AddObserver(Guard.AgainstNull(startupEventProcessingObserver));
     }

@@ -191,12 +191,6 @@
     <value>Module could not be instantiated: {0}</value>
     <comment>{0} = full type name of module type to be instanced</comment>
   </data>
-  <data name="NotImplementedPrimitiveEventRepository" xml:space="preserve">
-    <value>No implementation of the `IPrimitiveEventRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventStorage(), before calling `ServiceCollection.AddEventStore()`.</value>
-  </data>
-  <data name="NotImplementedProjectionRepository" xml:space="preserve">
-    <value>No implementation of the `IProjectionRepository` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`.</value>
-  </data>
   <data name="ObserverInterfaceMissingException" xml:space="preserve">
     <value>Observer with type name '{0}' does not have an interface with name 'I{0}'.</value>
     <comment>{0} = observer type name</comment>
@@ -269,9 +263,6 @@
   <data name="EventHandlerTypeException" xml:space="preserve">
     <value>The delegate must contain a parameter of type `IEventHandlerContext&lt;TMessage&gt;`.</value>
   </data>
-  <data name="NotImplementedProjectionEventProvider" xml:space="preserve">
-    <value>No implementation of the `ProjectionEventProvider` has been registered.  Please register the implementation first by calling the `ServiceCollection.AddImplementationMethod()`, e.g. `ServiceCollection.AddSqlEventProcessing(), before calling `ServiceCollection.AddEventStore()`.</value>
-  </data>
   <data name="DuplicateProjectionDelegateException" xml:space="preserve">
     <value>A delegate that handles event type '{0}' has already been registered for projection name '{1}'.</value>
     <comment>0 = event type name, 1 = projection name</comment>
@@ -287,5 +278,21 @@
   <data name="ProjectionDelegateEventTypeAlreadyRegisteredException" xml:space="preserve">
     <value>There is already a delegate registered that handles event type '{0}'.  Cannot register another implementation that handles the same type.</value>
     <comment>0 = event type name</comment>
+  </data>
+  <data name="PrimitiveEventSequenceNumberException" xml:space="preserve">
+    <value>PrimitiveEvent with id '{0}' and version number '{1}' has no sequence number and cannot be projected.</value>
+  </data>
+  <data name="PrimitiveEventSequencerException" xml:space="preserve">
+    <value>No `IPrimitiveEventSequencer` implementation has been registered.  Please register the dependency before calling `AddRecall()`.</value>
+  </data>
+  <data name="ActiveProjectionsException" xml:space="preserve">
+    <value>Either 'IncludedProjections' or 'ExcludedProjections' may be specified, but not both.</value>
+  </data>
+  <data name="EventStreamEmptyException" xml:space="preserve">
+    <value>Event stream with id '{0}' is expected to have events.</value>
+    <comment>0 = stream id</comment>
+  </data>
+  <data name="EventStreamNotEmptyException" xml:space="preserve">
+    <value>Event stream with id '{0}' is expected to be empty.</value>
   </data>
 </root>

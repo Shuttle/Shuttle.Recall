@@ -1,26 +1,18 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IProjectionEventObserver : IPipelineObserver<OnGetEvent>
+public interface IProjectionEventObserver : IPipelineObserver<RetrieveEvent>;
+
+public class ProjectionEventObserver(IProjectionEventService projectionEventService) : IProjectionEventObserver
 {
-}
+    private readonly IProjectionEventService _projectionEventService = Guard.AgainstNull(projectionEventService);
 
-public class ProjectionEventObserver : IProjectionEventObserver
-{
-    private readonly IProjectionService _provider;
-
-    public ProjectionEventObserver(IProjectionService provider)
-    {
-        _provider = Guard.AgainstNull(provider);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnGetEvent> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<RetrieveEvent> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
-        var projectionEvent = await _provider.GetEventAsync(pipelineContext).ConfigureAwait(false);
+        var projectionEvent = await _projectionEventService.RetrieveAsync(pipelineContext, cancellationToken).ConfigureAwait(false);
 
         if (projectionEvent == null)
         {
@@ -29,7 +21,7 @@ public class ProjectionEventObserver : IProjectionEventObserver
             return;
         }
 
-        state.SetWorking();
+        state.SetWorkPerformed();
         state.SetProjectionEvent(projectionEvent);
     }
 }

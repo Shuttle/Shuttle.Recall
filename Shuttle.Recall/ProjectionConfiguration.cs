@@ -1,28 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
+using Shuttle.Contract;
+using Shuttle.Reflection;
 
 namespace Shuttle.Recall;
 
-public class ProjectionConfiguration
+public class ProjectionConfiguration(string name)
 {
     private static readonly Type EventHandlerContextType = typeof(IEventHandlerContext<>);
     private readonly Dictionary<Type, ProjectionDelegate> _delegates = new();
-    private readonly List<Type> _handlerEventTypes = new();
-    private readonly List<Type> _eventTypes = new();
+    private readonly List<Type> _eventTypes = [];
+    private readonly List<Type> _handlerEventTypes = [];
 
     public IEnumerable<Type> EventTypes => _eventTypes;
 
-    public ProjectionConfiguration(string name)
-    {
-        Name = Guard.AgainstNullOrEmptyString(name);
-    }
-
-    public string Name { get; }
+    public string Name { get; } = Guard.AgainstEmpty(name);
 
     public void AddEventHandler(Delegate handler)
     {

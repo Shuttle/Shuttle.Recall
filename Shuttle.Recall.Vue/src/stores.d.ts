@@ -31,14 +31,21 @@ export type Configuration = {
   getAccessApiUrl: (path: string) => string;
 };
 
-export type ConfirmationStoreState = {
+export type ConfirmationOptions = {
   item: any;
+  title?: string;
+  message?: string;
+  onConfirm?: (item: any) => void;
+};
+
+export type ConfirmationStoreState = {
   isOpen: boolean;
-  callback?: (item: any) => void;
+  options?: ConfirmationOptions;
 };
 
 export type Credentials = {
   identityName: string;
+  password?: string;
   token?: string;
 };
 
@@ -76,4 +83,14 @@ export type SessionStoreState = {
   identityName?: string;
   token?: string;
   permissions: SessionPermission[];
+};
+
+export type OAuthData = {
+  code: string;
+  state: string;
+};
+
+export type OAuthProvider = {
+  name: string;
+  svg: string;
 };

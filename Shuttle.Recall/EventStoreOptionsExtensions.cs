@@ -1,33 +1,25 @@
-﻿using System.Linq;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Contract;
 
 namespace Shuttle.Recall;
 
-public static class EventStoreOptionsExtensions
+public static class RecallOptionsExtensions
 {
-    public static bool HasActiveProjection(this EventStoreOptions eventStoreOptions, string name)
+    extension(RecallOptions recallOptions)
     {
-        if (string.IsNullOrEmpty(name))
+        public bool HasActiveProjection(string name)
         {
-            return false;
-        }
+            Guard.AgainstNull(recallOptions);
 
-        if (Guard.AgainstNull(eventStoreOptions).ActiveProjections.Count == 1)
-        {
-            var value = eventStoreOptions.ActiveProjections.ElementAt(0);
-
-            if (value.Equals("!"))
+            if (string.IsNullOrEmpty(name))
             {
                 return false;
             }
 
-            if (value.Equals("*"))
-            {
-                return true;
-            }
+            return (recallOptions.EventProcessing.IncludedProjections.Count == 0 ||
+                    recallOptions.EventProcessing.IncludedProjections.FirstOrDefault(item => item.Equals(name)) != null)
+                   &&
+                   (recallOptions.EventProcessing.ExcludedProjections.Count == 0 ||
+                    recallOptions.EventProcessing.ExcludedProjections.FirstOrDefault(item => item.Equals(name)) == null);
         }
-
-        return !eventStoreOptions.ActiveProjections.Any() ||
-               eventStoreOptions.ActiveProjections.FirstOrDefault(item => item.Equals(name)) != null;
     }
 }

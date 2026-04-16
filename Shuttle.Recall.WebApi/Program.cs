@@ -1,13 +1,12 @@
-using Asp.Versioning;
-using Microsoft.Data.SqlClient;
-using Microsoft.OpenApi.Models;
-using Serilog;
 using System.Data.Common;
+using Asp.Versioning;
+using Azure.Identity;
+using Microsoft.Data.SqlClient;
+using Scalar.AspNetCore;
+using Serilog;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.RestClient;
-using Shuttle.Core.Data;
-using Shuttle.Recall.Sql.EventProcessing;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Recall.WebApi;
 
@@ -34,13 +33,14 @@ public class Program
         }
 
         var webApplicationBuilder = WebApplication.CreateBuilder(args);
+        var configuration = webApplicationBuilder.Configuration;
 
-        webApplicationBuilder.Configuration
+        configuration
             .AddUserSecrets<Program>(true)
             .AddJsonFile(appsettingsPath);
 
         Log.Logger = new LoggerConfiguration()
-            .ReadFrom.Configuration(webApplicationBuilder.Configuration)
+            .ReadFrom.Configuration(configuration)
             .CreateLogger();
 
         var apiVersion1 = new ApiVersion(1, 0);
@@ -58,63 +58,52 @@ public class Program
                 options.SubstituteApiVersionInUrl = true;
             });
 
+        var accessConnectionString = configuration.GetConnectionString("Recall") ?? throw new ApplicationException("Missing connection string 'Recall'.");
+
         webApplicationBuilder.Services
             .AddLogging(builder =>
             {
                 builder.AddSerilog();
             })
             .AddEndpointsApiExplorer()
-            .AddSwaggerGen(options =>
+            .AddOpenApi(options =>
             {
-                options.CustomSchemaIds(type => type.FullName);
-
-                options.AddSecurityDefinition("Shuttle.Access", new()
+                options.AddSchemaTransformer((schema, _, _) =>
                 {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Shuttle.Access",
-                    In = ParameterLocation.Header,
-                    Description = "Custom authorization header using the Shuttle.Access scheme. Example: 'Shuttle.Access token=GUID'."
+                    schema.Title = schema.Title?.Replace("+", "_");
+                    return Task.CompletedTask;
                 });
+            })
+            .AddAccessAuthorization(authorizationBuilder =>
+            {
+                configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(authorizationBuilder.Options);
+            })
+            .AddAccessClient(clientBuilder =>
+            {
+                configuration.GetSection(AccessClientOptions.SectionName).Bind(clientBuilder.Options);
 
-                options.AddSecurityRequirement(new()
+                clientBuilder.UseBearerAuthenticationProvider(providerBuilder =>
                 {
+                    providerBuilder.Options.GetBearerAuthenticationContextAsync = async (_, _) =>
                     {
-                        new()
-                        {
-                            Reference = new()
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Shuttle.Access"
-                            }
-                        },
-                        []
-                    }
+                        var token = (await new DefaultAzureCredential().GetTokenAsync(new(["https://management.azure.com/.default"]), CancellationToken.None)).Token;
+
+                        return new(token);
+                    };
                 });
             })
-            .AddDataAccess(builder =>
+            .AddRecall(options =>
             {
-                builder.AddConnectionString("Recall", "Microsoft.Data.SqlClient");
-                builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Recall";
+                configuration.GetSection(RecallOptions.SectionName).Bind(options);
             })
-            .AddEventStore()
-            .AddSqlEventStorage(builder =>
+            .UseSqlServerEventStorage(options =>
             {
-                builder.Options.ConnectionStringName = "Recall";
+                configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(options);
 
-                builder.UseSqlServer();
+                options.ConnectionString = accessConnectionString;
+                options.Schema = "access";
             })
-            .AddSqlEventProcessing(builder =>
-            {
-                builder.Options.ConnectionStringName = "Recall";
-
-                builder.UseSqlServer();
-            })
-            .AddAccessClient(builder =>
-            {
-                webApplicationBuilder.Configuration.GetSection(AccessClientOptions.SectionName).Bind(builder.Options);
-            })
-            .AddAccessAuthorization()
+            .Services
             .AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
@@ -134,16 +123,23 @@ public class Program
             .Build();
 
         app.UseCors("AllowAll");
+
+        app.MapOpenApi();
+        app.MapScalarApiReference(options =>
+        {
+            options
+                .WithTitle("Shuttle Recall API")
+                .WithTheme(ScalarTheme.DeepSpace)
+                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+        });
+
+
         app.UseAccessAuthorization();
 
         app
             .MapEventEndpoints(versionSet)
             .MapEventTypeEndpoints(versionSet)
             .MapServerEndpoints(versionSet);
-
-        app
-            .UseSwagger()
-            .UseSwaggerUI();
 
         app.Run();
     }

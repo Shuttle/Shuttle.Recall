@@ -1,31 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
-using Shuttle.Core.Serialization;
-using Shuttle.Core.Streams;
+﻿using Shuttle.Contract;
+using Shuttle.Pipelines;
+using Shuttle.Serialization;
+using Shuttle.Streams;
 
 namespace Shuttle.Recall;
 
-public interface ISavePrimitiveEventsObserver : IPipelineObserver<OnSavePrimitiveEvents>
+public interface ISavePrimitiveEventsObserver : IPipelineObserver<SavePrimitiveEvents>;
+
+public class SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEventRepository, ISerializer serializer, IConcurrencyExceptionSpecification concurrencyExceptionSpecification)
+    : ISavePrimitiveEventsObserver
 {
-}
+    private readonly IConcurrencyExceptionSpecification _concurrencyExceptionSpecification = Guard.AgainstNull(concurrencyExceptionSpecification);
+    private readonly IPrimitiveEventRepository _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
+    private readonly ISerializer _serializer = Guard.AgainstNull(serializer);
 
-public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
-{
-    private readonly IConcurrencyExceptionSpecification _concurrencyExceptionSpecification;
-    private readonly IPrimitiveEventRepository _primitiveEventRepository;
-    private readonly ISerializer _serializer;
-
-    public SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEventRepository, ISerializer serializer, IConcurrencyExceptionSpecification concurrencyExceptionSpecification)
-    {
-        _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
-        _serializer = Guard.AgainstNull(serializer);
-        _concurrencyExceptionSpecification = Guard.AgainstNull(concurrencyExceptionSpecification);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnSavePrimitiveEvents> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<SavePrimitiveEvents> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var eventStream = state.GetEventStream();
@@ -46,26 +35,16 @@ public class SavePrimitiveEventsObserver : ISavePrimitiveEventsObserver
                     Id = eventStream.Id,
                     Version = version,
                     CorrelationId = eventStream.CorrelationId,
-                    EventEnvelope = await (await _serializer.SerializeAsync(eventEnvelope)).ToBytesAsync(),
+                    EventEnvelope = await (await _serializer.SerializeAsync(eventEnvelope, cancellationToken)).ToBytesAsync(),
                     EventId = eventEnvelope.EventId,
                     EventType = eventEnvelope.EventType,
-                    DateRegistered = eventEnvelope.EventDate
+                    RecordedAt = eventEnvelope.RecordedAt
                 };
 
                 primitiveEvents.Add(primitiveEvent);
             }
 
-            var sequenceNumber = await _primitiveEventRepository.SaveAsync(primitiveEvents).ConfigureAwait(false);
-
-            switch (sequenceNumber)
-            {
-                case > 0:
-                    state.SetSequenceNumber(sequenceNumber);
-                    break;
-                case < 1:
-                    state.SetSequenceNumber(await _primitiveEventRepository.GetSequenceNumberAsync(eventStream.Id).ConfigureAwait(false));
-                    break;
-            }
+            await _primitiveEventRepository.SaveAsync(primitiveEvents, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

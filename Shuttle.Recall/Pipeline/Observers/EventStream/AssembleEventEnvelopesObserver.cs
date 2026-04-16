@@ -1,46 +1,24 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+﻿using Shuttle.Contract;
+using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
-public interface IAssembleEventEnvelopesObserver : IPipelineObserver<OnAssembleEventEnvelopes>
+public interface IAssembleEventEnvelopesObserver : IPipelineObserver<AssembleEventEnvelopes>;
+
+public class AssembleEventEnvelopesObserver(IAssembleEventEnvelopePipeline assembleEventEnvelopePipeline) : IAssembleEventEnvelopesObserver
 {
-}
-
-public class AssembleEventEnvelopesObserver : IAssembleEventEnvelopesObserver
-{
-    private readonly IPipelineFactory _pipelineFactory;
-
-    public AssembleEventEnvelopesObserver(IPipelineFactory pipelineFactory)
-    {
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnAssembleEventEnvelopes> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<AssembleEventEnvelopes> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var eventStream = state.GetEventStream();
         var builder = state.GetEventStreamBuilder();
         var eventEnvelopes = new List<EventEnvelope>();
 
-        var pipeline = _pipelineFactory.GetPipeline<AssembleEventEnvelopePipeline>();
+        Guard.AgainstNull(assembleEventEnvelopePipeline).State.SetEventStreamBuilder(builder);
 
-        pipeline.State.SetEventStreamBuilder(builder);
-
-        try
+        foreach (var appendedEvent in eventStream.GetEvents())
         {
-            foreach (var appendedEvent in eventStream.GetEvents())
-            {
-                eventEnvelopes.Add(await pipeline.ExecuteAsync(appendedEvent).ConfigureAwait(false));
-            }
-
-            state.SetEventEnvelopes(eventEnvelopes);
-        }
-        finally
-        {
-            _pipelineFactory.ReleasePipeline(pipeline);
+            eventEnvelopes.Add(await assembleEventEnvelopePipeline.ExecuteAsync(appendedEvent).ConfigureAwait(false));
         }
 
         state.SetEventEnvelopes(eventEnvelopes);
