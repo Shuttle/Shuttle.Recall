@@ -19,13 +19,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
-    <PackageReference Include="Shuttle.Pipelines" Version="21.0.1-rc3" />
-    <PackageReference Include="Shuttle.Reflection" Version="21.0.1-rc3" />
-    <PackageReference Include="Shuttle.Serialization" Version="21.0.1-rc3" />
-    <PackageReference Include="Shuttle.Contract" Version="21.0.1-rc3" />
-    <PackageReference Include="Shuttle.Specification" Version="21.0.1-rc3" />
-    <PackageReference Include="Shuttle.Streams" Version="21.0.1-rc3" />
-    <PackageReference Include="Shuttle.Threading" Version="21.0.1-rc3" />
+    <PackageReference Include="Shuttle.Pipelines" Version="21.0.1" />
+    <PackageReference Include="Shuttle.Reflection" Version="21.0.1" />
+    <PackageReference Include="Shuttle.Serialization" Version="21.0.1" />
+    <PackageReference Include="Shuttle.Contract" Version="21.0.1" />
+    <PackageReference Include="Shuttle.Specification" Version="21.0.1" />
+    <PackageReference Include="Shuttle.Streams" Version="21.0.1" />
+    <PackageReference Include="Shuttle.Threading" Version="21.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,7 +45,7 @@
 
   <PropertyGroup>
     <Description>Event sourcing mechanism.</Description>
-    <Version>21.0.2-rc3</Version>
+    <Version>21.0.2</Version>
     <PackageProjectUrl>https://github.com/Shuttle/Shuttle.Recall</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Shuttle/Shuttle.Recall.git</RepositoryUrl>
     <PackageTags>eventsourcing eventsource event-sourcing event-source eventstore event-store</PackageTags>
