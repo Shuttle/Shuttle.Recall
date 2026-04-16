@@ -6,6 +6,8 @@ public interface IEventHandlerContext
     PrimitiveEvent PrimitiveEvent { get; }
     Projection Projection { get; }
 
+    bool HasBeenDeferred { get; }
+
     /// <summary>
     /// The amount of time to wait before retrying the event.
     /// </summary>

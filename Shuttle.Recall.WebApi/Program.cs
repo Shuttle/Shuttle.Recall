@@ -74,24 +74,25 @@ public class Program
                     return Task.CompletedTask;
                 });
             })
-            .AddAccessAuthorization(authorizationBuilder =>
+            .AddAccessAuthorization(options =>
             {
-                configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(authorizationBuilder.Options);
+                configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(options);
             })
-            .AddAccessClient(clientBuilder =>
+            .Services
+            .AddAccessClient(options =>
             {
-                configuration.GetSection(AccessClientOptions.SectionName).Bind(clientBuilder.Options);
-
-                clientBuilder.UseBearerAuthenticationProvider(providerBuilder =>
+                configuration.GetSection(AccessClientOptions.SectionName).Bind(options);
+            })
+            .UseBearerAuthenticationProvider(options =>
                 {
-                    providerBuilder.Options.GetBearerAuthenticationContextAsync = async (_, _) =>
+                    options.GetBearerAuthenticationContextAsync = async (_, _) =>
                     {
                         var token = (await new DefaultAzureCredential().GetTokenAsync(new(["https://management.azure.com/.default"]), CancellationToken.None)).Token;
 
                         return new(token);
                     };
-                });
-            })
+                })
+            .Services
             .AddRecall(options =>
             {
                 configuration.GetSection(RecallOptions.SectionName).Bind(options);

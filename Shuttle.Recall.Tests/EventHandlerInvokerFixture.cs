@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Pipelines;
@@ -71,7 +72,7 @@ public class EventHandlerInvokerFixture
     {
         var serviceProvider = new Mock<IServiceProvider>().Object;
         var configuration = new EventProcessorConfiguration();
-        var invoker = new EventHandlerInvoker(serviceProvider, configuration, NullLogger<EventHandlerInvoker>.Instance);
+        var invoker = new EventHandlerInvoker(Options.Create(new RecallOptions()), configuration, NullLogger<EventHandlerInvoker>.Instance);
 
         var pipeline = Pipeline.Get();
 
@@ -113,7 +114,7 @@ public class EventHandlerInvokerFixture
         var serviceProvider = services.BuildServiceProvider();
 
         var configuration = new EventProcessorConfiguration();
-        var invoker = new EventHandlerInvoker(serviceProvider, configuration, NullLogger<EventHandlerInvoker>.Instance);
+        var invoker = new EventHandlerInvoker(Options.Create(new RecallOptions()), configuration, NullLogger<EventHandlerInvoker>.Instance);
 
         var pipeline = Pipeline.Get(serviceProvider);
 

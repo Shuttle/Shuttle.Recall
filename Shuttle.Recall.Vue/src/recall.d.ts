@@ -38,7 +38,7 @@ export type EventType = {
 };
 
 export type PrimitiveEvent = {
-  dateRegistered: Date;
+  recordedAt: Date;
   eventEnvelope: Uint8Array;
   eventId: string;
   eventType: string;

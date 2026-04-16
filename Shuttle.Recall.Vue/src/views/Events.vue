@@ -8,7 +8,7 @@
       item-title="typeName" item-value="typeName" hide-details clearable>
       <template v-slot:selection="{ item, index }">
         <v-chip v-if="index < 2" class="whitespace-nowrap">
-          <span>{{ item.title }}</span>
+          <span>{{ item.typeName }}</span>
         </v-chip>
         <span v-if="index === 2" class="text-grey text-caption align-self-center">
           (+{{ specification.eventTypes!.length - 2 }})
@@ -35,8 +35,11 @@
           <v-btn v-if="selected.length" :icon="mdiTrashCanOutline" size="x-small" @click.stop="remove()"></v-btn>
         </div>
       </template>
-      <template v-slot:item.domainEvent="{ value }">
-        <pre class="font-mono font-thin">{{ value }}</pre>
+      <template v-slot:item.domainEvent="{ item }">
+        <div class="flex flex-col gap-2 py-2">
+          <v-chip class="w-fit" size="small">{{ item.primitiveEvent.eventType }}</v-chip>
+          <pre class="font-mono font-thin">{{ JSON.stringify(JSON.parse(item.domainEvent), null, 2) }}</pre>
+        </div>
       </template>
     </v-data-table>
   </v-card>
@@ -99,22 +102,18 @@ const headers: any = [
     }
   },
   {
-    title: t("event-type"),
-    value: "primitiveEvent.eventType",
+    title: t("recorded-at"),
+    value: "primitiveEvent.recordedAt",
     headerProps: {
-      class: "w-80"
+      class: "w-16 whitespace-nowrap"
     },
     cellProps: {
-      class: "py-2"
+      class: "py-2 whitespace-nowrap"
     }
   },
   {
     title: t("domain-event"),
-    key: "domainEvent",
-    value: (item: any): any => JSON.stringify(JSON.parse(item.domainEvent), null, 2),
-    cellProps: {
-      class: "py-2"
-    }
+    key: "domainEvent"
   }
 ];
 

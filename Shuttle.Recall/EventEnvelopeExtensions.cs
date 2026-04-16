@@ -10,23 +10,9 @@ public static class EventEnvelopeExtensions
         Guard.AgainstEmpty(eventEnvelope.AssemblyQualifiedName);
     }
 
-    public static bool CompressionEnabled(this EventEnvelope eventEnvelope)
-    {
-        return !string.IsNullOrEmpty(Guard.AgainstNull(eventEnvelope).CompressionAlgorithm)
-               &&
-               !eventEnvelope.CompressionAlgorithm.Equals("none", StringComparison.InvariantCultureIgnoreCase);
-    }
-
     public static bool Contains(this IEnumerable<EnvelopeHeader> headers, string key)
     {
         return Guard.AgainstNull(headers).Any(header => header.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase));
-    }
-
-    public static bool EncryptionEnabled(this EventEnvelope eventEnvelope)
-    {
-        return !string.IsNullOrEmpty(Guard.AgainstNull(eventEnvelope).EncryptionAlgorithm)
-               &&
-               !eventEnvelope.EncryptionAlgorithm.Equals("none", StringComparison.InvariantCultureIgnoreCase);
     }
 
     public static string GetHeaderValue(this List<EnvelopeHeader> headers, string key)

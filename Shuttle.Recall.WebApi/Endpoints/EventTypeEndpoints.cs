@@ -24,10 +24,10 @@ public static class EventTypeEndpoints
                 Guard.AgainstNull(sessionContext);
                 Guard.AgainstNull(dbContext);
 
-                if (!(sessionContext.Session?.HasPermission("recall://default/events") ?? false))
-                {
-                    return Results.Ok(new EventStoreResponse<EventType>());
-                }
+                //if (!(sessionContext.Session?.HasPermission("recall://default/events") ?? false))
+                //{
+                //    return Results.Ok(new EventStoreResponse<EventType>());
+                //}
 
                 var connection = dbContext.Database.GetDbConnection();
 

@@ -11,8 +11,10 @@ public class EventHandlerContext<T>(Projection projection, EventEnvelope eventEn
     public T Event { get; } = Guard.AgainstNull(@event);
     public Projection Projection { get; } = Guard.AgainstNull(projection);
     public TimeSpan? DeferredFor { get; private set; }
+    public bool HasBeenDeferred { get; private set; }
     public void Defer(TimeSpan? delay = null)
     {
         DeferredFor = delay;
+        HasBeenDeferred = true;
     }
 }

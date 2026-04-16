@@ -33,7 +33,7 @@ const select = async (tenant: Tenant) => {
       tenantId: tenant.id
     })
 
-    sessionStore.tenantSelected(sessionResponse);
+    sessionStore.sessionTenantSelected(sessionResponse);
   } catch (error: any) {
     useAlertStore().add({
       message: t("exceptions.tenant-selection"),

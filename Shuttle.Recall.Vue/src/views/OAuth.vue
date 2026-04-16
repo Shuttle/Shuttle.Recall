@@ -45,12 +45,7 @@ onMounted(async () => {
       code: code
     });
 
-    const params = { identityName: sessionResponse.identityName };
-
-    if (sessionResponse.sessionTokenExchangeUrl) {
-      window.location.replace(sessionResponse.sessionTokenExchangeUrl);
-      return;
-    }
+    const params = { identityName: sessionResponse.session?.identityName };
 
     if (sessionResponse.result === "UnknownIdentity") {
       alertStore.add({
@@ -63,12 +58,12 @@ onMounted(async () => {
       return;
     }
 
-    if ((sessionResponse.tenants?.length ?? 0) > 1) {
+    if (sessionResponse.tenants?.length ?? 0 > 1) {
       router.push({ name: "tenant-selection" });
       return;
     }
 
-    router.push({ name: "events" });
+    router.push({ name: "dashboard" });
   } catch (error: any) {
     alertStore.add({
       message: error.response?.status == 400 ? t("exceptions.invalid-credentials", { reason: error.response?.data }) : error.toString(),

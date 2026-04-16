@@ -7,6 +7,11 @@ public static class PipelineStateExtensions
 {
     extension(IState state)
     {
+        public bool GetHasBeenDeferred()
+        {
+            return state.Get<bool?>(StateKeys.HasBeenDeferred) ?? false;
+        }
+
         public DateTimeOffset? GetDeferredUntil()
         {
             return state.Get<DateTimeOffset?>(StateKeys.DeferredUntil);
@@ -80,6 +85,7 @@ public static class PipelineStateExtensions
         public void SetDeferredUntil(DateTimeOffset deferredUntil)
         {
             state.Replace(StateKeys.DeferredUntil, deferredUntil);
+            state.Replace(StateKeys.HasBeenDeferred, true);
         }
         
         public void SetDomainEvent(DomainEvent domainEvent)

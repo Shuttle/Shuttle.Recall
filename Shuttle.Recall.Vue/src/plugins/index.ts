@@ -1,5 +1,5 @@
 import vuetify from "./vuetify";
-import pinia from "@/stores";
+import { createPinia } from "pinia";
 import router from "@/router";
 import { i18n } from "@/i18n";
 
@@ -16,7 +16,7 @@ import RecallTitle from "@/components/RecallTitle.vue";
 document.querySelector("html")?.setAttribute("lang", i18n.global.locale.value);
 
 export function registerPlugins(app: App) {
-  app.use(vuetify).use(router).use(pinia).use(i18n);
+  app.use(vuetify).use(router).use(createPinia()).use(i18n);
 
   app.component("r-container", RecallContainer);
   app.component("r-data-table", RecallDataTable);

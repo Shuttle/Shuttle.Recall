@@ -23,8 +23,6 @@ public class AssembleEventEnvelopeObserver(IOptions<RecallOptions> recallOptions
             EventType = Guard.AgainstEmpty(domainEventType.FullName),
             Version = domainEvent.Version,
             AssemblyQualifiedName = Guard.AgainstEmpty(domainEventType.AssemblyQualifiedName),
-            EncryptionAlgorithm = _recallOptions.EventStore.EncryptionAlgorithm,
-            CompressionAlgorithm = _recallOptions.EventStore.CompressionAlgorithm,
             Headers = builder.Headers
         };
 

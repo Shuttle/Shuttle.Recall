@@ -17,4 +17,5 @@ public class EventProcessingOptions
     public List<string> ExcludedProjections { get; set; } = [];
     public List<TimeSpan> ProjectionProcessorIdleDurations { get; set; } = [];
     public int ProjectionThreadCount { get; set; } = 5;
+    public TimeSpan DefaultDeferredDuration { get; set; } = TimeSpan.FromSeconds(5);
 }

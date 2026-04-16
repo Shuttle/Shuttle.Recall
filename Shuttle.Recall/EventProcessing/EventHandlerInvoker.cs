@@ -1,21 +1,22 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Shuttle.Contract;
 using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
-public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcessorConfiguration eventProcessorConfiguration, ILogger<EventHandlerInvoker>? logger = null)
+public class EventHandlerInvoker(IOptions<RecallOptions> recallOptions, IEventProcessorConfiguration eventProcessorConfiguration, ILogger<EventHandlerInvoker>? logger = null)
     : IEventHandlerInvoker
 {
+    private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);
     private static readonly Type EventHandlerType = typeof(IEventHandler<>);
     private readonly Dictionary<Type, HandlerContextConstructorInvoker> _handlerContextConstructorInvokers = new();
     private readonly IEventProcessorConfiguration _eventProcessorConfiguration = Guard.AgainstNull(eventProcessorConfiguration);
     private readonly ILogger<EventHandlerInvoker> _logger = logger ?? NullLogger<EventHandlerInvoker>.Instance;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly Dictionary<Type, ProcessEventMethodInvoker> _processEventMethodInvokers = new();
-    private readonly IServiceProvider _serviceProvider = Guard.AgainstNull(serviceProvider);
 
     public async ValueTask<bool> InvokeAsync(IPipelineContext<HandleEvent> pipelineContext, CancellationToken cancellationToken = default)
     {
@@ -30,6 +31,7 @@ public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcess
         var domainEvent = Guard.AgainstNull(state.GetDomainEvent().Event);
         var eventType = Guard.AgainstNull(Type.GetType(eventEnvelope.AssemblyQualifiedName, true));
         var projectionConfiguration = _eventProcessorConfiguration.GetProjection(projectionEvent.Projection.Name);
+        var serviceProvider = pipelineContext.Pipeline.ServiceProvider;
 
         LogMessage.EventHandlerInvokerInvoke(_logger, projectionEvent.Projection.Name, eventType.FullName);
 
@@ -74,7 +76,7 @@ public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcess
 
                     if (projectionDelegate.HasParameters)
                     {
-                        await (Task)projectionDelegate.Handler.DynamicInvoke(projectionDelegate.GetParameters(_serviceProvider, handlerContext, cancellationToken))!;
+                        await (Task)projectionDelegate.Handler.DynamicInvoke(projectionDelegate.GetParameters(serviceProvider, handlerContext, cancellationToken))!;
                     }
                     else
                     {
@@ -84,7 +86,7 @@ public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcess
                     return true;
                 }
 
-                var handler = _serviceProvider.GetKeyedServices(EventHandlerType.MakeGenericType(eventType), $"[Shuttle.Recall.Projection/{projectionEvent.Projection.Name}]:{Guard.AgainstEmpty(eventType.FullName)}").FirstOrDefault();
+                var handler = serviceProvider.GetKeyedServices(EventHandlerType.MakeGenericType(eventType), $"[Shuttle.Recall.Projection/{projectionEvent.Projection.Name}]:{Guard.AgainstEmpty(eventType.FullName)}").FirstOrDefault();
 
                 if (handler == null)
                 {
@@ -123,9 +125,9 @@ public class EventHandlerInvoker(IServiceProvider serviceProvider, IEventProcess
             }
             finally
             {
-                if (handlerContext is IEventHandlerContext deferredContext && deferredContext.IsDeferred())
+                if (handlerContext is IEventHandlerContext { HasBeenDeferred: true } deferredContext)
                 {
-                    state.SetDeferredUntil(DateTimeOffset.UtcNow.Add(deferredContext.DeferredFor ?? TimeSpan.Zero));
+                    state.SetDeferredUntil(DateTimeOffset.UtcNow.Add(deferredContext.DeferredFor ?? _recallOptions.EventProcessing.DefaultDeferredDuration));
                 }
             }
         }

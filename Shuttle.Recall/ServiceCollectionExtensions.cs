@@ -33,15 +33,44 @@ public static class ServiceCollectionExtensions
             services.AddOptions<RecallOptions>().Configure(options =>
             {
                 configureOptions?.Invoke(options);
+
+                if (options.EventStore.PrimitiveEventSequencerIdleDurations.Count == 0)
+                {
+                    options.EventStore.PrimitiveEventSequencerIdleDurations = EventStoreOptions.DefaultPrimitiveEventSequencerIdleDurations.ToList();
+                }
+
+                if (options.EventProcessing.ProjectionProcessorIdleDurations.Count == 0)
+                {
+                    options.EventProcessing.ProjectionProcessorIdleDurations = EventProcessingOptions.DefaultProjectionProcessorIdleDurations.ToList();
+                }
             });
 
             services.TryAddSingleton<IEventMethodInvoker, EventMethodInvoker>();
             services.TryAddSingleton<ISerializer, JsonSerializer>();
             services.TryAddSingleton<IConcurrencyExceptionSpecification, DefaultConcurrencyExceptionSpecification>();
-            services.TryAddScoped<IEventHandlerInvoker, EventHandlerInvoker>();
+            services.TryAddSingleton<IEventHandlerInvoker, EventHandlerInvoker>();
 
-            services.AddPipelines().AddPipelinesFrom(typeof(EventStore).Assembly);
-            services.AddThreading()
+            services.AddPipelines();
+
+            services.TryAddScoped<IAssembleEventEnvelopePipeline, AssembleEventEnvelopePipeline>();
+            services.TryAddScoped<IGetEventEnvelopePipeline, GetEventEnvelopePipeline>();
+            services.TryAddScoped<IGetEventStreamPipeline, GetEventStreamPipeline>();
+            services.TryAddScoped<IRemoveEventStreamPipeline, RemoveEventStreamPipeline>();
+            services.TryAddScoped<ISaveEventStreamPipeline, SaveEventStreamPipeline>();
+            
+            services.TryAddScoped<IAssembleEventEnvelopeObserver, AssembleEventEnvelopeObserver>();
+            services.TryAddScoped<IAssembleEventEnvelopesObserver, AssembleEventEnvelopesObserver>();
+            services.TryAddScoped<IAssembleEventStreamObserver, AssembleEventStreamObserver>();
+            services.TryAddScoped<IEventStreamObserver, EventStreamObserver>();
+            services.TryAddScoped<IRemoveEventStreamObserver, RemoveEventStreamObserver>();
+            services.TryAddScoped<IRetrieveStreamEventsObserver, RetrieveStreamEventsObserver>();
+            services.TryAddScoped<ISavePrimitiveEventsObserver, SavePrimitiveEventsObserver>();
+            services.TryAddScoped<IDeserializeEventEnvelopeObserver, DeserializeEventEnvelopeObserver>();
+            services.TryAddScoped<IDeserializeEventObserver, DeserializeEventObserver>();
+            services.TryAddScoped<ISerializeEventObserver, SerializeEventObserver>();
+
+            services
+                .AddThreading()
                 .ConfigureProcessor("ProjectionProcessor", (options, serviceProvider) =>
                 {
                     var recallOptions = serviceProvider.GetRequiredService<IOptions<RecallOptions>>().Value;
@@ -50,12 +79,12 @@ public static class ServiceCollectionExtensions
                         : [TimeSpan.FromSeconds(1)];
                 })
                 .ConfigureProcessor("PrimitiveEventSequencerProcessor", (options, serviceProvider) =>
-                    {
-                        var recallOptions = serviceProvider.GetRequiredService<IOptions<RecallOptions>>().Value;
-                        options.Durations = recallOptions.EventStore.PrimitiveEventSequencerIdleDurations.Count > 0
-                            ? recallOptions.EventStore.PrimitiveEventSequencerIdleDurations
-                            : [TimeSpan.FromSeconds(1)];
-                    });
+                {
+                    var recallOptions = serviceProvider.GetRequiredService<IOptions<RecallOptions>>().Value;
+                    options.Durations = recallOptions.EventStore.PrimitiveEventSequencerIdleDurations.Count > 0
+                        ? recallOptions.EventStore.PrimitiveEventSequencerIdleDurations
+                        : [TimeSpan.FromSeconds(1)];
+                });
 
             services.TryAddScoped<IEventStore, EventStore>();
             services.TryAddSingleton<IEventProcessor, EventProcessor>();

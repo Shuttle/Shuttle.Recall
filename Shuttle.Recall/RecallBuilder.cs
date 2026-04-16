@@ -15,6 +15,15 @@ public class RecallBuilder(IServiceCollection services, IEventProcessorConfigura
     public RecallBuilder AddProjection(string name, Action<ProjectionBuilder> builder)
     {
         services.TryAddKeyedScoped<IProcessor, ProjectionProcessor>("ProjectionProcessor");
+        services.TryAddScoped<IEventProcessingPipeline, EventProcessingPipeline>();
+        services.TryAddScoped<IEventProcessorStartupPipeline, EventProcessorStartupPipeline>();
+        
+        services.TryAddScoped<IAcknowledgeEventObserver, AcknowledgeEventObserver>();
+        services.TryAddScoped<IEventProcessingPipelineFailedObserver, EventProcessingPipelineFailedObserver>();
+        services.TryAddScoped<IHandleEventObserver, HandleEventObserver>();
+        services.TryAddScoped<IProjectionEventEnvelopeObserver, ProjectionEventEnvelopeObserver>();
+        services.TryAddScoped<IProjectionEventObserver, ProjectionEventObserver>();
+        services.TryAddScoped<IStartupEventProcessingObserver, StartupEventProcessingObserver>();
 
         builder.Invoke(new(services, EventProcessorConfiguration, name));
 

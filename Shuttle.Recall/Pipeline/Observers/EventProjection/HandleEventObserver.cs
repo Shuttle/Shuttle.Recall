@@ -14,9 +14,7 @@ public class HandleEventObserver(IEventHandlerInvoker eventMethodInvoker, IProje
     {
         await _eventMethodInvoker.InvokeAsync(pipelineContext, cancellationToken);
 
-        var deferredUntil = pipelineContext.Pipeline.State.GetDeferredUntil();
-
-        if (deferredUntil.HasValue && deferredUntil > DateTimeOffset.UtcNow)
+        if (pipelineContext.Pipeline.State.GetHasBeenDeferred())
         {
             await _projectionEventService.DeferAsync(pipelineContext, cancellationToken);
             pipelineContext.Pipeline.Abort();
