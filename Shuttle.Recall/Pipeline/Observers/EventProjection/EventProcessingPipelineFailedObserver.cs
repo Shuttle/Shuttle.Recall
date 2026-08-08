@@ -7,10 +7,8 @@ public interface IEventProcessingPipelineFailedObserver : IPipelineObserver<Pipe
 
 public class EventProcessingPipelineFailedObserver(IProjectionEventService projectionEventService) : IEventProcessingPipelineFailedObserver
 {
-    private readonly IProjectionEventService _eventService = Guard.AgainstNull(projectionEventService);
-
     public async Task ExecuteAsync(IPipelineContext<PipelineFailed> pipelineContext, CancellationToken cancellationToken = default)
     {
-        await _eventService.PipelineFailedAsync(Guard.AgainstNull(pipelineContext), cancellationToken).ConfigureAwait(false);
+        await projectionEventService.PipelineFailedAsync(Guard.AgainstNull(pipelineContext), cancellationToken).ConfigureAwait(false);
     }
 }

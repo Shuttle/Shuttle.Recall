@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using Shuttle.Extensions.Options;
+using System.Reflection;
 
 namespace Shuttle.Recall;
 
@@ -17,4 +18,5 @@ public class EventStoreOptions
     public BindingFlags BindingFlags { get; set; } = BindingFlags.Instance | BindingFlags.NonPublic;
     public string EventHandlingMethodName { get; set; } = "On";
     public List<TimeSpan> PrimitiveEventSequencerIdleDurations { get; set; } = [];
+    public AsyncEvent<PrimitiveEventsSavedEventArgs> PrimitiveEventsSaved { get; set; } = new();
 }

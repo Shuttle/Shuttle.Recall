@@ -89,7 +89,7 @@ public static class EventEndpoints
         Guard.AgainstNull(sessionContext);
         Guard.AgainstNull(primitiveEventRepository);
 
-        if (!(sessionContext.Session?.HasPermission("recall://default/events") ?? false))
+        if (!sessionContext.HasPermission("recall://default/events"))
         {
             return Results.Ok(new EventStoreResponse<Event>());
         }

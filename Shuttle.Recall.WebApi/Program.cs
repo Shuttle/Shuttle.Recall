@@ -134,7 +134,6 @@ public class Program
                 .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
         });
 
-
         app.UseAccessAuthorization();
 
         app

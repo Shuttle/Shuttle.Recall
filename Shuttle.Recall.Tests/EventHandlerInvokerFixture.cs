@@ -16,11 +16,11 @@ public class EventHandlerInvokerFixture
     {
         public bool Invoked { get; private set; }
 
-        public async Task HandleAsync(IEventHandlerContext<EventA> context, CancellationToken cancellationToken = default)
+        public Task HandleAsync(IEventHandlerContext<EventA> context, CancellationToken cancellationToken = default)
         {
             Invoked = true;
 
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
     }
 
@@ -94,7 +94,7 @@ public class EventHandlerInvokerFixture
         {
             invoked = true;
 
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         });
 
         var result = await invoker.InvokeAsync(new PipelineContext<HandleEvent>(pipeline));

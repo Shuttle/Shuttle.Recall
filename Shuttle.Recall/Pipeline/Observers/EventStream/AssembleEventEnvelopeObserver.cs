@@ -6,11 +6,9 @@ namespace Shuttle.Recall;
 
 public interface IAssembleEventEnvelopeObserver : IPipelineObserver<AssembleEventEnvelope>;
 
-public class AssembleEventEnvelopeObserver(IOptions<RecallOptions> recallOptions) : IAssembleEventEnvelopeObserver
+public class AssembleEventEnvelopeObserver : IAssembleEventEnvelopeObserver
 {
-    private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);
-
-    public async Task ExecuteAsync(IPipelineContext<AssembleEventEnvelope> pipelineContext, CancellationToken cancellationToken = default)
+    public Task ExecuteAsync(IPipelineContext<AssembleEventEnvelope> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
         var domainEvent = state.GetDomainEvent();
@@ -28,6 +26,6 @@ public class AssembleEventEnvelopeObserver(IOptions<RecallOptions> recallOptions
 
         state.SetEventEnvelope(eventEnvelope);
 
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 }

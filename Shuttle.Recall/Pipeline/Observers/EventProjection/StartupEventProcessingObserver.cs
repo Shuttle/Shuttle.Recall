@@ -9,18 +9,12 @@ namespace Shuttle.Recall;
 public class StartupEventProcessingObserver(IOptions<RecallOptions> recallOptions, IOptions<ThreadingOptions> threadingOptions, IServiceScopeFactory serviceScopeFactory, IProcessorIdleStrategy processorIdleStrategy, IEventProcessorConfiguration eventProcessorConfiguration)
     : IStartupEventProcessingObserver
 {
-    private readonly IProcessorIdleStrategy _processorIdleStrategy = Guard.AgainstNull(processorIdleStrategy);
-    private readonly IServiceScopeFactory _serviceScopeFactory = Guard.AgainstNull(serviceScopeFactory);
-    private readonly ThreadingOptions _threadingOptions = Guard.AgainstNull(Guard.AgainstNull(threadingOptions).Value);
-    private readonly RecallOptions _recallOptions = Guard.AgainstNull(Guard.AgainstNull(recallOptions).Value);
-    private readonly IEventProcessorConfiguration _eventProcessorConfiguration = Guard.AgainstNull(eventProcessorConfiguration);
-
-    public async Task ExecuteAsync(IPipelineContext<ConfigureThreadPools> pipelineContext, CancellationToken cancellationToken = default)
+    public Task ExecuteAsync(IPipelineContext<ConfigureThreadPools> pipelineContext, CancellationToken cancellationToken = default)
     {
-        if (_eventProcessorConfiguration.HasProjections)
+        if (eventProcessorConfiguration.HasProjections)
         {
-            var threadCount = _recallOptions.EventProcessing.ProjectionThreadCount;
-            var projectionCount = _eventProcessorConfiguration.Projections.Count();
+            var threadCount = recallOptions.Value.EventProcessing.ProjectionThreadCount;
+            var projectionCount = eventProcessorConfiguration.Projections.Count();
 
             if (threadCount > projectionCount)
             {
@@ -28,10 +22,10 @@ public class StartupEventProcessingObserver(IOptions<RecallOptions> recallOption
             }
 
             Guard.AgainstNull(pipelineContext).Pipeline.State
-                .Add("ProjectionProcessorThreadPool", new ProcessorThreadPool("ProjectionProcessor", threadCount, _serviceScopeFactory, _threadingOptions, _processorIdleStrategy));
+                .Add("ProjectionProcessorThreadPool", new ProcessorThreadPool("ProjectionProcessor", threadCount, serviceScopeFactory, threadingOptions.Value, processorIdleStrategy));
         }
         
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
     public async Task ExecuteAsync(IPipelineContext<StartThreadPools> pipelineContext, CancellationToken cancellationToken = default)
