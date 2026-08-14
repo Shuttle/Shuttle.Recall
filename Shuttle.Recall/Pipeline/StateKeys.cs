@@ -13,6 +13,7 @@ public class StateKeys
     public const string HasBeenDeferred = "HasBeenDeferred";
     public const string Id = "Id";
     public const string PrimitiveEvent = "PrimitiveEvent";
+    public const string PrimitiveEvents = "PrimitiveEvents";
     public const string ProcessorThreadManagedThreadId = "ProcessorThreadManagedThreadId";
     public const string ProjectionEvent = "ProjectionEvent";
     public const string SequenceNumber = "SequenceNumber";

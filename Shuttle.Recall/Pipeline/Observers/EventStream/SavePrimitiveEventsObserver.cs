@@ -44,6 +44,8 @@ public class SavePrimitiveEventsObserver(IOptions<RecallOptions> recallOptions, 
             await primitiveEventRepository.SaveAsync(primitiveEvents, cancellationToken).ConfigureAwait(false);
 
             await recallOptions.Value.EventStore.PrimitiveEventsSaved.InvokeAsync(new(primitiveEvents, pipelineContext.Pipeline), cancellationToken);
+
+            state.SetPrimitiveEvents(primitiveEvents);
         }
         catch (Exception ex)
         {

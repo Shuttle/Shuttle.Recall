@@ -259,6 +259,24 @@ namespace Shuttle.Recall {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to `EventProcessingOptions.ImmediateConsistency.Enabled` is `true` but no `IProjectionEventService` implementation has been registered.  Please register the dependency before calling `AddRecall()`..
+        /// </summary>
+        public static string ImmediateConsistencyProjectionEventServiceException {
+            get {
+                return ResourceManager.GetString("ImmediateConsistencyProjectionEventServiceException", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Either &apos;ImmediateConsistency.IncludedProjections&apos; or &apos;ImmediateConsistency.ExcludedProjections&apos; may be specified, but not both..
+        /// </summary>
+        public static string ImmediateConsistencyActiveProjectionsException {
+            get {
+                return ResourceManager.GetString("ImmediateConsistencyActiveProjectionsException", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; does not implement IEventHandler&lt;T&gt;..
         /// </summary>
         public static string InvalidEventHandlerTypeExpection {

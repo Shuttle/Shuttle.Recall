@@ -57,7 +57,8 @@ public static class ServiceCollectionExtensions
             services.TryAddScoped<IGetEventStreamPipeline, GetEventStreamPipeline>();
             services.TryAddScoped<IRemoveEventStreamPipeline, RemoveEventStreamPipeline>();
             services.TryAddScoped<ISaveEventStreamPipeline, SaveEventStreamPipeline>();
-            
+            services.TryAddScoped<IImmediateConsistencyObserver, ImmediateConsistencyObserver>();
+
             services.TryAddScoped<IAssembleEventEnvelopeObserver, AssembleEventEnvelopeObserver>();
             services.TryAddScoped<IAssembleEventEnvelopesObserver, AssembleEventEnvelopesObserver>();
             services.TryAddScoped<IAssembleEventStreamObserver, AssembleEventStreamObserver>();
