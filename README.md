@@ -10,28 +10,30 @@ dotnet add package Shuttle.Recall
 
 ## Registration
 
-To register `Shuttle.Recall`, use the `AddRecall` extension method:
+To register `Shuttle.Recall`, use the `AddRecall` extension method, which returns a `RecallBuilder` used to configure projections:
 
 ```csharp
-services.AddRecall(builder => 
-{
-    builder.AddProjection("ProjectionName", projection =>
+services
+    .AddRecall()
+    .AddProjection("ProjectionName", projection =>
     {
         projection.AddEventHandler<SomeEvent>((context, evt) => 
         {
             // handle event
         });
     });
-});
 ```
+
+`AddRecall` also registers an `IHostedService` (`EventProcessorHostedService`) that automatically starts and stops the `IEventProcessor` along with the host, whenever at least one projection has been registered — see [IEventProcessor Lifecycle](#ieventprocessor-lifecycle).
 
 The following types are registered:
 
 - `IEventStore` (Scoped): Used to retrieve and save event streams.
 - `IEventProcessor` (Singleton): Used to process projections.
 - `IEventMethodInvoker` (Singleton): Invokes event handling methods on aggregate roots.
+- `IEventHandlerInvoker` (Singleton): Invokes projection event handlers (types, instances, and delegates).
 - `ISerializer` (Singleton): Serializes and deserializes events.
-- `IConcurrencyExceptionSpecification` (Singleton): Detects concurrency exceptions.
+- `IConcurrencyExceptionSpecification` (Singleton): Determines whether an exception raised while saving should be treated as a concurrency conflict.
 
 ## Configuration Options
 
@@ -45,8 +47,7 @@ services.AddRecall(options =>
     options.EventProcessing.ImmediateConsistency.Enabled = true;
     options.EventProcessing.ImmediateConsistency.IncludedProjections.Add("ProjectionName");
 
-    options.EventStore.CompressionAlgorithm = "gzip";
-    options.EventStore.EncryptionAlgorithm = "aes";
+    options.EventStore.EventHandlingMethodName = "On";
 });
 ```
 
@@ -57,7 +58,9 @@ services.AddRecall(options =>
 | `ProjectionThreadCount` | `5` | Number of threads for projection processing |
 | `IncludedProjections` | `[]` | List of projection names to include |
 | `ExcludedProjections` | `[]` | List of projection names to exclude |
-| `ProjectionProcessorIdleDurations` | varies | Idle durations for processor polling |
+| `ProjectionProcessorIdleDurations` | `[]` | Idle durations for projection processor polling; if left empty, defaults to `[250,250,250,250,500,500,1000]` ms |
+| `DefaultDeferredDuration` | `5s` | Duration used by `context.Defer()` when no explicit delay is given |
+| `EventHandled` | | `AsyncEvent<EventHandledEventArgs>` raised after a projection has handled an event |
 | `ImmediateConsistency` | see below | Options controlling immediate consistency processing |
 | `ImmediateConsistencyFailed` | | `AsyncEvent<ImmediateConsistencyFailedEventArgs>` raised when a projection handler throws while processing an event immediately |
 
@@ -90,10 +93,14 @@ You can also request immediate consistency for a single `SaveAsync` call, regard
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `CompressionAlgorithm` | `""` | Compression algorithm (e.g., "gzip") |
-| `EncryptionAlgorithm` | `""` | Encryption algorithm (e.g., "aes") |
 | `EventHandlingMethodName` | `"On"` | Method name invoked on aggregate roots |
 | `BindingFlags` | `Instance \| NonPublic` | Binding flags for event method discovery |
+| `PrimitiveEventSequencerIdleDurations` | `[]` | Idle durations for the primitive event sequencer; if left empty, defaults to `[250,250,250,250,500,500,1000]` ms |
+| `PrimitiveEventsSaved` | | `AsyncEvent<PrimitiveEventsSavedEventArgs>` raised after primitive events have been persisted |
+
+`RecallOptions` also exposes a top-level `Operation` (`AsyncEvent<OperationEventArgs>`), a general-purpose instrumentation hook raised around internal `Shuttle.Recall` operations, carrying an operation name and associated data.
+
+There is currently no built-in compression or encryption of stored events — if you need either, apply it in a custom `ISerializer` implementation.
 
 ## Usage
 
@@ -170,16 +177,18 @@ var stream = await eventStore.GetAsync(streamId);
 stream.Apply(someAggregateRoot);
 ```
 
+`Apply` invokes a matching event-handling method (`On` by default, see `EventStoreOptions.EventHandlingMethodName`) on the target object for each event. If no matching method is found for an event type, an `UnhandledEventException` is thrown.
+
 ### Retrieving Events by Type
 
 ```csharp
 var stream = await eventStore.GetAsync(streamId);
 
+// Get only appended (not-yet-committed) events -- this is the default
+var appendedEvents = stream.GetEvents(EventStream.EventRegistrationType.Appended);
+
 // Get only committed events
 var committedEvents = stream.GetEvents(EventStream.EventRegistrationType.Committed);
-
-// Get only appended events
-var appendedEvents = stream.GetEvents(EventStream.EventRegistrationType.Appended);
 
 // Get all events
 var allEvents = stream.GetEvents(EventStream.EventRegistrationType.All);
@@ -209,6 +218,21 @@ stream.Remove();
 await eventStore.RemoveAsync(streamId);
 ```
 
+### Checking Whether a Stream Needs Saving
+
+```csharp
+var stream = await eventStore.GetAsync(streamId);
+
+if (stream.ShouldSave())
+{
+    await eventStore.SaveAsync(stream);
+}
+```
+
+`ShouldSave()` returns `true` if the stream has any appended events that have not yet been committed/saved.
+
+> `Add`, `Apply`, `Commit`, `ConcurrencyInvariant`, `Remove`, and `WithCorrelationId` all return the `EventStream` itself, so calls may be chained, e.g. `stream.WithCorrelationId(id).Add(eventA).Add(eventB)`.
+
 ## Projections
 
 ### Handler Implementation
@@ -236,41 +260,59 @@ public class OrderProjection : IEventHandler<OrderPlaced>
 ### Registering Projections
 
 ```csharp
-services.AddRecall(builder => 
-{
-    builder.AddProjection("OrderProjection", projection =>
+services
+    .AddRecall()
+    .AddProjection("OrderProjection", projection =>
     {
         projection.AddEventHandler<OrderProjection>();
     });
-});
 ```
 
 ### Inline Projection Handlers
 
+Delegate-based handlers must be `async` and return a `Task`; the event type is inferred from the single `IEventHandlerContext<T>` parameter:
+
 ```csharp
-services.AddRecall(builder => 
-{
-    builder.AddProjection("OrderProjection", projection =>
+services
+    .AddRecall()
+    .AddProjection("OrderProjection", projection =>
     {
-        projection.AddEventHandler((IEventHandlerContext<OrderPlaced> context) =>
+        projection.AddEventHandler(async (IEventHandlerContext<OrderPlaced> context) =>
         {
             var evt = context.Event;
             // handle event inline
         });
     });
-});
 ```
 
 ### Delegate-based Handlers
 
 ```csharp
-builder.AddProjection("ProjectionName", (IEventHandlerContext<SomeEvent> context) =>
+services
+    .AddRecall()
+    .AddProjection("ProjectionName", async (IEventHandlerContext<SomeEvent> context) =>
+    {
+        // handle event
+    });
+```
+
+Delegate handlers may declare additional parameters beyond the `IEventHandlerContext<T>`; these are resolved from the DI container for each invocation, which is useful for pulling in a scoped `DbContext` or similar without an explicit handler class:
+
+```csharp
+.AddEventHandler(async (IEventHandlerContext<OrderPlaced> context, OrderDbContext dbContext) =>
 {
-    // handle event
+    await dbContext.Orders.AddAsync(new OrderEntity { Id = context.PrimitiveEvent.Id });
+    await dbContext.SaveChangesAsync();
 });
 ```
 
+`AddProjection`/`AddEventHandler` also have overloads accepting a handler `Type` (with an optional `Func<Type, ServiceLifetime>` to control its registered lifetime) or an existing handler instance — useful when you want to register a handler without a generic type parameter.
+
 ## IEventProcessor Lifecycle
+
+If at least one projection has been registered, `AddRecall` registers an `IHostedService` that automatically calls `IEventProcessor.StartAsync`/`StopAsync` as the host starts and stops — in a typical `IHost`/ASP.NET Core application you do not need to drive this manually.
+
+If you are hosting `Shuttle.Recall` outside of the generic host (e.g. a plain console application), you can start and stop it yourself:
 
 ```csharp
 var processor = serviceProvider.GetRequiredService<IEventProcessor>();
@@ -282,9 +324,11 @@ await processor.StartAsync();
 await processor.StopAsync();
 ```
 
+`IEventProcessor` also exposes a `Started` property, and implements `IDisposable`/`IAsyncDisposable`.
+
 ## EventEnvelope Properties
 
-The `EventEnvelope` class contains metadata about each event:
+The `EventEnvelope` class contains metadata about each event as it is persisted:
 
 | Property | Description |
 |----------|-------------|
@@ -294,10 +338,7 @@ The `EventEnvelope` class contains metadata about each event:
 | `Event` | The serialized event bytes |
 | `RecordedAt` | When the event was recorded |
 | `Version` | Event version in the stream |
-| `CorrelationId` | Optional correlation ID |
-| `CompressionAlgorithm` | Compression algorithm used |
-| `EncryptionAlgorithm` | Encryption algorithm used |
-| `Headers` | Custom key-value headers |
+| `Headers` | Custom key-value headers (`List<EnvelopeHeader>`, each with a `Key`/`Value`) |
 
 ## EventStream Properties
 
@@ -305,15 +346,28 @@ The `EventEnvelope` class contains metadata about each event:
 |----------|-------------|
 | `Id` | The stream's unique identifier |
 | `Version` | Current stream version |
-| `CorrelationId` | Correlation ID (if set) |
+| `CorrelationId` | Correlation ID (if set via `WithCorrelationId`) |
 | `Removed` | Whether the stream has been removed |
 | `IsEmpty` | Whether the stream has no events |
 | `Count` | Total number of events |
 
 ## Exceptions
 
-- `EventStreamConcurrencyException`: Thrown when concurrent modification is detected
-- `EventProcessingException`: Thrown during projection event processing failures
+- `EventStreamConcurrencyException`: Thrown by `EventStream.ConcurrencyInvariant` (and by an `IEventStore` implementation on save) when concurrent modification is detected.
+- `EventProcessingException`: Thrown during projection registration/event processing failures.
+- `UnhandledEventException`: Thrown by `EventStream.Apply` when the target object has no matching event-handling method for an event in the stream.
+- `EventStreamException`: General event-stream-related failures raised by an `IEventStore` implementation.
+- `AggregateConstructorException`: Thrown when an aggregate root cannot be constructed as expected.
+- `ProcessEventMethodMissingException`, `DuplicateKeyException`: Additional exception types used internally / by storage implementations.
+
+## Related Projects
+
+- **`Shuttle.Recall.WebApi`** and **`Shuttle.Recall.Vue`** (in this repository): an authenticated, permissioned REST API (built on `Shuttle.Access`) and matching Vue 3/Vuetify admin UI for searching and pruning a SQL Server-backed event store — a reference example of an end-to-end deployment.
+- **`Shuttle.Recall.SqlServer.Storage`**: SQL Server implementation of `IEventStore`.
+- **`Shuttle.Recall.SqlServer.EventProcessing`**: SQL Server implementation of projection/event processing, including immediate consistency tracking.
+- **`Shuttle.Recall.Testing`**: base fixtures for verifying `IEventStore`/`IEventProcessor` implementations.
+- **`Shuttle.Recall.OpenTelemetry`**: OpenTelemetry metrics and tracing for Recall-domain events.
+- **`Shuttle.Recall.Samples`**: sample applications demonstrating event sourcing and projections.
 
 # Documentation
 
