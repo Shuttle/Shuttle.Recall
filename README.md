@@ -42,6 +42,9 @@ services.AddRecall(options =>
     options.EventProcessing.IncludedProjections.Add("ProjectionName");
     options.EventProcessing.ExcludedProjections.Add("ExcludeMe");
 
+    options.EventProcessing.ImmediateConsistency.Enabled = true;
+    options.EventProcessing.ImmediateConsistency.IncludedProjections.Add("ProjectionName");
+
     options.EventStore.CompressionAlgorithm = "gzip";
     options.EventStore.EncryptionAlgorithm = "aes";
 });
@@ -55,6 +58,33 @@ services.AddRecall(options =>
 | `IncludedProjections` | `[]` | List of projection names to include |
 | `ExcludedProjections` | `[]` | List of projection names to exclude |
 | `ProjectionProcessorIdleDurations` | varies | Idle durations for processor polling |
+| `ImmediateConsistency` | see below | Options controlling immediate consistency processing |
+| `ImmediateConsistencyFailed` | | `AsyncEvent<ImmediateConsistencyFailedEventArgs>` raised when a projection handler throws while processing an event immediately |
+
+### ImmediateConsistency Options
+
+By default, a projection only ever processes an event once the background `IEventProcessor` gets round to it. Immediate consistency lets specific projections handle an event *synchronously*, as part of the `IEventStore.SaveAsync` call that persisted it, so that a read model built from that projection is guaranteed to reflect the event by the time `SaveAsync` returns.
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `Enabled` | `false` | While `false`, every save is processed eventually only and `IncludedProjections`/`ExcludedProjections` below are ignored |
+| `IncludedProjections` | `[]` | Projection names that should be handled immediately. If empty, every registered projection is eligible (subject to `ExcludedProjections`). May not be specified together with `ExcludedProjections` |
+| `ExcludedProjections` | `[]` | Projection names to exclude from immediate handling when `IncludedProjections` is empty. May not be specified together with `IncludedProjections` |
+
+These `IncludedProjections`/`ExcludedProjections` only decide which projections are handled immediately — they are separate from, and have no effect on, the `EventProcessing.IncludedProjections`/`ExcludedProjections` above, which decide which projections the eventual `IEventProcessor` handles at all.
+
+If a projection's handler throws while being invoked immediately, the event is not lost: `EventProcessing.ImmediateConsistencyFailed` is raised, and the eventual `IEventProcessor` will still pick up and retry the event on its next pass.
+
+```csharp
+options.EventProcessing.ImmediateConsistencyFailed += (args, cancellationToken) =>
+{
+    _logger.LogWarning("Projection '{ProjectionName}' failed to handle event '{EventId}' immediately: {Exception}", args.ProjectionName, args.PrimitiveEvent.EventId, args.Exception);
+
+    return Task.CompletedTask;
+};
+```
+
+You can also request immediate consistency for a single `SaveAsync` call, regardless of whether `Enabled` is set — see [Saving with Immediate Consistency](#saving-with-immediate-consistency).
 
 ### EventStore Options
 
@@ -115,6 +145,21 @@ stream
 
 await eventStore.SaveAsync(stream);
 ```
+
+### Saving with Immediate Consistency
+
+```csharp
+var stream = await eventStore.GetAsync(streamId);
+
+stream.Add(new SomeEvent { Data = "example" });
+
+await eventStore.SaveAsync(stream, builder =>
+{
+    builder.WithImmediateConsistency();
+});
+```
+
+This requests immediate consistency for this save only, even when `EventProcessing.ImmediateConsistency.Enabled` is `false`. Which projections actually run immediately is still governed by `EventProcessing.ImmediateConsistency.IncludedProjections`/`ExcludedProjections` — see [ImmediateConsistency Options](#immediateconsistency-options).
 
 ### Retrieving an Event Stream
 

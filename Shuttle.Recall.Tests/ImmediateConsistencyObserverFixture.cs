@@ -93,6 +93,47 @@ public class ImmediateConsistencyObserverFixture
     }
 
     [Test]
+    public async Task Should_run_when_requested_via_the_event_stream_builder_even_when_not_enabled_by_default_async()
+    {
+        var (eventStream, eventEnvelope, primitiveEvent) = CreateSavedEvent();
+
+        var eventHandlerInvoker = new Mock<IEventHandlerInvoker>();
+
+        eventHandlerInvoker
+            .Setup(m => m.InvokeImmediateAsync(It.IsAny<Projection>(), eventEnvelope, It.IsAny<object>(), primitiveEvent, It.IsAny<IServiceProvider>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var projectionEventService = new Mock<IProjectionEventService>();
+
+        var services = new ServiceCollection();
+
+        services.AddSingleton(projectionEventService.Object);
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var pipelineContext = CreatePipelineContext(eventStream, eventEnvelope, primitiveEvent, serviceProvider);
+
+        pipelineContext.Pipeline.State.SetImmediateConsistency(true);
+
+        var eventProcessorConfiguration = new EventProcessorConfiguration();
+
+        eventProcessorConfiguration.GetProjection("projection-1").AddHandlerEventType(typeof(EventA));
+
+        var options = new RecallOptions();
+
+        // 'Enabled' is deliberately left 'false' -- the per-save request via 'EventStreamBuilder.WithImmediateConsistency()'
+        // should be sufficient on its own. 'IncludedProjections' names a *different* projection to show that an
+        // explicit per-save request overrides 'ImmediateConsistencyOptions' filtering entirely: 'projection-1' still runs.
+        options.EventProcessing.ImmediateConsistency.IncludedProjections.Add("projection-2");
+
+        var observer = new ImmediateConsistencyObserver(Options.Create(options), eventHandlerInvoker.Object, eventProcessorConfiguration);
+
+        await observer.ExecuteAsync(pipelineContext);
+
+        projectionEventService.Verify(m => m.ProjectionEventHandledAsync("projection-1", primitiveEvent.EventId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Test]
     public void Should_throw_when_included_but_no_projection_event_service_is_registered_async()
     {
         var eventHandlerInvoker = new Mock<IEventHandlerInvoker>();

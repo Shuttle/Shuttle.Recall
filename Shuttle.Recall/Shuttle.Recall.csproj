@@ -45,7 +45,7 @@
 
   <PropertyGroup>
     <Description>Event sourcing mechanism.</Description>
-    <Version>22.0.0-alpha.1</Version>
+    <Version>22.0.0-beta.1</Version>
     <PackageProjectUrl>https://github.com/Shuttle/Shuttle.Recall</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Shuttle/Shuttle.Recall.git</RepositoryUrl>
     <PackageTags>eventsourcing eventsource event-sourcing event-source eventstore event-store</PackageTags>

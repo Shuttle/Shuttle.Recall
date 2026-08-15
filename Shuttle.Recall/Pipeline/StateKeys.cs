@@ -12,6 +12,7 @@ public class StateKeys
     public const string EventStream = "EventStream";
     public const string HasBeenDeferred = "HasBeenDeferred";
     public const string Id = "Id";
+    public const string ImmediateConsistency = "ImmediateConsistency";
     public const string PrimitiveEvent = "PrimitiveEvent";
     public const string PrimitiveEvents = "PrimitiveEvents";
     public const string ProcessorThreadManagedThreadId = "ProcessorThreadManagedThreadId";

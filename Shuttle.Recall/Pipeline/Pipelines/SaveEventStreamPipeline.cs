@@ -38,6 +38,7 @@ public class SaveEventStreamPipeline : Pipeline, ISaveEventStreamPipeline
     {
         State.SetEventStream(Guard.AgainstNull(eventStream));
         State.SetEventStreamBuilder(builder);
+        State.SetImmediateConsistency(Guard.AgainstNull(builder).ImmediateConsistency);
 
         await ExecuteAsync().ConfigureAwait(false);
     }

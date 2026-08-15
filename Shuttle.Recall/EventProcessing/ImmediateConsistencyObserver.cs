@@ -16,27 +16,37 @@ public class ImmediateConsistencyObserver(IOptions<RecallOptions> recallOptions,
     public async Task ExecuteAsync(IPipelineContext<HandleImmediateConsistency> pipelineContext, CancellationToken cancellationToken = default)
     {
         var immediateConsistency = _recallOptions.EventProcessing.ImmediateConsistency;
+        var pipeline = Guard.AgainstNull(pipelineContext).Pipeline;
+        var immediateConsistencyRequested = pipeline.State.GetImmediateConsistency();
 
-        if (!immediateConsistency.Enabled)
+        // A save can opt into immediate consistency for itself via 'EventStreamBuilder.WithImmediateConsistency()',
+        // even while the feature is not enabled by default (see 'ImmediateConsistencyOptions.Enabled').
+        if (!immediateConsistency.Enabled && !immediateConsistencyRequested)
         {
             return;
         }
 
-        // 'IncludedProjections' names the target projections directly. Otherwise, every registered projection is a
-        // candidate, less any named in 'ExcludedProjections'. See RecallOptionsValidator for the mutual exclusivity check.
-        var projectionNames = immediateConsistency.IncludedProjections.Count > 0
-            ? immediateConsistency.IncludedProjections
-            : _eventProcessorConfiguration.Projections
+        // When immediate consistency has been explicitly requested for this save, it applies to every registered
+        // projection regardless of 'ImmediateConsistencyOptions.IncludedProjections'/'ExcludedProjections'.
+        // Otherwise, 'IncludedProjections' names the target projections directly; if not set, every registered
+        // projection is a candidate, less any named in 'ExcludedProjections'. See RecallOptionsValidator for the
+        // mutual exclusivity check.
+        var projectionNames = immediateConsistencyRequested
+            ? _eventProcessorConfiguration.Projections
                 .Select(projectionConfiguration => projectionConfiguration.Name)
-                .Where(name => !immediateConsistency.ExcludedProjections.Contains(name))
-                .ToList();
+                .ToList()
+            : immediateConsistency.IncludedProjections.Count > 0
+                ? immediateConsistency.IncludedProjections
+                : _eventProcessorConfiguration.Projections
+                    .Select(projectionConfiguration => projectionConfiguration.Name)
+                    .Where(name => !immediateConsistency.ExcludedProjections.Contains(name))
+                    .ToList();
 
         if (projectionNames.Count == 0)
         {
             return;
         }
 
-        var pipeline = Guard.AgainstNull(pipelineContext).Pipeline;
         var state = pipeline.State;
         var serviceProvider = pipeline.ServiceProvider;
         var eventEnvelopes = Guard.AgainstNull(state.GetEventEnvelopes()).ToList();

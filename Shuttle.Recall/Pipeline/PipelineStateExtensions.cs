@@ -77,6 +77,11 @@ public static class PipelineStateExtensions
             return Guard.AgainstNull(state.Get<ProjectionEvent>(StateKeys.ProjectionEvent));
         }
 
+        public bool GetImmediateConsistency()
+        {
+            return state.Get<bool?>(StateKeys.ImmediateConsistency) ?? false;
+        }
+
         public int GetVersion()
         {
             return state.Get<int>(StateKeys.Version);
@@ -151,6 +156,11 @@ public static class PipelineStateExtensions
         public void SetProjectionEvent(ProjectionEvent projectionEvent)
         {
             state.Replace(StateKeys.ProjectionEvent, projectionEvent);
+        }
+
+        public void SetImmediateConsistency(bool value)
+        {
+            state.Replace(StateKeys.ImmediateConsistency, value);
         }
 
         public void SetVersion(int value)
