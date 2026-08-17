@@ -15,7 +15,7 @@
     <PackageReference Include="Shuttle.Access.AspNetCore" Version="11.0.5" />
     <PackageReference Include="Shuttle.Access.RestClient" Version="11.0.5" />
     <PackageReference Include="Shuttle.Mediator" Version="21.0.1" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.3" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="22.0.1" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.16.17" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
