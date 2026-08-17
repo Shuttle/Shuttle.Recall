@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Shuttle.Recall.Tests/Shuttle.Recall.Tests.csproj" />
+  <Project Path="Shuttle.Recall.WebApi/Shuttle.Recall.WebApi.csproj" />
+  <Project Path="Shuttle.Recall/Shuttle.Recall.csproj" />
+</Solution>

@@ -8,8 +8,6 @@ public interface IDeserializeEventObserver : IPipelineObserver<DeserializeEvent>
 
 public class DeserializeEventObserver(ISerializer serializer) : IDeserializeEventObserver
 {
-    private readonly ISerializer _serializer = Guard.AgainstNull(serializer);
-
     public async Task ExecuteAsync(IPipelineContext<DeserializeEvent> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
@@ -17,6 +15,6 @@ public class DeserializeEventObserver(ISerializer serializer) : IDeserializeEven
 
         using var stream = new MemoryStream(eventEnvelope.Event);
 
-        state.SetDomainEvent(new(await _serializer.DeserializeAsync(Guard.AgainstNull(Type.GetType(Guard.AgainstEmpty(eventEnvelope.AssemblyQualifiedName), true, true)), stream, cancellationToken), eventEnvelope.Version));
+        state.SetDomainEvent(new(await serializer.DeserializeAsync(Guard.AgainstNull(Type.GetType(Guard.AgainstEmpty(eventEnvelope.AssemblyQualifiedName), true, true)), stream, cancellationToken), eventEnvelope.Version));
     }
 }

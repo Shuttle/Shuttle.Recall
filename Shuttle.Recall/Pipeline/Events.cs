@@ -1,77 +1,81 @@
 ﻿namespace Shuttle.Recall;
 
-public class AddProjection;
-
-public class ProjectionAdded;
-
-public class RetrieveEventEnvelope;
-
-public class EventEnvelopeRetrieved;
-
-public class AssembleEventEnvelopes;
-
-public class EventEnvelopesAssembled;
-
-public class SavePrimitiveEvents;
-
-public class PrimitiveEventsSaved;
-
-public class CommitEventStream;
-
-public class EventStreamCommitted;
-
-public class RetrieveStreamEvents;
-
-public class StreamEventsRetrieved;
-
-public class AssembleEventStream;
-
-public class EventStreamAssembled;
-
-public class RemoveEventStream;
-
-public class EventStreamRemoved;
-
-public class RetrieveEvent;
-
-public class EventRetrieved;
-
-public class HandleEvent;
-
-public class EventHandled;
-
 public class AcknowledgeEvent;
 
-public class EventAcknowledged;
-
-public class DeserializeEventEnvelope;
-
-public class EventEnvelopeDeserialized;
-
-public class DeserializeEvent;
-
-public class EventDeserialized;
-
-public class SerializeEvent;
-
-public class EventSerialized;
+public class AddProjection;
 
 public class AssembleEventEnvelope;
 
-public class EventEnvelopeAssembled;
+public class AssembleEventEnvelopes;
 
-public class StartEventProcessing;
+public class AssembleEventStream;
 
-public class EventProcessingStarted;
+public class CommitEventStream;
 
 public class ConfigureThreadPools;
 
-public class ThreadPoolsConfigured;
+public class DeserializeEvent;
 
-public class StartThreadPools;
+public class DeserializeEventEnvelope;
 
-public class ThreadPoolsStarted;
+public class EventAcknowledged;
+
+public class EventDeserialized;
+
+public class EventEnvelopeAssembled;
+
+public class EventEnvelopeDeserialized;
+
+public class EventEnvelopeRetrieved;
+
+public class EventEnvelopesAssembled;
+
+public class EventHandled;
+
+public class EventProcessingStarted;
+
+public class EventRetrieved;
+
+public class EventSerialized;
+
+public class EventStreamAssembled;
+
+public class EventStreamCommitted;
+
+public class EventStreamRemoved;
+
+public class EventStreamSaved;
+
+public class HandleEvent;
+
+public class HandleImmediateConsistency;
+
+public class ImmediateConsistencyHandled;
+
+public class PrimitiveEventsSaved;
+
+public class ProjectionAdded;
+
+public class RemoveEventStream;
+
+public class RetrieveEvent;
+
+public class RetrieveEventEnvelope;
+
+public class RetrieveStreamEvents;
 
 public class SaveEventStream;
 
-public class EventStreamSaved;
+public class SavePrimitiveEvents;
+
+public class SerializeEvent;
+
+public class StartEventProcessing;
+
+public class StartThreadPools;
+
+public class StreamEventsRetrieved;
+
+public class ThreadPoolsConfigured;
+
+public class ThreadPoolsStarted;

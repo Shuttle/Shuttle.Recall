@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -29,36 +29,117 @@ public class EventHandlerInvoker(IOptions<RecallOptions> recallOptions, IEventPr
         var primitiveEvent = Guard.AgainstNull(projectionEvent.PrimitiveEvent);
         var eventEnvelope = Guard.AgainstNull(state.GetEventEnvelope());
         var domainEvent = Guard.AgainstNull(state.GetDomainEvent().Event);
-        var eventType = Guard.AgainstNull(Type.GetType(eventEnvelope.AssemblyQualifiedName, true));
-        var projectionConfiguration = _eventProcessorConfiguration.GetProjection(projectionEvent.Projection.Name);
         var serviceProvider = pipelineContext.Pipeline.ServiceProvider;
-
-        LogMessage.EventHandlerInvokerInvoke(_logger, projectionEvent.Projection.Name, eventType.FullName);
 
         if (!primitiveEvent.SequenceNumber.HasValue)
         {
             throw new ApplicationException(string.Format(Resources.PrimitiveEventSequenceNumberException, projectionEvent.PrimitiveEvent.Id, projectionEvent.PrimitiveEvent.Version));
         }
 
-        if (!projectionConfiguration.HandlesEventType(eventType))
+        try
+        {
+            if (projectionEvent.AlreadyHandled)
+            {
+                return true;
+            }
+
+            var (handled, deferred, deferredFor) = await InvokeHandlerAsync(projectionEvent.Projection, eventEnvelope, domainEvent, primitiveEvent, serviceProvider, cancellationToken).ConfigureAwait(false);
+
+            if (deferred)
+            {
+                state.SetDeferredUntil(DateTimeOffset.UtcNow.Add(deferredFor ?? _recallOptions.EventProcessing.DefaultDeferredDuration));
+            }
+
+            return handled;
+        }
+        finally
         {
             projectionEvent.Projection.Commit(primitiveEvent.SequenceNumber.Value);
-            return false;
         }
+    }
+
+    public async ValueTask<bool> InvokeImmediateAsync(Projection projection, EventEnvelope eventEnvelope, object domainEvent, PrimitiveEvent primitiveEvent, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+    {
+        var (handled, deferred, _) = await InvokeHandlerAsync(Guard.AgainstNull(projection), Guard.AgainstNull(eventEnvelope), Guard.AgainstNull(domainEvent), Guard.AgainstNull(primitiveEvent), Guard.AgainstNull(serviceProvider), cancellationToken).ConfigureAwait(false);
+
+        return handled && !deferred;
+    }
+
+    private async Task<(bool Handled, bool Deferred, TimeSpan? DeferredFor)> InvokeHandlerAsync(Projection projection, EventEnvelope eventEnvelope, object domainEvent, PrimitiveEvent primitiveEvent, IServiceProvider serviceProvider, CancellationToken cancellationToken)
+    {
+        var eventType = Guard.AgainstNull(Type.GetType(eventEnvelope.AssemblyQualifiedName, true));
+        var projectionConfiguration = _eventProcessorConfiguration.GetProjection(projection.Name);
+
+        LogMessage.EventHandlerInvokerInvoke(_logger, projection.Name, eventType.FullName);
+
+        if (!projectionConfiguration.HandlesEventType(eventType))
+        {
+            return (false, false, null);
+        }
+
+        HandlerContextConstructorInvoker? contextConstructor;
+
+        await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
-            HandlerContextConstructorInvoker? contextConstructor;
+            if (!_handlerContextConstructorInvokers.TryGetValue(eventType, out contextConstructor))
+            {
+                contextConstructor = new(eventType);
+
+                _handlerContextConstructorInvokers.Add(eventType, contextConstructor);
+            }
+        }
+        finally
+        {
+            _lock.Release();
+        }
+
+        var handlerContext = contextConstructor.CreateHandlerContext(projection, eventEnvelope, domainEvent, primitiveEvent);
+
+        if (projectionConfiguration.TryGetDelegate(eventType, out var projectionDelegate))
+        {
+            LogMessage.EventHandlerInvokerInvokeDetail(_logger, projection.Name, eventType.FullName, "delegate");
+
+            if (projectionDelegate.HasParameters)
+            {
+                await (Task)projectionDelegate.Handler.DynamicInvoke(projectionDelegate.GetParameters(serviceProvider, handlerContext, cancellationToken))!;
+            }
+            else
+            {
+                await (Task)projectionDelegate.Handler.DynamicInvoke()!;
+            }
+        }
+        else
+        {
+            var handler = serviceProvider.GetKeyedServices(EventHandlerType.MakeGenericType(eventType), $"[Shuttle.Recall.Projection/{projection.Name}]:{Guard.AgainstEmpty(eventType.FullName)}").FirstOrDefault();
+
+            if (handler == null)
+            {
+                return (false, false, null);
+            }
+
+            LogMessage.EventHandlerInvokerInvokeHandler(_logger, projection.Name, eventType.FullName, "IEventHandler", handler.GetType().FullName);
+
+            ProcessEventMethodInvoker? processEventMethodInvoker;
 
             await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
-                if (!_handlerContextConstructorInvokers.TryGetValue(eventType, out contextConstructor))
+                if (!_processEventMethodInvokers.TryGetValue(eventType, out processEventMethodInvoker))
                 {
-                    contextConstructor = new(eventType);
+                    var interfaceType = EventHandlerType.MakeGenericType(eventType);
+                    var methodInfo = handler.GetType().GetInterfaceMap(interfaceType).TargetMethods.SingleOrDefault();
 
-                    _handlerContextConstructorInvokers.Add(eventType, contextConstructor);
+                    if (methodInfo == null)
+                    {
+                        throw new ProcessEventMethodMissingException(string.Format(Resources.ProcessEventMethodMissingException, handler.GetType().FullName, eventType.FullName));
+                    }
+
+                    processEventMethodInvoker = new(methodInfo);
+
+                    _processEventMethodInvokers.Add(eventType, processEventMethodInvoker);
                 }
             }
             finally
@@ -66,76 +147,14 @@ public class EventHandlerInvoker(IOptions<RecallOptions> recallOptions, IEventPr
                 _lock.Release();
             }
 
-            var handlerContext = contextConstructor.CreateHandlerContext(projectionEvent.Projection, eventEnvelope, domainEvent, primitiveEvent);
-
-            try
-            {
-                if (projectionConfiguration.TryGetDelegate(eventType, out var projectionDelegate))
-                {
-                    LogMessage.EventHandlerInvokerInvokeDetail(_logger, projectionEvent.Projection.Name, eventType.FullName, "delegate");
-
-                    if (projectionDelegate.HasParameters)
-                    {
-                        await (Task)projectionDelegate.Handler.DynamicInvoke(projectionDelegate.GetParameters(serviceProvider, handlerContext, cancellationToken))!;
-                    }
-                    else
-                    {
-                        await (Task)projectionDelegate.Handler.DynamicInvoke()!;
-                    }
-
-                    return true;
-                }
-
-                var handler = serviceProvider.GetKeyedServices(EventHandlerType.MakeGenericType(eventType), $"[Shuttle.Recall.Projection/{projectionEvent.Projection.Name}]:{Guard.AgainstEmpty(eventType.FullName)}").FirstOrDefault();
-
-                if (handler == null)
-                {
-                    return false;
-                }
-
-                LogMessage.EventHandlerInvokerInvokeHandler(_logger, projectionEvent.Projection.Name, eventType.FullName, "IEventHandler", handler.GetType().FullName);
-
-                ProcessEventMethodInvoker? processEventMethodInvoker;
-
-                await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-                try
-                {
-                    if (!_processEventMethodInvokers.TryGetValue(eventType, out processEventMethodInvoker))
-                    {
-                        var interfaceType = EventHandlerType.MakeGenericType(eventType);
-                        var methodInfo = handler.GetType().GetInterfaceMap(interfaceType).TargetMethods.SingleOrDefault();
-
-                        if (methodInfo == null)
-                        {
-                            throw new ProcessEventMethodMissingException(string.Format(Resources.ProcessEventMethodMissingException, handler.GetType().FullName, eventType.FullName));
-                        }
-
-                        processEventMethodInvoker = new(methodInfo);
-
-                        _processEventMethodInvokers.Add(eventType, processEventMethodInvoker);
-                    }
-                }
-                finally
-                {
-                    _lock.Release();
-                }
-
-                await processEventMethodInvoker.InvokeAsync(handler, handlerContext, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                if (handlerContext is IEventHandlerContext { HasBeenDeferred: true } deferredContext)
-                {
-                    state.SetDeferredUntil(DateTimeOffset.UtcNow.Add(deferredContext.DeferredFor ?? _recallOptions.EventProcessing.DefaultDeferredDuration));
-                }
-            }
+            await processEventMethodInvoker.InvokeAsync(handler, handlerContext, cancellationToken).ConfigureAwait(false);
         }
-        finally
+
+        if (handlerContext is IEventHandlerContext { HasBeenDeferred: true } deferredContext)
         {
-            projectionEvent.Projection.Commit(primitiveEvent.SequenceNumber.Value);
+            return (true, true, deferredContext.DeferredFor);
         }
 
-        return true;
+        return (true, false, null);
     }
 }

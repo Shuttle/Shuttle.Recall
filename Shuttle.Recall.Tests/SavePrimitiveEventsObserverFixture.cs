@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Options;
+using Moq;
 using NUnit.Framework;
 using Shuttle.Pipelines;
 using Shuttle.Serialization;
@@ -17,6 +18,7 @@ public class SavePrimitiveEventsObserverFixture
         repository.Setup(m => m.SaveAsync(It.IsAny<IEnumerable<PrimitiveEvent>>(), It.IsAny<CancellationToken>())).Throws<Exception>();
 
         var observer = new SavePrimitiveEventsObserver(
+            Options.Create(new RecallOptions()),
             repository.Object,
             new Mock<ISerializer>().Object,
             specification.Object);

@@ -12,6 +12,12 @@ public class RecallOptionsValidator : IValidateOptions<RecallOptions>
             return ValidateOptionsResult.Fail(Resources.ActiveProjectionsException);
         }
 
+        if (options.EventProcessing.ImmediateConsistency.IncludedProjections.Count > 0 &&
+            options.EventProcessing.ImmediateConsistency.ExcludedProjections.Count > 0)
+        {
+            return ValidateOptionsResult.Fail(Resources.ImmediateConsistencyActiveProjectionsException);
+        }
+
         return ValidateOptionsResult.Success;
     }
 }

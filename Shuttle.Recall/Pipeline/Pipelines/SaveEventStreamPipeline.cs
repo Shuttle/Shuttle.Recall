@@ -11,7 +11,7 @@ public interface ISaveEventStreamPipeline : IPipeline
 
 public class SaveEventStreamPipeline : Pipeline, ISaveEventStreamPipeline
 {
-    public SaveEventStreamPipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider, IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver)
+    public SaveEventStreamPipeline(IOptions<PipelineOptions> pipelineOptions, IServiceProvider serviceProvider, IAssembleEventEnvelopesObserver assembleEventEnvelopesObserver, IImmediateConsistencyObserver immediateConsistencyObserver, ISavePrimitiveEventsObserver savePrimitiveEventsObserver, IEventStreamObserver eventStreamObserver)
         : base(pipelineOptions, serviceProvider)
     {
         AddStage("Assemble")
@@ -24,9 +24,12 @@ public class SaveEventStreamPipeline : Pipeline, ISaveEventStreamPipeline
 
         AddStage("Persist")
             .WithEvent<SaveEventStream>()
-            .WithEvent<EventStreamSaved>();
+            .WithEvent<EventStreamSaved>()
+            .WithEvent<HandleImmediateConsistency>()
+            .WithEvent<ImmediateConsistencyHandled>();
 
         AddObserver(Guard.AgainstNull(assembleEventEnvelopesObserver));
+        AddObserver(Guard.AgainstNull(immediateConsistencyObserver));
         AddObserver(Guard.AgainstNull(savePrimitiveEventsObserver));
         AddObserver(Guard.AgainstNull(eventStreamObserver));
     }
@@ -35,6 +38,7 @@ public class SaveEventStreamPipeline : Pipeline, ISaveEventStreamPipeline
     {
         State.SetEventStream(Guard.AgainstNull(eventStream));
         State.SetEventStreamBuilder(builder);
+        State.SetImmediateConsistency(Guard.AgainstNull(builder).ImmediateConsistency);
 
         await ExecuteAsync().ConfigureAwait(false);
     }

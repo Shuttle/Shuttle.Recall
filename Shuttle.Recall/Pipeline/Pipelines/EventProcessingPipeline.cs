@@ -31,7 +31,7 @@ public class EventProcessingPipeline : Pipeline, IEventProcessingPipeline
         {
             context.Pipeline.Abort();
 
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         });
     }
 }

@@ -16,11 +16,11 @@ public class EventHandlerInvokerFixture
     {
         public bool Invoked { get; private set; }
 
-        public async Task HandleAsync(IEventHandlerContext<EventA> context, CancellationToken cancellationToken = default)
+        public Task HandleAsync(IEventHandlerContext<EventA> context, CancellationToken cancellationToken = default)
         {
             Invoked = true;
 
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
     }
 
@@ -94,13 +94,49 @@ public class EventHandlerInvokerFixture
         {
             invoked = true;
 
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         });
 
         var result = await invoker.InvokeAsync(new PipelineContext<HandleEvent>(pipeline));
 
         Assert.That(result, Is.True);
         Assert.That(invoked, Is.True);
+    }
+
+    [Test]
+    public async Task Should_be_able_to_invoke_handler_immediately_without_a_sequence_number_async()
+    {
+        var handler = new EventHandlerA();
+
+        var services = new ServiceCollection();
+
+        services.AddLogging();
+
+        services.AddRecall()
+            .AddProjection("projection-1", builder =>
+            {
+                builder.AddEventHandler(handler);
+            });
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var invoker = serviceProvider.GetRequiredService<IEventHandlerInvoker>();
+
+        var projection = new Projection("projection-1", 0);
+        var primitiveEvent = new PrimitiveEvent();
+        var eventEnvelope = new EventEnvelope
+        {
+            AssemblyQualifiedName = typeof(EventA).AssemblyQualifiedName!,
+            EventType = typeof(EventA).FullName!
+        };
+
+        Assert.That(handler.Invoked, Is.False);
+
+        var result = await invoker.InvokeImmediateAsync(projection, eventEnvelope, new EventA(), primitiveEvent, serviceProvider);
+
+        Assert.That(result, Is.True);
+        Assert.That(handler.Invoked, Is.True);
+        Assert.That(projection.SequenceNumber, Is.EqualTo(0), "Immediate invocation must not advance the projection's checkpoint.");
     }
 
     [Test]

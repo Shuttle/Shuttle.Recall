@@ -1,23 +1,27 @@
-﻿using Shuttle.Contract;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Contract;
 using Shuttle.Pipelines;
 
 namespace Shuttle.Recall;
 
 public interface IHandleEventObserver : IPipelineObserver<HandleEvent>;
 
-public class HandleEventObserver(IEventHandlerInvoker eventMethodInvoker, IProjectionEventService projectionEventService) : IHandleEventObserver
+public class HandleEventObserver(IOptions<RecallOptions> recallOptions, IEventHandlerInvoker eventMethodInvoker, IProjectionEventService projectionEventService) : IHandleEventObserver
 {
-    private readonly IEventHandlerInvoker _eventMethodInvoker = Guard.AgainstNull(eventMethodInvoker);
-    private readonly IProjectionEventService _projectionEventService = Guard.AgainstNull(projectionEventService);
-
     public async Task ExecuteAsync(IPipelineContext<HandleEvent> pipelineContext, CancellationToken cancellationToken = default)
     {
-        await _eventMethodInvoker.InvokeAsync(pipelineContext, cancellationToken);
+        await eventMethodInvoker.InvokeAsync(pipelineContext, cancellationToken);
 
-        if (pipelineContext.Pipeline.State.GetHasBeenDeferred())
+        var state = pipelineContext.Pipeline.State;
+
+        if (state.GetHasBeenDeferred())
         {
-            await _projectionEventService.DeferAsync(pipelineContext, cancellationToken);
+            await projectionEventService.DeferAsync(pipelineContext, cancellationToken);
             pipelineContext.Pipeline.Abort();
+
+            return;
         }
+
+        await recallOptions.Value.EventProcessing.EventHandled.InvokeAsync(new(state.GetProjectionEvent(), state.GetEventEnvelope(), pipelineContext.Pipeline), cancellationToken);
     }
 }

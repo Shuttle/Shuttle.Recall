@@ -1,4 +1,5 @@
-﻿using Shuttle.Contract;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Contract;
 using Shuttle.Pipelines;
 using Shuttle.Serialization;
 using Shuttle.Streams;
@@ -7,13 +8,9 @@ namespace Shuttle.Recall;
 
 public interface ISavePrimitiveEventsObserver : IPipelineObserver<SavePrimitiveEvents>;
 
-public class SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEventRepository, ISerializer serializer, IConcurrencyExceptionSpecification concurrencyExceptionSpecification)
+public class SavePrimitiveEventsObserver(IOptions<RecallOptions> recallOptions, IPrimitiveEventRepository primitiveEventRepository, ISerializer serializer, IConcurrencyExceptionSpecification concurrencyExceptionSpecification)
     : ISavePrimitiveEventsObserver
 {
-    private readonly IConcurrencyExceptionSpecification _concurrencyExceptionSpecification = Guard.AgainstNull(concurrencyExceptionSpecification);
-    private readonly IPrimitiveEventRepository _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
-    private readonly ISerializer _serializer = Guard.AgainstNull(serializer);
-
     public async Task ExecuteAsync(IPipelineContext<SavePrimitiveEvents> pipelineContext, CancellationToken cancellationToken = default)
     {
         var state = Guard.AgainstNull(pipelineContext).Pipeline.State;
@@ -35,7 +32,7 @@ public class SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEven
                     Id = eventStream.Id,
                     Version = version,
                     CorrelationId = eventStream.CorrelationId,
-                    EventEnvelope = await (await _serializer.SerializeAsync(eventEnvelope, cancellationToken)).ToBytesAsync(),
+                    EventEnvelope = await (await serializer.SerializeAsync(eventEnvelope, cancellationToken)).ToBytesAsync(),
                     EventId = eventEnvelope.EventId,
                     EventType = eventEnvelope.EventType,
                     RecordedAt = eventEnvelope.RecordedAt
@@ -44,11 +41,15 @@ public class SavePrimitiveEventsObserver(IPrimitiveEventRepository primitiveEven
                 primitiveEvents.Add(primitiveEvent);
             }
 
-            await _primitiveEventRepository.SaveAsync(primitiveEvents, cancellationToken).ConfigureAwait(false);
+            await primitiveEventRepository.SaveAsync(primitiveEvents, cancellationToken).ConfigureAwait(false);
+
+            await recallOptions.Value.EventStore.PrimitiveEventsSaved.InvokeAsync(new(primitiveEvents, pipelineContext.Pipeline), cancellationToken);
+
+            state.SetPrimitiveEvents(primitiveEvents);
         }
         catch (Exception ex)
         {
-            if (_concurrencyExceptionSpecification.IsSatisfiedBy(ex))
+            if (concurrencyExceptionSpecification.IsSatisfiedBy(ex))
             {
                 throw new EventStreamConcurrencyException(string.Format(Resources.EventStreamConcurrencyException, eventStream.Id, version), ex);
             }

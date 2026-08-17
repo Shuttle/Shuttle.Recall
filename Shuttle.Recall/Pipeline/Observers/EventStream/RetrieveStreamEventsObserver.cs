@@ -8,8 +8,6 @@ public interface IRetrieveStreamEventsObserver : IPipelineObserver<RetrieveStrea
 public class RetrieveStreamEventsObserver(IGetEventEnvelopePipeline getEventEnvelopePipeline, IPrimitiveEventRepository primitiveEventRepository)
     : IRetrieveStreamEventsObserver
 {
-    private readonly IPrimitiveEventRepository _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
-
     public async Task ExecuteAsync(IPipelineContext<RetrieveStreamEvents> pipelineContext, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(getEventEnvelopePipeline);
@@ -19,7 +17,7 @@ public class RetrieveStreamEventsObserver(IGetEventEnvelopePipeline getEventEnve
 
         var version = 0;
 
-        var primitiveEvents = await _primitiveEventRepository.GetAsync(state.GetId(), cancellationToken).ConfigureAwait(false);
+        var primitiveEvents = await primitiveEventRepository.GetAsync(state.GetId(), cancellationToken).ConfigureAwait(false);
 
         foreach (var primitiveEvent in primitiveEvents)
         {

@@ -42,8 +42,6 @@ public class EventProcessor(IServiceScopeFactory serviceScopeFactory, IOptions<R
         _serviceScope?.Dispose();
 
         Started = false;
-
-        await Task.CompletedTask;
     }
 
     public async ValueTask DisposeAsync()
