@@ -19,15 +19,16 @@ public static class EventTypeEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPost("/event-types/search", async (IOptions<SqlServerStorageOptions> sqlServerStorageOptions, ISessionContext sessionContext, SqlServerStorageDbContext dbContext, EventType.Specification specification, CancellationToken cancellationToken) =>
+        app.MapPost("/event-types/search", async (IOptions<SqlServerStorageOptions> sqlServerStorageOptions, ISessionContext sessionContext, IEventStoreContext eventStoreContext, SqlServerStorageDbContext dbContext, EventType.Specification specification, CancellationToken cancellationToken) =>
             {
                 Guard.AgainstNull(sessionContext);
+                Guard.AgainstNull(eventStoreContext);
                 Guard.AgainstNull(dbContext);
 
-                //if (!(sessionContext.Session?.HasPermission("recall://default/events") ?? false))
-                //{
-                //    return Results.Ok(new EventStoreResponse<EventType>());
-                //}
+                if (!eventStoreContext.HasAccess(sessionContext))
+                {
+                    return Results.Ok(new EventStoreResponse<EventType>());
+                }
 
                 var connection = dbContext.Database.GetDbConnection();
 

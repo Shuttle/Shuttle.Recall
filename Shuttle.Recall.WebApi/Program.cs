@@ -2,6 +2,8 @@ using System.Data.Common;
 using Asp.Versioning;
 using Azure.Identity;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 using Serilog;
 using Shuttle.Access.AspNetCore;
@@ -58,9 +60,10 @@ public class Program
                 options.SubstituteApiVersionInUrl = true;
             });
 
-        var accessConnectionString = configuration.GetConnectionString("Recall") ?? throw new ApplicationException("Missing connection string 'Recall'.");
-
         webApplicationBuilder.Services
+            .AddHttpContextAccessor()
+            .Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName))
+            .AddScoped<IEventStoreContext, EventStoreContext>()
             .AddLogging(builder =>
             {
                 builder.AddSerilog();
@@ -100,11 +103,18 @@ public class Program
             .UseSqlServerEventStorage(options =>
             {
                 configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(options);
-
-                options.ConnectionString = accessConnectionString;
-                options.Schema = "access";
             })
             .Services
+            .AddDbContext<SqlServerStorageDbContext>((serviceProvider, options) =>
+            {
+                var sqlServerStorageOptions = serviceProvider.GetRequiredService<IOptions<SqlServerStorageOptions>>().Value;
+                var eventStoreContext = serviceProvider.GetRequiredService<IEventStoreContext>();
+
+                options.UseSqlServer(eventStoreContext.EventStore.ConnectionString, sqlServerOptions =>
+                {
+                    sqlServerOptions.CommandTimeout((int)sqlServerStorageOptions.CommandTimeout.TotalSeconds);
+                });
+            })
             .AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>

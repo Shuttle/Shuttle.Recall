@@ -22,28 +22,27 @@ public static class EventEndpoints
             .WithTags("Events")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
-            //.RequireSession();
 
         app.MapPost("/events/delete", PostDelete)
             .WithTags("Events")
             .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1)
-            .RequireSession();
+            .MapToApiVersion(apiVersion1);
 
         return app;
     }
 
-    private static async Task<IResult> PostSearch(IConfiguration configuration, ISessionContext sessionContext, IPrimitiveEventQuery primitiveEventQuery, ISerializer serializer, Models.PrimitiveEvent.Specification model)
+    private static async Task<IResult> PostSearch(IConfiguration configuration, ISessionContext sessionContext, IEventStoreContext eventStoreContext, IPrimitiveEventQuery primitiveEventQuery, ISerializer serializer, Models.PrimitiveEvent.Specification model)
     {
         Guard.AgainstNull(configuration);
         Guard.AgainstNull(sessionContext);
+        Guard.AgainstNull(eventStoreContext);
         Guard.AgainstNull(primitiveEventQuery);
         Guard.AgainstNull(serializer);
 
-        //if (!(sessionContext.Session?.HasPermission("recall://default/events") ?? false))
-        //{
-        //    return Results.Ok(new EventStoreResponse<Event>());
-        //}
+        if (!eventStoreContext.HasAccess(sessionContext))
+        {
+            return Results.Ok(new EventStoreResponse<Event>());
+        }
 
         var maximumRows = model.MaximumRows;
 
@@ -84,12 +83,13 @@ public static class EventEndpoints
         return Results.Ok(new EventStoreResponse<Event> { Items = result });
     }
 
-    private static async Task<IResult> PostDelete(ISessionContext sessionContext, IPrimitiveEventRepository primitiveEventRepository, Models.PrimitiveEvent.Specification model)
+    private static async Task<IResult> PostDelete(ISessionContext sessionContext, IEventStoreContext eventStoreContext, IPrimitiveEventRepository primitiveEventRepository, Models.PrimitiveEvent.Specification model)
     {
         Guard.AgainstNull(sessionContext);
+        Guard.AgainstNull(eventStoreContext);
         Guard.AgainstNull(primitiveEventRepository);
 
-        if (!sessionContext.HasPermission("recall://default/events"))
+        if (!eventStoreContext.HasAccess(sessionContext))
         {
             return Results.Ok(new EventStoreResponse<Event>());
         }
