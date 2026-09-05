@@ -8,7 +8,6 @@ using Shuttle.Access.AspNetCore;
 using Shuttle.Contract;
 using Shuttle.Recall.SqlServer.Storage;
 using Shuttle.Recall.WebApi.Models;
-using EventType = Shuttle.Recall.WebApi.Models.EventType;
 
 namespace Shuttle.Recall.WebApi;
 
@@ -18,7 +17,7 @@ public static class EventTypeEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPost("/event-types/search", async (IOptions<SqlServerStorageOptions> sqlServerStorageOptions, ISessionContext sessionContext, IEventStoreContext eventStoreContext, SqlServerStorageDbContext dbContext, EventType.Specification specification, CancellationToken cancellationToken) =>
+        app.MapPost("/event-types/search", async (IOptions<SqlServerStorageOptions> sqlServerStorageOptions, ISessionContext sessionContext, IEventStoreContext eventStoreContext, SqlServerStorageDbContext dbContext, Models.EventType.Specification specification, CancellationToken cancellationToken) =>
             {
                 Guard.AgainstNull(sessionContext);
                 Guard.AgainstNull(eventStoreContext);
@@ -54,7 +53,7 @@ WHERE
                     await connection.OpenAsync(cancellationToken);
                 }
 
-                List<EventType> result = [];
+                List<Models.EventType> result = [];
 
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
@@ -67,7 +66,7 @@ WHERE
                     });
                 }
 
-                return Results.Ok(new EventStoreResponse<EventType>
+                return Results.Ok(new EventStoreResponse<Models.EventType>
                 {
                     Items = result
                 });
