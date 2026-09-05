@@ -1,13 +1,9 @@
 using System.Data.Common;
 using Asp.Versioning;
-using Azure.Identity;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 using Serilog;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.RestClient;
 using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Recall.WebApi;
@@ -63,7 +59,9 @@ public class Program
         webApplicationBuilder.Services
             .AddHttpContextAccessor()
             .Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName))
+            .Configure<SqlServerStorageOptions>(configuration.GetSection(SqlServerStorageOptions.SectionName))
             .AddScoped<IEventStoreContext, EventStoreContext>()
+            .AddScoped<IPrimitiveEventQuery, PrimitiveEventQuery>()
             .AddLogging(builder =>
             {
                 builder.AddSerilog();
@@ -82,39 +80,6 @@ public class Program
                 configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(options);
             })
             .Services
-            .AddAccessClient(options =>
-            {
-                configuration.GetSection(AccessClientOptions.SectionName).Bind(options);
-            })
-            .UseBearerAuthenticationProvider(options =>
-                {
-                    options.GetBearerAuthenticationContextAsync = async (_, _) =>
-                    {
-                        var token = (await new DefaultAzureCredential().GetTokenAsync(new(["https://management.azure.com/.default"]), CancellationToken.None)).Token;
-
-                        return new(token);
-                    };
-                })
-            .Services
-            .AddRecall(options =>
-            {
-                configuration.GetSection(RecallOptions.SectionName).Bind(options);
-            })
-            .UseSqlServerEventStorage(options =>
-            {
-                configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(options);
-            })
-            .Services
-            .AddDbContext<SqlServerStorageDbContext>((serviceProvider, options) =>
-            {
-                var sqlServerStorageOptions = serviceProvider.GetRequiredService<IOptions<SqlServerStorageOptions>>().Value;
-                var eventStoreContext = serviceProvider.GetRequiredService<IEventStoreContext>();
-
-                options.UseSqlServer(eventStoreContext.EventStore.ConnectionString, sqlServerOptions =>
-                {
-                    sqlServerOptions.CommandTimeout((int)sqlServerStorageOptions.CommandTimeout.TotalSeconds);
-                });
-            })
             .AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>

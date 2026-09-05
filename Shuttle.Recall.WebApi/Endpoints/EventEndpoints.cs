@@ -2,7 +2,6 @@
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Query;
 using Shuttle.Contract;
 using Shuttle.Serialization;
 using Shuttle.Recall.SqlServer.Storage;
