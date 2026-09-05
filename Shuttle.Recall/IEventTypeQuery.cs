@@ -2,5 +2,5 @@
 
 public interface IEventTypeQuery
 {
-    Task<IEnumerable<EventType>> SearchAsync(PrimitiveEvent.Specification specification, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Query.EventType>> SearchAsync(Query.EventType.Specification specification, CancellationToken cancellationToken = default);
 }

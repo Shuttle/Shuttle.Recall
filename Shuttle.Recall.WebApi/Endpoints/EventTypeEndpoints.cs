@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Contract;
 using Shuttle.Recall.SqlServer.Storage;
-using Shuttle.Recall.WebApi.Models;
+using Shuttle.Recall.WebApi.Contracts.v1;
 
 namespace Shuttle.Recall.WebApi;
 
@@ -17,7 +17,7 @@ public static class EventTypeEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPost("/event-types/search", async (IOptions<SqlServerStorageOptions> sqlServerStorageOptions, ISessionContext sessionContext, IEventStoreContext eventStoreContext, SqlServerStorageDbContext dbContext, Models.EventType.Specification specification, CancellationToken cancellationToken) =>
+        app.MapPost("/event-types/search", async (IOptions<SqlServerStorageOptions> sqlServerStorageOptions, ISessionContext sessionContext, IEventStoreContext eventStoreContext, SqlServerStorageDbContext dbContext, Contracts.v1.EventType.Specification specification, CancellationToken cancellationToken) =>
             {
                 Guard.AgainstNull(sessionContext);
                 Guard.AgainstNull(eventStoreContext);
@@ -25,7 +25,7 @@ public static class EventTypeEndpoints
 
                 if (!eventStoreContext.HasAccess(sessionContext))
                 {
-                    return Results.Ok(new EventStoreResponse<EventType>());
+                    return Results.Ok(new EventStoreResponse<Contracts.v1.EventType>());
                 }
 
                 var connection = dbContext.Database.GetDbConnection();
@@ -53,7 +53,7 @@ WHERE
                     await connection.OpenAsync(cancellationToken);
                 }
 
-                List<Models.EventType> result = [];
+                List<Contracts.v1.EventType> result = [];
 
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
@@ -66,7 +66,7 @@ WHERE
                     });
                 }
 
-                return Results.Ok(new EventStoreResponse<Models.EventType>
+                return Results.Ok(new EventStoreResponse<Contracts.v1.EventType>
                 {
                     Items = result
                 });

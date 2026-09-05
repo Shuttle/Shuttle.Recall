@@ -2,6 +2,6 @@
 
 public interface IPrimitiveEventQuery
 {
-    Task<IEnumerable<PrimitiveEvent>> SearchAsync(PrimitiveEvent.Specification specification, CancellationToken cancellationToken = default);
-    Task<long?> GetMaximumSequenceNumberAsync(PrimitiveEvent.Specification specification, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Query.PrimitiveEvent>> SearchAsync(Query.PrimitiveEvent.Specification specification, CancellationToken cancellationToken = default);
+    Task<long?> GetMaximumSequenceNumberAsync(Query.PrimitiveEvent.Specification specification, CancellationToken cancellationToken = default);
 }

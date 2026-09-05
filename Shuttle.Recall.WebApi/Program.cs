@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Scalar.AspNetCore;
 using Serilog;
 using Shuttle.Access.AspNetCore;
+using Shuttle.Recall.SqlServer.EventProcessing;
 using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Recall.WebApi;
@@ -90,6 +91,17 @@ public class Program
                         .AllowAnyMethod();
                 });
             });
+
+        webApplicationBuilder.Services
+            .AddRecall(options =>
+            {
+                configuration.GetSection(RecallOptions.SectionName).Bind(options);
+            })
+            .UseSqlServerEventStorage(options =>
+            {
+                configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(options);
+            })
+            .UseSqlServerEventProcessing();
 
         var app = webApplicationBuilder.Build();
 

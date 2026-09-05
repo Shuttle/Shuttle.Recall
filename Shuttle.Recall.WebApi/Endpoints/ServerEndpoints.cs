@@ -3,7 +3,7 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Recall.WebApi.Models;
+using Shuttle.Recall.WebApi.Contracts.v1;
 
 namespace Shuttle.Recall.WebApi;
 

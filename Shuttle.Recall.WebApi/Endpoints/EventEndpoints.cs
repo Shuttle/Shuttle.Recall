@@ -5,7 +5,7 @@ using Shuttle.Access.AspNetCore;
 using Shuttle.Contract;
 using Shuttle.Serialization;
 using Shuttle.Recall.SqlServer.Storage;
-using Shuttle.Recall.WebApi.Models;
+using Shuttle.Recall.WebApi.Contracts.v1;
 
 namespace Shuttle.Recall.WebApi;
 
@@ -30,7 +30,7 @@ public static class EventEndpoints
         return app;
     }
 
-    private static async Task<IResult> PostSearch(IConfiguration configuration, ISessionContext sessionContext, IEventStoreContext eventStoreContext, IPrimitiveEventQuery primitiveEventQuery, ISerializer serializer, Models.PrimitiveEvent.Specification model)
+    private static async Task<IResult> PostSearch(IConfiguration configuration, ISessionContext sessionContext, IEventStoreContext eventStoreContext, IPrimitiveEventQuery primitiveEventQuery, ISerializer serializer, Contracts.v1.PrimitiveEvent.Specification model)
     {
         Guard.AgainstNull(configuration);
         Guard.AgainstNull(sessionContext);
@@ -50,7 +50,7 @@ public static class EventEndpoints
             maximumRows = 1000;
         }
 
-        var specification = new PrimitiveEvent.Specification().WithSequenceNumberStart(model.SequenceNumberStart)
+        var specification = new Query.PrimitiveEvent.Specification().WithSequenceNumberStart(model.SequenceNumberStart)
             .WithMaximumRows(maximumRows);
 
         if (model.Id.HasValue)
@@ -82,7 +82,7 @@ public static class EventEndpoints
         return Results.Ok(new EventStoreResponse<Event> { Items = result });
     }
 
-    private static async Task<IResult> PostDelete(ISessionContext sessionContext, IEventStoreContext eventStoreContext, IPrimitiveEventRepository primitiveEventRepository, Models.PrimitiveEvent.Specification model)
+    private static async Task<IResult> PostDelete(ISessionContext sessionContext, IEventStoreContext eventStoreContext, IPrimitiveEventRepository primitiveEventRepository, Contracts.v1.PrimitiveEvent.Specification model)
     {
         Guard.AgainstNull(sessionContext);
         Guard.AgainstNull(eventStoreContext);
@@ -98,7 +98,7 @@ public static class EventEndpoints
             return Results.BadRequest("No sequence numbers have been specified.");
         }
 
-        var specification = new PrimitiveEvent.Specification().AddSequenceNumbers(model.SequenceNumbers);
+        var specification = new Query.PrimitiveEvent.Specification().AddSequenceNumbers(model.SequenceNumbers);
 
         await primitiveEventRepository.RemoveAsync(specification);
 

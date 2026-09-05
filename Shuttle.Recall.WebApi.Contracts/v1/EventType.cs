@@ -1,4 +1,4 @@
-﻿namespace Shuttle.Recall.WebApi.Models;
+namespace Shuttle.Recall.WebApi.Contracts.v1;
 
 public class EventType
 {

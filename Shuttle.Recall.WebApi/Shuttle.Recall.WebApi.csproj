@@ -23,4 +23,8 @@
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Shuttle.Recall.WebApi.Contracts\Shuttle.Recall.WebApi.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>
