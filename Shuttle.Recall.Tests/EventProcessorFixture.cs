@@ -33,13 +33,13 @@ public class EventProcessorFixture
 
         async Task<ProjectionEvent?> GetProjectionEvent()
         {
-            PrimitiveEvent primitiveEvent = sequenceNumber % 2 == 0
-                ? new() { EventType = Guard.AgainstEmpty(typeof(EventA).FullName) }
-                : new() { EventType = Guard.AgainstEmpty(typeof(EventB).FullName) };
+            var eventType = sequenceNumber % 2 == 0
+                ? Guard.AgainstEmpty(typeof(EventA).FullName)
+                : Guard.AgainstEmpty(typeof(EventB).FullName);
 
             var eventEnvelope = new EventEnvelope
             {
-                EventType = primitiveEvent.EventType,
+                EventType = eventType,
                 AssemblyQualifiedName = sequenceNumber % 2 == 0
                     ? typeof(EventA).AssemblyQualifiedName!
                     : typeof(EventB).AssemblyQualifiedName!,
@@ -49,13 +49,15 @@ public class EventProcessorFixture
                 RecordedAt = DateTimeOffset.Now
             };
 
-            primitiveEvent.Id = id;
-            primitiveEvent.CorrelationId = id;
-            primitiveEvent.RecordedAt = DateTimeOffset.UtcNow;
-            primitiveEvent.EventId = Guid.NewGuid();
-            primitiveEvent.SequenceNumber = sequenceNumber;
-            primitiveEvent.Version = sequenceNumber;
-            primitiveEvent.EventEnvelope = await (await serializer.SerializeAsync(eventEnvelope)).ToBytesAsync();
+            var primitiveEvent = new PrimitiveEvent(
+                id,
+                Guid.NewGuid(),
+                sequenceNumber,
+                eventType,
+                await (await serializer.SerializeAsync(eventEnvelope)).ToBytesAsync(),
+                DateTimeOffset.UtcNow,
+                id
+            ).WithSequenceNumber(sequenceNumber);
 
             sequenceNumber++;
 

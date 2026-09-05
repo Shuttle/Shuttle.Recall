@@ -27,17 +27,15 @@ public class SavePrimitiveEventsObserver(IOptions<RecallOptions> recallOptions, 
             {
                 version = eventEnvelope.Version;
 
-                var primitiveEvent = new PrimitiveEvent
-                {
-                    Id = eventStream.Id,
-                    Version = version,
-                    CorrelationId = eventStream.CorrelationId,
-                    EventEnvelope = await (await serializer.SerializeAsync(eventEnvelope, cancellationToken)).ToBytesAsync(),
-                    EventId = eventEnvelope.EventId,
-                    EventType = eventEnvelope.EventType,
-                    RecordedAt = eventEnvelope.RecordedAt
-                };
-
+                var primitiveEvent = new PrimitiveEvent( 
+                    eventStream.Id,
+                    eventEnvelope.EventId,
+                    version,
+                    eventEnvelope.EventType,
+                    await (await serializer.SerializeAsync(eventEnvelope, cancellationToken)).ToBytesAsync(),
+                    eventEnvelope.RecordedAt,
+                    eventStream.CorrelationId
+                );
                 primitiveEvents.Add(primitiveEvent);
             }
 
