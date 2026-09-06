@@ -135,6 +135,7 @@ public class Program
         app
             .MapEventEndpoints(versionSet)
             .MapEventTypeEndpoints(versionSet)
+            .MapProjectionEndpoints(versionSet)
             .MapServerEndpoints(versionSet);
 
         app.Run();
