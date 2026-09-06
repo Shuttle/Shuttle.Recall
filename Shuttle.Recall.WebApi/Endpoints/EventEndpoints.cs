@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Microsoft.EntityFrameworkCore;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Contract;
 using Shuttle.Serialization;
@@ -30,11 +31,13 @@ public static class EventEndpoints
         return app;
     }
 
-    private static async Task<IResult> PostSearch(IConfiguration configuration, ISessionContext sessionContext, IEventStoreContext eventStoreContext, IPrimitiveEventQuery primitiveEventQuery, ISerializer serializer, Contracts.v1.PrimitiveEvent.Specification model)
+    private static async Task<IResult> PostSearch(IConfiguration configuration, ISessionContext sessionContext, IEventStoreContext eventStoreContext, ISqlServerStorageSchemaAccessor schemaAccessor, SqlServerStorageDbContext dbContext, IPrimitiveEventQuery primitiveEventQuery, ISerializer serializer, Contracts.v1.PrimitiveEvent.Specification model)
     {
         Guard.AgainstNull(configuration);
         Guard.AgainstNull(sessionContext);
         Guard.AgainstNull(eventStoreContext);
+        Guard.AgainstNull(schemaAccessor);
+        Guard.AgainstNull(dbContext);
         Guard.AgainstNull(primitiveEventQuery);
         Guard.AgainstNull(serializer);
 
@@ -42,6 +45,16 @@ public static class EventEndpoints
         {
             return Results.Ok(new EventStoreResponse<Event>());
         }
+
+        var exception = eventStoreContext.ValidateEventStore();
+
+        if (exception != null)
+        {
+            return Results.Ok(new EventStoreResponse<Event> { Exception = exception });
+        }
+
+        dbContext.Database.SetConnectionString(eventStoreContext.EventStore.ConnectionString);
+        schemaAccessor.Schema = eventStoreContext.EventStore.Schema;
 
         var maximumRows = model.MaximumRows;
 
@@ -82,16 +95,28 @@ public static class EventEndpoints
         return Results.Ok(new EventStoreResponse<Event> { Items = result });
     }
 
-    private static async Task<IResult> PostDelete(ISessionContext sessionContext, IEventStoreContext eventStoreContext, IPrimitiveEventRepository primitiveEventRepository, Contracts.v1.PrimitiveEvent.Specification model)
+    private static async Task<IResult> PostDelete(ISessionContext sessionContext, IEventStoreContext eventStoreContext, ISqlServerStorageSchemaAccessor schemaAccessor, SqlServerStorageDbContext dbContext, IPrimitiveEventRepository primitiveEventRepository, Contracts.v1.PrimitiveEvent.Specification model)
     {
         Guard.AgainstNull(sessionContext);
         Guard.AgainstNull(eventStoreContext);
+        Guard.AgainstNull(schemaAccessor);
+        Guard.AgainstNull(dbContext);
         Guard.AgainstNull(primitiveEventRepository);
 
         if (!eventStoreContext.HasAccess(sessionContext))
         {
             return Results.Ok(new EventStoreResponse<Event>());
         }
+
+        var exception = eventStoreContext.ValidateEventStore();
+
+        if (exception != null)
+        {
+            return Results.Ok(new EventStoreResponse<Event> { Exception = exception });
+        }
+
+        dbContext.Database.SetConnectionString(eventStoreContext.EventStore.ConnectionString);
+        schemaAccessor.Schema = eventStoreContext.EventStore.Schema;
 
         if (model.SequenceNumbers.Count == 0)
         {

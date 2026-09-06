@@ -10,6 +10,7 @@ public class ApiOptions
     {
         public string Name { get; set; } = string.Empty;
         public string ConnectionString { get; set; } = string.Empty;
+        public string Schema { get; set; } = "dbo";
         public string Permission { get; set; } = string.Empty;
     }
 }

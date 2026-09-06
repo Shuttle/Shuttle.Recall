@@ -60,7 +60,6 @@ public class Program
         webApplicationBuilder.Services
             .AddHttpContextAccessor()
             .Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName))
-            .Configure<SqlServerStorageOptions>(configuration.GetSection(SqlServerStorageOptions.SectionName))
             .AddScoped<IEventStoreContext, EventStoreContext>()
             .AddScoped<IPrimitiveEventQuery, PrimitiveEventQuery>()
             .AddLogging(builder =>
@@ -100,6 +99,16 @@ public class Program
             .UseSqlServerEventStorage(options =>
             {
                 configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(options);
+
+                if (string.IsNullOrWhiteSpace(options.ConnectionString))
+                {
+                    // No connection string is configured statically: the event store is selected per
+                    // request from the `Shuttle-Recall-Event-Store` header (see EventStoreContext) and
+                    // applied via SqlServerStorageDbContext.SetConnectionString(). This placeholder only
+                    // satisfies SqlServerStorageOptionsValidator at startup and is never actually used.
+                    options.ConnectionString = "Server=.";
+                    options.ConfigureDatabase = false;
+                }
             })
             .UseSqlServerEventProcessing();
 
