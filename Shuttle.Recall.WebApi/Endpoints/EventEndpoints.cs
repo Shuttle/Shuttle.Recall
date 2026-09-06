@@ -1,12 +1,12 @@
 ﻿using System.Text;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Microsoft.EntityFrameworkCore;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Query;
 using Shuttle.Contract;
 using Shuttle.Serialization;
 using Shuttle.Recall.SqlServer.Storage;
-using Shuttle.Recall.WebApi.Models;
+using Shuttle.Recall.WebApi.Contracts.v1;
 
 namespace Shuttle.Recall.WebApi;
 
@@ -22,28 +22,39 @@ public static class EventEndpoints
             .WithTags("Events")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
-            //.RequireSession();
 
         app.MapPost("/events/delete", PostDelete)
             .WithTags("Events")
             .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1)
-            .RequireSession();
+            .MapToApiVersion(apiVersion1);
 
         return app;
     }
 
-    private static async Task<IResult> PostSearch(IConfiguration configuration, ISessionContext sessionContext, IPrimitiveEventQuery primitiveEventQuery, ISerializer serializer, Models.PrimitiveEvent.Specification model)
+    private static async Task<IResult> PostSearch(IConfiguration configuration, ISessionContext sessionContext, IEventStoreContext eventStoreContext, ISqlServerStorageSchemaAccessor schemaAccessor, SqlServerStorageDbContext dbContext, IPrimitiveEventQuery primitiveEventQuery, ISerializer serializer, Contracts.v1.PrimitiveEvent.Specification model)
     {
         Guard.AgainstNull(configuration);
         Guard.AgainstNull(sessionContext);
+        Guard.AgainstNull(eventStoreContext);
+        Guard.AgainstNull(schemaAccessor);
+        Guard.AgainstNull(dbContext);
         Guard.AgainstNull(primitiveEventQuery);
         Guard.AgainstNull(serializer);
 
-        //if (!(sessionContext.Session?.HasPermission("recall://default/events") ?? false))
-        //{
-        //    return Results.Ok(new EventStoreResponse<Event>());
-        //}
+        if (!eventStoreContext.HasAccess(sessionContext))
+        {
+            return Results.Ok(new EventStoreResponse<Event>());
+        }
+
+        var exception = eventStoreContext.ValidateEventStore();
+
+        if (exception != null)
+        {
+            return Results.Ok(new EventStoreResponse<Event> { Exception = exception });
+        }
+
+        dbContext.Database.SetConnectionString(eventStoreContext.EventStore.ConnectionString);
+        schemaAccessor.Schema = eventStoreContext.EventStore.Schema;
 
         var maximumRows = model.MaximumRows;
 
@@ -52,7 +63,7 @@ public static class EventEndpoints
             maximumRows = 1000;
         }
 
-        var specification = new PrimitiveEvent.Specification().WithSequenceNumberStart(model.SequenceNumberStart)
+        var specification = new Query.PrimitiveEvent.Specification().WithSequenceNumberStart(model.SequenceNumberStart)
             .WithMaximumRows(maximumRows);
 
         if (model.Id.HasValue)
@@ -84,22 +95,35 @@ public static class EventEndpoints
         return Results.Ok(new EventStoreResponse<Event> { Items = result });
     }
 
-    private static async Task<IResult> PostDelete(ISessionContext sessionContext, IPrimitiveEventRepository primitiveEventRepository, Models.PrimitiveEvent.Specification model)
+    private static async Task<IResult> PostDelete(ISessionContext sessionContext, IEventStoreContext eventStoreContext, ISqlServerStorageSchemaAccessor schemaAccessor, SqlServerStorageDbContext dbContext, IPrimitiveEventRepository primitiveEventRepository, Contracts.v1.PrimitiveEvent.Specification model)
     {
         Guard.AgainstNull(sessionContext);
+        Guard.AgainstNull(eventStoreContext);
+        Guard.AgainstNull(schemaAccessor);
+        Guard.AgainstNull(dbContext);
         Guard.AgainstNull(primitiveEventRepository);
 
-        if (!sessionContext.HasPermission("recall://default/events"))
+        if (!eventStoreContext.HasAccess(sessionContext))
         {
             return Results.Ok(new EventStoreResponse<Event>());
         }
+
+        var exception = eventStoreContext.ValidateEventStore();
+
+        if (exception != null)
+        {
+            return Results.Ok(new EventStoreResponse<Event> { Exception = exception });
+        }
+
+        dbContext.Database.SetConnectionString(eventStoreContext.EventStore.ConnectionString);
+        schemaAccessor.Schema = eventStoreContext.EventStore.Schema;
 
         if (model.SequenceNumbers.Count == 0)
         {
             return Results.BadRequest("No sequence numbers have been specified.");
         }
 
-        var specification = new PrimitiveEvent.Specification().AddSequenceNumbers(model.SequenceNumbers);
+        var specification = new Query.PrimitiveEvent.Specification().AddSequenceNumbers(model.SequenceNumbers);
 
         await primitiveEventRepository.RemoveAsync(specification);
 

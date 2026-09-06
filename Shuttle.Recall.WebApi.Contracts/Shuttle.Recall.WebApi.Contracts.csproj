@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Description>Shuttle.Recall web API contracts.</Description>
+    <Version>23.0.0</Version>
+    <Authors>Eben Roux</Authors>
+    <Company>Shuttle</Company>
+    <Copyright>Copyright (c) 2025, Eben Roux</Copyright>
+    <PackageProjectUrl>https://github.com/Shuttle/Shuttle.Recall</PackageProjectUrl>
+    <PackageIcon>logo.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/Shuttle/Shuttle.Recall.git</RepositoryUrl>
+    <PackageTags>eventsourcing eventsource event-sourcing event-source eventstore event-store</PackageTags>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Shuttle.Recall" Version="23.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\.media\logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md" Link="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+  <Target Name="CopyNuGetPackage" AfterTargets="Pack" Condition="'$(NUGET_PACKAGE_FOLDER)' != ''">
+    <Message Text="Removing cached NuGet package '$(USERPROFILE)\.nuget\packages\$(AssemblyName)\$(Version)'..." Importance="high" />
+    <RemoveDir Directories="$(USERPROFILE)\.nuget\packages\$(AssemblyName)\$(Version)" />
+    <Message Text="Copying NuGet package to '$(NUGET_PACKAGE_FOLDER)'..." Importance="high" />
+    <Copy SourceFiles="bin\$(Configuration)\$(AssemblyName).$(Version).nupkg" DestinationFolder="$(NUGET_PACKAGE_FOLDER)" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

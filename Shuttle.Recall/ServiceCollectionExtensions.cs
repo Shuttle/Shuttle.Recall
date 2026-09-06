@@ -43,6 +43,11 @@ public static class ServiceCollectionExtensions
                 {
                     options.EventProcessing.ProjectionProcessorIdleDurations = EventProcessingOptions.DefaultProjectionProcessorIdleDurations.ToList();
                 }
+
+                if (options.EventProcessing.ProjectionProcessorFailureDurations.Count == 0)
+                {
+                    options.EventProcessing.ProjectionProcessorFailureDurations = EventProcessingOptions.DefaultProjectionProcessorFailureDurations.ToList();
+                }
             });
 
             services.TryAddSingleton<IEventMethodInvoker, EventMethodInvoker>();

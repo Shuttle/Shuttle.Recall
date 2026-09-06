@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Moq;
 using NUnit.Framework;
 using Shuttle.Pipelines;
 
@@ -46,10 +45,7 @@ public class EventHandlerInvokerFixture
 
         var pipeline = Pipeline.Get(serviceProvider);
 
-        pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
-        {
-            SequenceNumber = 1
-        }));
+        pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new PrimitiveEvent(Guid.NewGuid(), Guid.NewGuid(), 1, typeof(EventA).FullName!, Array.Empty<byte>(), DateTimeOffset.UtcNow, Guid.NewGuid()).WithSequenceNumber(1)));
 
         pipeline.State.SetDomainEvent(new(new EventA(), 1));
         pipeline.State.SetEventEnvelope(new()
@@ -70,16 +66,12 @@ public class EventHandlerInvokerFixture
     [Test]
     public async Task Should_be_able_to_invoke_delegate_handler_async()
     {
-        var serviceProvider = new Mock<IServiceProvider>().Object;
         var configuration = new EventProcessorConfiguration();
         var invoker = new EventHandlerInvoker(Options.Create(new RecallOptions()), configuration, NullLogger<EventHandlerInvoker>.Instance);
 
         var pipeline = Pipeline.Get();
 
-        pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
-        {
-            SequenceNumber = 1
-        }));
+        pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new PrimitiveEvent(Guid.NewGuid(), Guid.NewGuid(), 1, typeof(EventA).FullName!, Array.Empty<byte>(), DateTimeOffset.UtcNow).WithSequenceNumber(1)));
 
         pipeline.State.SetDomainEvent(new(new EventA(), 1));
         pipeline.State.SetEventEnvelope(new()
@@ -90,11 +82,11 @@ public class EventHandlerInvokerFixture
 
         var invoked = false;
 
-        configuration.GetProjection("projection-1").AddEventHandler(async (IEventHandlerContext<EventA> _) =>
+        configuration.GetProjection("projection-1").AddEventHandler((IEventHandlerContext<EventA> _) =>
         {
             invoked = true;
 
-            return Task.CompletedTask;
+            return Task.FromResult(Task.CompletedTask);
         });
 
         var result = await invoker.InvokeAsync(new PipelineContext<HandleEvent>(pipeline));
@@ -123,7 +115,7 @@ public class EventHandlerInvokerFixture
         var invoker = serviceProvider.GetRequiredService<IEventHandlerInvoker>();
 
         var projection = new Projection("projection-1", 0);
-        var primitiveEvent = new PrimitiveEvent();
+        var primitiveEvent = new PrimitiveEvent(Guid.NewGuid(), Guid.NewGuid(), 1, typeof(EventA).FullName!, Array.Empty<byte>(), DateTimeOffset.UtcNow, Guid.NewGuid());
         var eventEnvelope = new EventEnvelope
         {
             AssemblyQualifiedName = typeof(EventA).AssemblyQualifiedName!,
@@ -154,10 +146,7 @@ public class EventHandlerInvokerFixture
 
         var pipeline = Pipeline.Get(serviceProvider);
 
-        pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new()
-        {
-            SequenceNumber = 1
-        }));
+        pipeline.State.SetProjectionEvent(new(new("projection-1", 0), new PrimitiveEvent(Guid.NewGuid(), Guid.NewGuid(), 1, typeof(EventA).FullName!, Array.Empty<byte>(), DateTimeOffset.UtcNow).WithSequenceNumber(1)));
 
         pipeline.State.SetDomainEvent(new(new EventA(), 1));
         pipeline.State.SetEventEnvelope(new()

@@ -1,17 +1,18 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Shuttle.Contract;
 
 namespace Shuttle.Recall;
 
-public class EventProcessorHostedService(IEventProcessorConfiguration eventProcessorConfiguration, IServiceScopeFactory serviceScopeFactory) : IHostedService
+public class EventProcessorHostedService(IEventProcessorConfiguration eventProcessorConfiguration, IOptions<RecallOptions> recallOptions, IServiceScopeFactory serviceScopeFactory) : IHostedService
 {
     private IEventProcessor? _eventProcessor;
     private IServiceScope? _serviceScope;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (!Guard.AgainstNull(eventProcessorConfiguration).HasProjections)
+        if (!Guard.AgainstNull(eventProcessorConfiguration).HasProjections || !Guard.AgainstNull(recallOptions).Value.EventProcessing.AutoStart)
         {
             return;
         }
@@ -23,7 +24,7 @@ public class EventProcessorHostedService(IEventProcessorConfiguration eventProce
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (!Guard.AgainstNull(eventProcessorConfiguration).HasProjections)
+        if (!Guard.AgainstNull(eventProcessorConfiguration).HasProjections || !Guard.AgainstNull(recallOptions).Value.EventProcessing.AutoStart)
         {
             return;
         }

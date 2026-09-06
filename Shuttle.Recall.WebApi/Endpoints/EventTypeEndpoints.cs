@@ -3,13 +3,10 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Query;
 using Shuttle.Contract;
 using Shuttle.Recall.SqlServer.Storage;
-using Shuttle.Recall.WebApi.Models;
-using EventType = Shuttle.Recall.WebApi.Models.EventType;
+using Shuttle.Recall.WebApi.Contracts.v1;
 
 namespace Shuttle.Recall.WebApi;
 
@@ -19,15 +16,27 @@ public static class EventTypeEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPost("/event-types/search", async (IOptions<SqlServerStorageOptions> sqlServerStorageOptions, ISessionContext sessionContext, SqlServerStorageDbContext dbContext, EventType.Specification specification, CancellationToken cancellationToken) =>
+        app.MapPost("/event-types/search", async (ISqlServerStorageSchemaAccessor schemaAccessor, ISessionContext sessionContext, IEventStoreContext eventStoreContext, SqlServerStorageDbContext dbContext, Contracts.v1.EventType.Specification specification, CancellationToken cancellationToken) =>
             {
                 Guard.AgainstNull(sessionContext);
+                Guard.AgainstNull(eventStoreContext);
+                Guard.AgainstNull(schemaAccessor);
                 Guard.AgainstNull(dbContext);
 
-                //if (!(sessionContext.Session?.HasPermission("recall://default/events") ?? false))
-                //{
-                //    return Results.Ok(new EventStoreResponse<EventType>());
-                //}
+                if (!eventStoreContext.HasAccess(sessionContext))
+                {
+                    return Results.Ok(new EventStoreResponse<Contracts.v1.EventType>());
+                }
+
+                var exception = eventStoreContext.ValidateEventStore();
+
+                if (exception != null)
+                {
+                    return Results.Ok(new EventStoreResponse<Contracts.v1.EventType> { Exception = exception });
+                }
+
+                dbContext.Database.SetConnectionString(eventStoreContext.EventStore.ConnectionString);
+                schemaAccessor.Schema = eventStoreContext.EventStore.Schema;
 
                 var connection = dbContext.Database.GetDbConnection();
 
@@ -38,7 +47,7 @@ SELECT {(specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : st
     Id,
     TypeName
 FROM
-    [{sqlServerStorageOptions.Value.Schema}].[EventType]
+    [{schemaAccessor.Schema}].[EventType]
 WHERE
 (
     @TypeNameMatch IS NULL
@@ -54,7 +63,7 @@ WHERE
                     await connection.OpenAsync(cancellationToken);
                 }
 
-                List<EventType> result = [];
+                List<Contracts.v1.EventType> result = [];
 
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
@@ -67,7 +76,7 @@ WHERE
                     });
                 }
 
-                return Results.Ok(new EventStoreResponse<EventType>
+                return Results.Ok(new EventStoreResponse<Contracts.v1.EventType>
                 {
                     Items = result
                 });

@@ -1,11 +1,10 @@
 using System.Data.Common;
 using Asp.Versioning;
-using Azure.Identity;
 using Microsoft.Data.SqlClient;
 using Scalar.AspNetCore;
 using Serilog;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.RestClient;
+using Shuttle.Recall.SqlServer.EventProcessing;
 using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Recall.WebApi;
@@ -58,9 +57,11 @@ public class Program
                 options.SubstituteApiVersionInUrl = true;
             });
 
-        var accessConnectionString = configuration.GetConnectionString("Recall") ?? throw new ApplicationException("Missing connection string 'Recall'.");
-
         webApplicationBuilder.Services
+            .AddHttpContextAccessor()
+            .Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName))
+            .AddScoped<IEventStoreContext, EventStoreContext>()
+            .AddScoped<IPrimitiveEventQuery, PrimitiveEventQuery>()
             .AddLogging(builder =>
             {
                 builder.AddSerilog();
@@ -79,32 +80,6 @@ public class Program
                 configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(options);
             })
             .Services
-            .AddAccessClient(options =>
-            {
-                configuration.GetSection(AccessClientOptions.SectionName).Bind(options);
-            })
-            .UseBearerAuthenticationProvider(options =>
-                {
-                    options.GetBearerAuthenticationContextAsync = async (_, _) =>
-                    {
-                        var token = (await new DefaultAzureCredential().GetTokenAsync(new(["https://management.azure.com/.default"]), CancellationToken.None)).Token;
-
-                        return new(token);
-                    };
-                })
-            .Services
-            .AddRecall(options =>
-            {
-                configuration.GetSection(RecallOptions.SectionName).Bind(options);
-            })
-            .UseSqlServerEventStorage(options =>
-            {
-                configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(options);
-
-                options.ConnectionString = accessConnectionString;
-                options.Schema = "access";
-            })
-            .Services
             .AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
@@ -115,6 +90,27 @@ public class Program
                         .AllowAnyMethod();
                 });
             });
+
+        webApplicationBuilder.Services
+            .AddRecall(options =>
+            {
+                configuration.GetSection(RecallOptions.SectionName).Bind(options);
+            })
+            .UseSqlServerEventStorage(options =>
+            {
+                configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(options);
+
+                if (string.IsNullOrWhiteSpace(options.ConnectionString))
+                {
+                    // No connection string is configured statically: the event store is selected per
+                    // request from the `Shuttle-Recall-Event-Store` header (see EventStoreContext) and
+                    // applied via SqlServerStorageDbContext.SetConnectionString(). This placeholder only
+                    // satisfies SqlServerStorageOptionsValidator at startup and is never actually used.
+                    options.ConnectionString = "Server=.";
+                    options.ConfigureDatabase = false;
+                }
+            })
+            .UseSqlServerEventProcessing();
 
         var app = webApplicationBuilder.Build();
 
@@ -139,6 +135,7 @@ public class Program
         app
             .MapEventEndpoints(versionSet)
             .MapEventTypeEndpoints(versionSet)
+            .MapProjectionEndpoints(versionSet)
             .MapServerEndpoints(versionSet);
 
         app.Run();

@@ -77,6 +77,11 @@ public static class PipelineStateExtensions
             return Guard.AgainstNull(state.Get<ProjectionEvent>(StateKeys.ProjectionEvent));
         }
 
+        public ProjectionEvent? TryGetProjectionEvent()
+        {
+            return state.Get<ProjectionEvent>(StateKeys.ProjectionEvent);
+        }
+
         public bool GetImmediateConsistency()
         {
             return state.Get<bool?>(StateKeys.ImmediateConsistency) ?? false;

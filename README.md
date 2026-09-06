@@ -40,6 +40,7 @@ The following types are registered:
 ```csharp
 services.AddRecall(options =>
 {
+    options.EventProcessing.AutoStart = true;
     options.EventProcessing.ProjectionThreadCount = 5;
     options.EventProcessing.IncludedProjections.Add("ProjectionName");
     options.EventProcessing.ExcludedProjections.Add("ExcludeMe");
@@ -59,6 +60,7 @@ services.AddRecall(options =>
 | `IncludedProjections` | `[]` | List of projection names to include |
 | `ExcludedProjections` | `[]` | List of projection names to exclude |
 | `ProjectionProcessorIdleDurations` | `[]` | Idle durations for projection processor polling; if left empty, defaults to `[250,250,250,250,500,500,1000]` ms |
+| `ProjectionProcessorFailureDurations` | `[]` | Durations a projection is deferred for, indexed by its consecutive handler-failure count (clamped to the last entry); if left empty, defaults to `[1,5,15,30,60,120,300]` s |
 | `DefaultDeferredDuration` | `5s` | Duration used by `context.Defer()` when no explicit delay is given |
 | `EventHandled` | | `AsyncEvent<EventHandledEventArgs>` raised after a projection has handled an event |
 | `ImmediateConsistency` | see below | Options controlling immediate consistency processing |
@@ -311,6 +313,8 @@ Delegate handlers may declare additional parameters beyond the `IEventHandlerCon
 ## IEventProcessor Lifecycle
 
 If at least one projection has been registered, `AddRecall` registers an `IHostedService` that automatically calls `IEventProcessor.StartAsync`/`StopAsync` as the host starts and stops — in a typical `IHost`/ASP.NET Core application you do not need to drive this manually.
+
+Set `options.EventProcessing.AutoStart = false` to opt out of this (e.g. in tests, where you want to control exactly when the processor starts) — you are then responsible for calling `IEventProcessor.StartAsync`/`StopAsync` yourself.
 
 If you are hosting `Shuttle.Recall` outside of the generic host (e.g. a plain console application), you can start and stop it yourself:
 

@@ -15,9 +15,32 @@ public class EventProcessingOptions
         TimeSpan.FromSeconds(1)
     ];
 
+    /// <summary>
+    /// Successive durations for which a projection is deferred after a handler failure for its next event, indexed
+    /// by the projection's consecutive failure count (clamped to the last entry once exceeded); reset to the start
+    /// once the projection succeeds again.
+    /// </summary>
+    public static IReadOnlyList<TimeSpan> DefaultProjectionProcessorFailureDurations { get; } =
+    [
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromSeconds(5),
+        TimeSpan.FromSeconds(15),
+        TimeSpan.FromSeconds(30),
+        TimeSpan.FromMinutes(1),
+        TimeSpan.FromMinutes(2),
+        TimeSpan.FromMinutes(5)
+    ];
+
+    /// <summary>
+    /// When <see langword="false" />, the hosted service will not automatically start the <see cref="IEventProcessor" />
+    /// when the host starts; the caller is then responsible for calling <see cref="IEventProcessor.StartAsync" />.
+    /// Defaults to <see langword="true" />.
+    /// </summary>
+    public bool AutoStart { get; set; } = true;
     public List<string> IncludedProjections { get; set; } = [];
     public List<string> ExcludedProjections { get; set; } = [];
     public List<TimeSpan> ProjectionProcessorIdleDurations { get; set; } = [];
+    public List<TimeSpan> ProjectionProcessorFailureDurations { get; set; } = [];
     public int ProjectionThreadCount { get; set; } = 5;
     public TimeSpan DefaultDeferredDuration { get; set; } = TimeSpan.FromSeconds(5);
     public AsyncEvent<EventHandledEventArgs> EventHandled { get; set; } = new();

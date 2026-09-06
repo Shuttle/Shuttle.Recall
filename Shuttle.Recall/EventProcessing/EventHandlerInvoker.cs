@@ -36,26 +36,25 @@ public class EventHandlerInvoker(IOptions<RecallOptions> recallOptions, IEventPr
             throw new ApplicationException(string.Format(Resources.PrimitiveEventSequenceNumberException, projectionEvent.PrimitiveEvent.Id, projectionEvent.PrimitiveEvent.Version));
         }
 
-        try
+        if (projectionEvent.AlreadyHandled)
         {
-            if (projectionEvent.AlreadyHandled)
-            {
-                return true;
-            }
+            projectionEvent.Projection.Commit(primitiveEvent.SequenceNumber.Value);
 
-            var (handled, deferred, deferredFor) = await InvokeHandlerAsync(projectionEvent.Projection, eventEnvelope, domainEvent, primitiveEvent, serviceProvider, cancellationToken).ConfigureAwait(false);
-
-            if (deferred)
-            {
-                state.SetDeferredUntil(DateTimeOffset.UtcNow.Add(deferredFor ?? _recallOptions.EventProcessing.DefaultDeferredDuration));
-            }
-
-            return handled;
+            return true;
         }
-        finally
+
+        var (handled, deferred, deferredFor) = await InvokeHandlerAsync(projectionEvent.Projection, eventEnvelope, domainEvent, primitiveEvent, serviceProvider, cancellationToken).ConfigureAwait(false);
+
+        if (deferred)
+        {
+            state.SetDeferredUntil(DateTimeOffset.UtcNow.Add(deferredFor ?? _recallOptions.EventProcessing.DefaultDeferredDuration));
+        }
+        else
         {
             projectionEvent.Projection.Commit(primitiveEvent.SequenceNumber.Value);
         }
+
+        return handled;
     }
 
     public async ValueTask<bool> InvokeImmediateAsync(Projection projection, EventEnvelope eventEnvelope, object domainEvent, PrimitiveEvent primitiveEvent, IServiceProvider serviceProvider, CancellationToken cancellationToken = default)

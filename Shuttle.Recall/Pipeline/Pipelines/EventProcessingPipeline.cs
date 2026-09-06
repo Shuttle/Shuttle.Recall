@@ -27,11 +27,11 @@ public class EventProcessingPipeline : Pipeline, IEventProcessingPipeline
         AddObserver(Guard.AgainstNull(acknowledgeEventObserver));
         AddObserver(Guard.AgainstNull(eventProcessingPipelineFailedObserver));
 
-        AddObserver(async (IPipelineContext<PipelineFailed> context) =>
+        AddObserver((IPipelineContext<PipelineFailed> context) =>
         {
             context.Pipeline.Abort();
 
-            return Task.CompletedTask;
+            return Task.FromResult(Task.CompletedTask);
         });
     }
 }

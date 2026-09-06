@@ -29,13 +29,7 @@ public class ImmediateConsistencyObserverFixture
             EventType = typeof(EventA).FullName!
         };
 
-        var primitiveEvent = new PrimitiveEvent
-        {
-            Id = eventStream.Id,
-            Version = 1,
-            EventId = eventId,
-            EventType = typeof(EventA).FullName!
-        };
+        var primitiveEvent = new PrimitiveEvent(eventStream.Id, eventId, 1, typeof(EventA).FullName!, Array.Empty<byte>(), DateTimeOffset.UtcNow, eventStream.CorrelationId);
 
         return (eventStream, eventEnvelope, primitiveEvent);
     }
