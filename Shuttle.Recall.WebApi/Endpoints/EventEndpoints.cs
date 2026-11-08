@@ -28,6 +28,11 @@ public static class EventEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
+        app.MapPost("/events/rebuild", PostRebuild)
+            .WithTags("Events")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1);
+
         return app;
     }
 
@@ -128,5 +133,52 @@ public static class EventEndpoints
         await primitiveEventRepository.RemoveAsync(specification);
 
         return Results.Ok();
+    }
+
+    private static async Task<IResult> PostRebuild(ISessionContext sessionContext, IEventStoreContext eventStoreContext, ISqlServerStorageSchemaAccessor schemaAccessor, SqlServerStorageDbContext dbContext, IEventStoreRebuilder eventStoreRebuilder, Rebuild model, CancellationToken cancellationToken)
+    {
+        Guard.AgainstNull(sessionContext);
+        Guard.AgainstNull(eventStoreContext);
+        Guard.AgainstNull(schemaAccessor);
+        Guard.AgainstNull(dbContext);
+        Guard.AgainstNull(eventStoreRebuilder);
+
+        if (!eventStoreContext.HasAccess(sessionContext))
+        {
+            return Results.Ok(new EventStoreResponse<Rebuild.Result>());
+        }
+
+        var exception = eventStoreContext.ValidateEventStore();
+
+        if (exception != null)
+        {
+            return Results.Ok(new EventStoreResponse<Rebuild.Result> { Exception = exception });
+        }
+
+        if (model.SequenceNumberFromInclusive is < 1)
+        {
+            return Results.BadRequest("The sequence number from which to remove events must be greater than zero.");
+        }
+
+        if (!model.SequenceNumberFromInclusive.HasValue && model.ProjectionTables.Count == 0 && model.ProjectionNames.Count == 0)
+        {
+            return Results.BadRequest("No sequence number, projection tables, or projections have been specified.");
+        }
+
+        var unknownProjectionTables = model.ProjectionTables
+            .Where(name => !eventStoreContext.EventStore.ProjectionTables.Contains(name, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+
+        if (unknownProjectionTables.Count > 0)
+        {
+            return Results.BadRequest($"The following projection tables have not been configured for the '{eventStoreContext.EventStore.Name}' event store: {string.Join(", ", unknownProjectionTables)}");
+        }
+
+        dbContext.Database.SetConnectionString(eventStoreContext.EventStore.ConnectionString);
+        schemaAccessor.Schema = eventStoreContext.EventStore.Schema;
+
+        var result = await eventStoreRebuilder.RebuildAsync(eventStoreContext.EventStore, model, cancellationToken);
+
+        return Results.Ok(new EventStoreResponse<Rebuild.Result> { Items = [result] });
     }
 }

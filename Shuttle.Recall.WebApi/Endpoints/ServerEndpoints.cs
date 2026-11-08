@@ -25,10 +25,16 @@ public static class ServerEndpoints
 
         app.MapGet("/v{version:apiVersion}/server/event-stores", (IOptions<ApiOptions> apiOptions, ISessionContext sessionContext) =>
             {
-                var result = apiOptions.Value.EventStores.Select(eventStore => new EventStoreInfo
+                var result = apiOptions.Value.EventStores.Select(eventStore =>
                 {
-                    Name = eventStore.Name,
-                    HasAccess = string.IsNullOrWhiteSpace(eventStore.Permission) || sessionContext.HasPermission(eventStore.Permission)
+                    var hasAccess = string.IsNullOrWhiteSpace(eventStore.Permission) || sessionContext.HasPermission(eventStore.Permission);
+
+                    return new EventStoreInfo
+                    {
+                        Name = eventStore.Name,
+                        HasAccess = hasAccess,
+                        ProjectionTables = hasAccess ? eventStore.ProjectionTables : []
+                    };
                 }).ToList();
 
                 return Results.Ok(new EventStoreResponse<EventStoreInfo> { Items = result });

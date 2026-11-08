@@ -12,5 +12,10 @@ public class ApiOptions
         public string ConnectionString { get; set; } = string.Empty;
         public string Schema { get; set; } = "dbo";
         public string Permission { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     The (optionally schema-qualified) tables, in the same database as the event store, that are populated by projections.  These may be cleared when rebuilding projections and are cleared in the order listed.
+        /// </summary>
+        public List<string> ProjectionTables { get; set; } = [];
     }
 }

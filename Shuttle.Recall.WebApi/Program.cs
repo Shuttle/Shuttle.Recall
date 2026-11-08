@@ -62,6 +62,7 @@ public class Program
             .Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName))
             .AddScoped<IEventStoreContext, EventStoreContext>()
             .AddScoped<IPrimitiveEventQuery, PrimitiveEventQuery>()
+            .AddScoped<IEventStoreRebuilder, EventStoreRebuilder>()
             .AddLogging(builder =>
             {
                 builder.AddSerilog();
